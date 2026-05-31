@@ -19,7 +19,9 @@ trait ApiResponse
      */
     protected function success(mixed $data = null, ?string $message = null, int $status = 200): JsonResponse
     {
-        $payload = [];
+        $payload = [
+            'success' => true,
+        ];
 
         if ($message !== null) {
             $payload['message'] = $message;
@@ -41,6 +43,7 @@ trait ApiResponse
     protected function paginated(LengthAwarePaginator $paginator, mixed $data): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'data' => $data,
             'meta' => [
                 'current_page' => $paginator->currentPage(),

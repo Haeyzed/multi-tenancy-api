@@ -36,6 +36,22 @@ class PlanController extends Controller
     }
 
     /**
+     * List active plans as value/label pairs for select inputs.
+     */
+    public function options(): JsonResponse
+    {
+        $options = $this->service->getActive()
+            ->sortBy('sort_order')
+            ->values()
+            ->map(fn (Plan $plan): array => [
+                'value' => $plan->id,
+                'label' => $plan->name,
+            ]);
+
+        return $this->success($options);
+    }
+
+    /**
      * Create a new Plan.
      *
      * @param  StorePlanRequest  $request  Validated request payload.

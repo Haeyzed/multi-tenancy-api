@@ -102,6 +102,7 @@ Route::prefix('central')
             |------------------------------------------------------------------
             */
             Route::apiResource('plans', PlanController::class);
+            Route::get('plans/options/list', [PlanController::class, 'options'])->name('plans.options');
             Route::apiResource('plan-features', PlanFeatureController::class);
 
             /*
