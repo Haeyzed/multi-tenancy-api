@@ -1,0 +1,166 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Central;
+
+use App\Models\Central\Invoice;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+/**
+ * Central Invoice records and queries.
+ */
+class InvoiceService
+{
+    /**
+     * Get all Invoice records.
+     *
+     * @return Collection<int, Invoice>
+     */
+    public function getAll(): Collection
+    {
+        return Invoice::query()->get();
+    }
+
+    /**
+     * Get paginated Invoice records.
+     *
+     * @param  int  $perPage  Number of records per page.
+     * @return LengthAwarePaginator<int, Invoice>
+     */
+    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    {
+        return Invoice::query()->paginate($perPage);
+    }
+
+    /**
+     * Find Invoice by ID.
+     *
+     * @param  string  $id  Record identifier.
+     */
+    public function find(string $id): ?Invoice
+    {
+        return Invoice::query()->find($id);
+    }
+
+    /**
+     * Find Invoice by ID or fail.
+     *
+     * @param  string  $id  Record identifier.
+     */
+    public function findOrFail(string $id): Invoice
+    {
+        return Invoice::query()->findOrFail($id);
+    }
+
+    /**
+     * Create a new Invoice.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function create(array $data): Invoice
+    {
+        return Invoice::query()->create($data);
+    }
+
+    /**
+     * Update Invoice.
+     *
+     * @param  Invoice  $invoice  The model instance to update.
+     * @param  array<string, mixed>  $data  Attribute data to persist.
+     */
+    public function update(Invoice $invoice, array $data): Invoice
+    {
+        $invoice->query()->update($data);
+
+        return $invoice->fresh();
+    }
+
+    /**
+     * Delete Invoice.
+     *
+     * @param  Invoice  $invoice  The model instance to delete.
+     */
+    public function delete(Invoice $invoice): bool
+    {
+        return $invoice->query()->delete() > 0;
+    }
+
+    /**
+     * Filter by tenant.
+     *
+     * @param  string  $tenantId  Tenant UUID.
+     * @return Collection<int, Invoice>
+     */
+    public function getByTenant(string $tenantId): Collection
+    {
+        return Invoice::query()->where('tenant_id', $tenantId)->get();
+    }
+
+    /**
+     * Filter by status.
+     *
+     * @param  string  $status  Status value to filter by.
+     * @return Collection<int, Invoice>
+     */
+    public function getByStatus(string $status): Collection
+    {
+        return Invoice::query()->where('status', $status)->get();
+    }
+
+    /**
+     * Filter by subscription.
+     *
+     * @param  string  $subscriptionId  Subscription UUID to filter by.
+     * @return Collection<int, Invoice>
+     */
+    public function getBySubscription(string $subscriptionId): Collection
+    {
+        return Invoice::query()->where('subscription_id', $subscriptionId)->get();
+    }
+
+    /**
+     * Get overdue invoices.
+     *
+     * @return Collection<int, Invoice>
+     */
+    public function getOverdue(): Collection
+    {
+        return Invoice::query()->where('status', 'open')
+            ->where('due_date', '<', now())
+            ->get();
+    }
+
+    /**
+     * Mark an invoice as paid.
+     *
+     * @param  Invoice  $invoice  The invoice to mark as paid.
+     * @param  string|null  $paymentIntentId  Optional payment provider intent identifier.
+     */
+    public function markAsPaid(Invoice $invoice, ?string $paymentIntentId = null): Invoice
+    {
+        $invoice->query()->update([
+            'status' => 'paid',
+            'amount_paid' => $invoice->amount_due,
+            'amount_remaining' => 0,
+            'paid_at' => now(),
+            'payment_intent_id' => $paymentIntentId,
+        ]);
+
+        return $invoice->fresh();
+    }
+
+    /**
+     * Get invoices by tenant with items.
+     *
+     * @return Collection<int, Invoice>
+     */
+    public function getByTenantWithItems(string $tenantId): Collection
+    {
+        return Invoice::query()->with(['invoiceItems', 'payments'])
+            ->where('tenant_id', $tenantId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+}

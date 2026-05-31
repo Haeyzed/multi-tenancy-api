@@ -10,8 +10,17 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "dedoc/scramble": "*",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "predis/predis": "*",
+        "spatie/laravel-activitylog": "*",
+        "spatie/laravel-medialibrary": "*",
+        "spatie/laravel-permission": "*",
+        "spatie/laravel-sluggable": "*",
+        "stancl/tenancy": "*",
+        "stripe/stripe-php": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
