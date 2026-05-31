@@ -34,14 +34,16 @@ class TemplatedMailNotification extends Notification implements ShouldQueue
     {
         $message = (new MailMessage)->subject($this->mailSubject);
 
-        if ($this->bodyText !== null && $this->bodyText !== '') {
-            foreach (preg_split('/\r\n|\r|\n/', $this->bodyText) ?: [] as $line) {
-                if ($line !== '') {
-                    $message->line($line);
-                }
+        if ($this->bodyHtml !== null && $this->bodyHtml !== '') {
+            return $message->view('mail.central.notification', [
+                'content' => $this->bodyHtml,
+            ]);
+        }
+
+        foreach (preg_split('/\r\n|\r|\n/', (string) $this->bodyText) ?: [] as $line) {
+            if ($line !== '') {
+                $message->line($line);
             }
-        } elseif ($this->bodyHtml !== null && $this->bodyHtml !== '') {
-            $message->line(strip_tags($this->bodyHtml));
         }
 
         return $message;

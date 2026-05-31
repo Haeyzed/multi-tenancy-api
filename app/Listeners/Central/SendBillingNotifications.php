@@ -169,6 +169,7 @@ class SendBillingNotifications implements ShouldQueue
             'plan_name' => $tenant->plan?->name ?? 'your plan',
             'domain' => $tenant->domain,
             'app_name' => config('app.name'),
+            'app_url' => config('app.url'),
         ];
     }
 
