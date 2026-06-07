@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Enums\Central\UserRole;
 use App\Models\Central\Permission;
 use App\Models\Central\Role;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -24,6 +26,17 @@ class RoleService
     private const DETAIL_RELATIONS = [
         'permissions',
     ];
+
+    /**
+     * Spatie role names that cannot have permissions changed via the matrix.
+     *
+     * @var list<string>
+     */
+    private const SYSTEM_ROLE_NAMES = [
+        UserRole::SuperAdmin->value,
+    ];
+
+    private const DEFAULT_GUARD = 'web';
 
     /**
      * Base query with role detail relations.
@@ -124,6 +137,10 @@ class RoleService
      */
     public function syncPermissions(Role $role, array $permissionIds): Role
     {
+        if ($this->isSystemRole($role)) {
+            return $role->fresh(self::DETAIL_RELATIONS);
+        }
+
         $this->forgetPermissionCache();
 
         $permissions = Permission::query()
@@ -166,6 +183,111 @@ class RoleService
         $role->revokePermissionTo($permission);
 
         return $role->fresh(self::DETAIL_RELATIONS);
+    }
+
+    /**
+     * Bulk replace permissions for multiple roles from the matrix UI.
+     *
+     * @param  list<array{role_id: int, permission_ids: list<int>}>  $roles
+     */
+    public function syncPermissionsMatrix(array $roles): void
+    {
+        DB::transaction(function () use ($roles): void {
+            $this->forgetPermissionCache();
+
+            foreach ($roles as $entry) {
+                $role = Role::query()->findOrFail($entry['role_id']);
+
+                if ($this->isSystemRole($role)) {
+                    continue;
+                }
+
+                $permissions = Permission::query()
+                    ->whereIn('id', $entry['permission_ids'] ?? [])
+                    ->where('guard_name', $role->guard_name)
+                    ->pluck('id')
+                    ->all();
+
+                $role->syncPermissions($permissions);
+            }
+        });
+    }
+
+    /**
+     * Role-permission matrix payload for the admin UI.
+     *
+     * @return array{
+     *     guard_name: string,
+     *     total_permissions: int,
+     *     roles: list<array{
+     *         id: int,
+     *         name: string,
+     *         guard_name: string,
+     *         permission_ids: list<int>,
+     *         is_system: bool
+     *     }>,
+     *     permission_groups: list<array{
+     *         module: string,
+     *         permissions: list<array{id: int, name: string, guard_name: string}>
+     *     }>
+     * }
+     */
+    public function getPermissionsMatrix(?string $guard = null): array
+    {
+        $guardName = $guard ?? self::DEFAULT_GUARD;
+
+        $permissions = Permission::query()
+            ->where('guard_name', $guardName)
+            ->orderBy('module')
+            ->orderBy('name')
+            ->get();
+
+        $roles = Role::query()
+            ->where('guard_name', $guardName)
+            ->with('permissions:id')
+            ->orderBy('name')
+            ->get();
+
+        $permissionGroups = $permissions
+            ->groupBy(fn (Permission $permission) => $permission->module ?? 'general')
+            ->map(fn ($items, string $module) => [
+                'module' => $module,
+                'permissions' => $items
+                    ->map(fn (Permission $permission) => [
+                        'id' => $permission->id,
+                        'name' => $permission->name,
+                        'guard_name' => $permission->guard_name,
+                    ])
+                    ->values()
+                    ->all(),
+            ])
+            ->sortBy('module')
+            ->values()
+            ->all();
+
+        return [
+            'guard_name' => $guardName,
+            'total_permissions' => $permissions->count(),
+            'roles' => $roles
+                ->map(fn (Role $role) => [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'guard_name' => $role->guard_name,
+                    'permission_ids' => $role->permissions->pluck('id')->all(),
+                    'is_system' => $this->isSystemRole($role),
+                ])
+                ->values()
+                ->all(),
+            'permission_groups' => $permissionGroups,
+        ];
+    }
+
+    /**
+     * Determine whether the role is locked in the permissions matrix.
+     */
+    public function isSystemRole(Role $role): bool
+    {
+        return in_array($role->name, self::SYSTEM_ROLE_NAMES, true);
     }
 
     /**

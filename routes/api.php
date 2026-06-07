@@ -107,6 +107,8 @@ Route::prefix('central')
             Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
 
             Route::get('roles/metrics/cards', [RoleController::class, 'metrics'])->name('roles.metrics');
+            Route::get('roles/permissions/matrix', [RoleController::class, 'permissionsMatrix'])->name('roles.permissions.matrix');
+            Route::put('roles/permissions/matrix', [RoleController::class, 'syncPermissionsMatrix'])->name('roles.permissions.matrix.sync');
             Route::put('roles/{role}/permissions', [RoleController::class, 'syncPermissions'])->name('roles.permissions.sync');
             Route::post('roles/{role}/permissions', [RoleController::class, 'attachPermissions'])->name('roles.permissions.attach');
             Route::delete('roles/{role}/permissions/{permission}', [RoleController::class, 'detachPermission'])->name('roles.permissions.detach');

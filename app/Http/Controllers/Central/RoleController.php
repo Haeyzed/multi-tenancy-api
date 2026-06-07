@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Central;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\AttachRolePermissionsRequest;
 use App\Http\Requests\Central\StoreRoleRequest;
+use App\Http\Requests\Central\SyncRolePermissionsMatrixRequest;
 use App\Http\Requests\Central\SyncRolePermissionsRequest;
 use App\Http\Requests\Central\UpdateRoleRequest;
 use App\Http\Resources\Central\RoleResource;
@@ -47,6 +48,32 @@ class RoleController extends Controller
         return $this->success(
             ['cards' => $this->service->getMetrics()],
             'Role KPI metrics retrieved successfully.',
+        );
+    }
+
+    /**
+     * Role-permission matrix for the admin UI.
+     */
+    public function permissionsMatrix(Request $request): JsonResponse
+    {
+        $guard = $request->query('guard');
+
+        return $this->success(
+            $this->service->getPermissionsMatrix(is_string($guard) ? $guard : null),
+            'Role permissions matrix retrieved successfully.',
+        );
+    }
+
+    /**
+     * Bulk sync role permissions from the matrix UI.
+     */
+    public function syncPermissionsMatrix(SyncRolePermissionsMatrixRequest $request): JsonResponse
+    {
+        $this->service->syncPermissionsMatrix($request->validated('roles'));
+
+        return $this->success(
+            $this->service->getPermissionsMatrix(),
+            'Role permissions matrix synced successfully.',
         );
     }
 
