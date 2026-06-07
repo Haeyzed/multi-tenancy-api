@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,10 +24,13 @@ use Illuminate\Support\Carbon;
  * @property int $storage_used_mb
  * @property int $bandwidth_used_mb
  * @property int $api_calls
+ *
+ * @method static Builder|TenantMetric forTenant(?string $tenantId = null)
+ * @method static Builder|TenantMetric search(?string $search)
  */
 class TenantMetric extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -53,6 +58,16 @@ class TenantMetric extends Model
             'metric_date' => 'date',
             'total_revenue' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Scope a query to search by metric date.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where('metric_date', 'like', "%{$search}%");
+        });
     }
 
     /**

@@ -32,7 +32,7 @@ class TenantSupportMessageController extends Controller
         $perPage = $request->integer('per_page', 15);
         $items = $this->service->getPaginated($perPage);
 
-        return $this->paginated($items, TenantSupportMessageResource::collection($items));
+        return $this->paginated($items, TenantSupportMessageResource::collection($items), 'Support messages retrieved successfully.');
     }
 
     /**
@@ -54,7 +54,7 @@ class TenantSupportMessageController extends Controller
      */
     public function show(TenantSupportMessage $supportMessage): JsonResponse
     {
-        return $this->success(new TenantSupportMessageResource($supportMessage));
+        return $this->success(new TenantSupportMessageResource($supportMessage), 'Support message retrieved successfully.');
     }
 
     /**

@@ -30,9 +30,22 @@ class TenantHealthCheckController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, TenantHealthCheckResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, TenantHealthCheckResource::collection($items), 'Health checks retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for health checks.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Health check KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class TenantHealthCheckController extends Controller
      */
     public function show(TenantHealthCheck $healthCheck): JsonResponse
     {
-        return $this->success(new TenantHealthCheckResource($healthCheck));
+        return $this->success(new TenantHealthCheckResource($healthCheck), 'Health check retrieved successfully.');
     }
 
     /**

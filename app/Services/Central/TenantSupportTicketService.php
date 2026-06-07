@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Enums\Central\SupportTicketPriority;
 use App\Enums\Central\SupportTicketStatus;
 use App\Models\Central\TenantSupportTicket;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,22 +18,30 @@ class TenantSupportTicketService
     /**
      * Get all TenantSupportTicket records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, TenantSupportTicket>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return TenantSupportTicket::query()->get();
+        return TenantSupportTicket::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated TenantSupportTicket records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantSupportTicket>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return TenantSupportTicket::query()->paginate($perPage);
+        return TenantSupportTicket::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -170,5 +179,41 @@ class TenantSupportTicketService
         return TenantSupportTicket::query()->with(['tenant', 'assignee'])
             ->where('status', SupportTicketStatus::Open->value)
             ->get();
+    }
+
+    /**
+     * KPI card metrics for support tickets.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $query = TenantSupportTicket::query()->forTenant();
+
+        $counts = (clone $query)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $openStatuses = [
+            SupportTicketStatus::Open->value,
+            SupportTicketStatus::InProgress->value,
+            SupportTicketStatus::WaitingCustomer->value,
+        ];
+
+        $openCount = (clone $query)->whereIn('status', $openStatuses)->count();
+
+        $urgentOpen = (clone $query)
+            ->whereIn('status', $openStatuses)
+            ->where('priority', SupportTicketPriority::Urgent->value)
+            ->count();
+
+        return [
+            ['key' => 'total', 'label' => 'Total Tickets', 'value' => (int) $counts->sum()],
+            ['key' => 'open', 'label' => 'Open', 'value' => $openCount],
+            ['key' => 'resolved', 'label' => 'Resolved', 'value' => (int) ($counts[SupportTicketStatus::Resolved->value] ?? 0)],
+            ['key' => 'closed', 'label' => 'Closed', 'value' => (int) ($counts[SupportTicketStatus::Closed->value] ?? 0)],
+            ['key' => 'urgent_open', 'label' => 'Urgent Open', 'value' => $urgentOpen],
+        ];
     }
 }

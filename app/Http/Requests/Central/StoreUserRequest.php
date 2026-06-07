@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for creating a new central platform user.
  */
-class StoreUserRequest extends FormRequest
+class StoreUserRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -55,15 +53,6 @@ class StoreUserRequest extends FormRequest
             'password' => 'required|string|min:8',
 
             /**
-             * Platform role assigned to the user.
-             *
-             * @var string $role
-             *
-             * @example "super_admin"
-             */
-            'role' => 'required|string|in:super_admin,support,billing,technical',
-
-            /**
              * Whether the user account is active; optional.
              *
              * @var bool $is_active
@@ -71,6 +60,22 @@ class StoreUserRequest extends FormRequest
              * @example true
              */
             'is_active' => 'sometimes|boolean',
+
+            /**
+             * Spatie role IDs to assign to the user.
+             *
+             * @var list<int> $role_ids
+             */
+            'role_ids' => 'sometimes|array',
+            'role_ids.*' => 'integer|exists:roles,id',
+
+            /**
+             * Direct Spatie permission IDs to assign to the user.
+             *
+             * @var list<int> $permission_ids
+             */
+            'permission_ids' => 'sometimes|array',
+            'permission_ids.*' => 'integer|exists:permissions,id',
         ];
     }
 }

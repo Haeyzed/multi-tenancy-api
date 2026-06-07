@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
-use App\Enums\Central\UserRole;
 use Database\Factories\Central\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,12 +24,13 @@ use Stancl\Tenancy\Database\Concerns\CentralConnection;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
- * @property UserRole $role
  * @property Carbon|null $last_login_at
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
+ * * @method static Builder|User search(?string $search)
  */
 class User extends Authenticatable
 {
@@ -49,7 +50,6 @@ class User extends Authenticatable
         'email',
         'email_verified_at',
         'password',
-        'role',
         'last_login_at',
         'is_active',
     ];
@@ -70,12 +70,30 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'role' => UserRole::class,
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Scope a query to search by name or email.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('roles', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('permissions', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        });
     }
 
     /**

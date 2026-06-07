@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\Permission;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -14,24 +15,42 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class PermissionService
 {
     /**
+     * Base query for permission records.
+     *
+     * @return Builder<Permission>
+     */
+    private function query(): Builder
+    {
+        return Permission::query();
+    }
+
+    /**
      * Get all Permission records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, Permission>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return Permission::query()->get();
+        return $this->query()
+            ->search($search)
+            ->orderBy('name')
+            ->get();
     }
 
     /**
      * Get paginated Permission records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Permission>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return Permission::query()->paginate($perPage);
+        return $this->query()
+            ->search($search)
+            ->orderBy('name')
+            ->paginate($perPage);
     }
 
     /**
@@ -41,7 +60,7 @@ class PermissionService
      */
     public function find(int $id): ?Permission
     {
-        return Permission::query()->find($id);
+        return $this->query()->find($id);
     }
 
     /**
@@ -51,7 +70,7 @@ class PermissionService
      */
     public function findOrFail(int $id): Permission
     {
-        return Permission::query()->findOrFail($id);
+        return $this->query()->findOrFail($id);
     }
 
     /**
@@ -72,7 +91,7 @@ class PermissionService
      */
     public function update(Permission $permission, array $data): Permission
     {
-        $permission->query()->update($data);
+        $permission->update($data);
 
         return $permission->fresh();
     }
@@ -84,6 +103,27 @@ class PermissionService
      */
     public function delete(Permission $permission): bool
     {
-        return $permission->query()->delete() > 0;
+        return $permission->delete();
+    }
+
+    /**
+     * KPI card metrics for permissions.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $total = Permission::query()->count();
+        $withModule = Permission::query()->whereNotNull('module')->count();
+        $modules = Permission::query()
+            ->whereNotNull('module')
+            ->distinct()
+            ->count('module');
+
+        return [
+            ['key' => 'total', 'label' => 'Total Permissions', 'value' => $total],
+            ['key' => 'with_module', 'label' => 'With Module', 'value' => $withModule],
+            ['key' => 'modules', 'label' => 'Modules', 'value' => $modules],
+        ];
     }
 }

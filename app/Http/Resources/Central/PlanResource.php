@@ -116,13 +116,13 @@ class PlanResource extends JsonResource
             'sort_order' => $this->sort_order,
 
             /**
-             * Legacy feature list stored on the plan.
+             * Marketing/display copy for pricing pages (not used for access control).
              *
-             * @example {"users":10}
+             * @example {"highlights":["Up to 100 products","API access"]}
              *
              * @default null
              */
-            'features' => $this->features,
+            'display_features' => $this->features,
 
             /**
              * Timestamp when the plan was created.
@@ -155,7 +155,7 @@ class PlanResource extends JsonResource
             'tenants' => TenantResource::collection($this->whenLoaded('tenants')),
 
             /**
-             * Structured plan features when eager loaded.
+             * Enforceable plan features (limits and flags) when eager loaded.
              *
              * @default null
              */

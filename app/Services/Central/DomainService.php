@@ -16,22 +16,30 @@ class DomainService
     /**
      * Get all Domain records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, Domain>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return Domain::query()->get();
+        return Domain::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated Domain records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Domain>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return Domain::query()->paginate($perPage);
+        return Domain::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**

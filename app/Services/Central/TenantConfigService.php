@@ -16,22 +16,30 @@ class TenantConfigService
     /**
      * Get all TenantConfig records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, TenantConfig>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return TenantConfig::query()->get();
+        return TenantConfig::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated TenantConfig records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantConfig>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return TenantConfig::query()->paginate($perPage);
+        return TenantConfig::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**

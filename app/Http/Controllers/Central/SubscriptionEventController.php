@@ -32,7 +32,7 @@ class SubscriptionEventController extends Controller
         $perPage = $request->integer('per_page', 15);
         $items = $this->service->getPaginated($perPage);
 
-        return $this->paginated($items, SubscriptionEventResource::collection($items));
+        return $this->paginated($items, SubscriptionEventResource::collection($items), 'Subscription events retrieved successfully.');
     }
 
     /**
@@ -54,7 +54,7 @@ class SubscriptionEventController extends Controller
      */
     public function show(SubscriptionEvent $subscriptionEvent): JsonResponse
     {
-        return $this->success(new SubscriptionEventResource($subscriptionEvent));
+        return $this->success(new SubscriptionEventResource($subscriptionEvent), 'Subscription event retrieved successfully.');
     }
 
     /**

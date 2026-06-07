@@ -6,6 +6,8 @@ namespace App\Models\Central;
 
 use App\Enums\Central\HealthCheckStatus;
 use App\Enums\Central\HealthCheckType;
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,10 +23,13 @@ use Illuminate\Support\Carbon;
  * @property int|null $response_time_ms
  * @property string|null $message
  * @property Carbon $checked_at
+ *
+ * @method static Builder|TenantHealthCheck forTenant(?string $tenantId = null)
+ * @method static Builder|TenantHealthCheck search(?string $search)
  */
 class TenantHealthCheck extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -50,6 +55,20 @@ class TenantHealthCheck extends Model
             'status' => HealthCheckStatus::class,
             'checked_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope a query to search by message, check type, or status.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('message', 'like', "%{$search}%")
+                    ->orWhere('check_type', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

@@ -16,22 +16,30 @@ class UsageRecordService
     /**
      * Get all UsageRecord records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, UsageRecord>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return UsageRecord::query()->get();
+        return UsageRecord::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated UsageRecord records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, UsageRecord>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return UsageRecord::query()->paginate($perPage);
+        return UsageRecord::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**

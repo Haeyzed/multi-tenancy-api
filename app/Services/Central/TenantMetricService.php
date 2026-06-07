@@ -17,22 +17,30 @@ class TenantMetricService
     /**
      * Get all TenantMetric records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, TenantMetric>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return TenantMetric::query()->get();
+        return TenantMetric::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated TenantMetric records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantMetric>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return TenantMetric::query()->paginate($perPage);
+        return TenantMetric::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -109,5 +117,45 @@ class TenantMetricService
     public function getByDateRange(string $start, string $end): Collection
     {
         return TenantMetric::query()->whereBetween('metric_date', [Carbon::parse($start), Carbon::parse($end)])->get();
+    }
+
+    /**
+     * KPI card metrics for tenant usage and revenue.
+     *
+     * @return list<array{key: string, label: string, value: int|float|string}>
+     */
+    public function getMetrics(): array
+    {
+        $query = TenantMetric::query()->forTenant();
+
+        if (request()->filled('start_date') && request()->filled('end_date')) {
+            $query->whereBetween('metric_date', [
+                Carbon::parse(request('start_date')),
+                Carbon::parse(request('end_date')),
+            ]);
+        }
+
+        $aggregates = (clone $query)->selectRaw('
+            COALESCE(SUM(total_orders), 0) as total_orders,
+            COALESCE(SUM(total_revenue), 0) as total_revenue,
+            COALESCE(SUM(total_products), 0) as total_products,
+            COALESCE(SUM(total_customers), 0) as total_customers,
+            COALESCE(SUM(storage_used_mb), 0) as storage_used_mb,
+            COALESCE(SUM(bandwidth_used_mb), 0) as bandwidth_used_mb,
+            COALESCE(SUM(api_calls), 0) as api_calls
+        ')->first();
+
+        $tenantsTracked = (clone $query)->distinct('tenant_id')->count('tenant_id');
+
+        return [
+            ['key' => 'tenants_tracked', 'label' => 'Tenants Tracked', 'value' => $tenantsTracked],
+            ['key' => 'total_orders', 'label' => 'Total Orders', 'value' => (int) $aggregates->total_orders],
+            ['key' => 'total_revenue', 'label' => 'Total Revenue', 'value' => (string) $aggregates->total_revenue],
+            ['key' => 'total_products', 'label' => 'Total Products', 'value' => (int) $aggregates->total_products],
+            ['key' => 'total_customers', 'label' => 'Total Customers', 'value' => (int) $aggregates->total_customers],
+            ['key' => 'storage_used_mb', 'label' => 'Storage Used (MB)', 'value' => (int) $aggregates->storage_used_mb],
+            ['key' => 'bandwidth_used_mb', 'label' => 'Bandwidth Used (MB)', 'value' => (int) $aggregates->bandwidth_used_mb],
+            ['key' => 'api_calls', 'label' => 'API Calls', 'value' => (int) $aggregates->api_calls],
+        ];
     }
 }

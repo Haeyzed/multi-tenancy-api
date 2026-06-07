@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,10 +18,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $key
  * @property string|null $value
  * @property bool $encrypted
+ *
+ * @method static Builder|TenantConfig forTenant(?string $tenantId = null)
+ * @method static Builder|TenantConfig search(?string $search)
  */
 class TenantConfig extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -41,6 +46,19 @@ class TenantConfig extends Model
         return [
             'encrypted' => 'boolean',
         ];
+    }
+
+    /**
+     * Scope a query to search by key or value.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('key', 'like', "%{$search}%")
+                    ->orWhere('value', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\InvoiceStatus;
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,10 +35,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $payment_intent_id
  * @property array<string, mixed>|null $line_items
  * @property string|null $notes
+ *
+ * @method static Builder|Invoice forTenant(?string $tenantId = null)
+ * @method static Builder|Invoice search(?string $search)
  */
 class Invoice extends Model
 {
-    use HasFactory, HasUuids;
+    use FilterableByTenant, HasFactory, HasUuids;
 
     /**
      * @var list<string>
@@ -75,6 +80,20 @@ class Invoice extends Model
             'due_date' => 'datetime',
             'paid_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope a query to search by invoice number, notes, or payment intent ID.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhere('payment_intent_id', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

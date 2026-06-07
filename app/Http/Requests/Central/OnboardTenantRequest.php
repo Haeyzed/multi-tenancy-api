@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates tenant onboarding payload.
  */
-class OnboardTenantRequest extends FormRequest
+class OnboardTenantRequest extends BaseRequest
 {
     public function authorize(): bool
     {

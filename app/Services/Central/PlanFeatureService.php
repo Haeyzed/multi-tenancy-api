@@ -29,9 +29,12 @@ class PlanFeatureService
      * @param  int  $perPage  Number of records per page.
      * @return LengthAwarePaginator<int, PlanFeature>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $planId = null): LengthAwarePaginator
     {
-        return PlanFeature::query()->paginate($perPage);
+        return PlanFeature::query()
+            ->when($planId, fn ($query) => $query->where('plan_id', $planId))
+            ->orderBy('feature_key')
+            ->paginate($perPage);
     }
 
     /**
@@ -72,7 +75,7 @@ class PlanFeatureService
      */
     public function update(PlanFeature $planFeature, array $data): PlanFeature
     {
-        $planFeature->query()->update($data);
+        $planFeature->update($data);
 
         return $planFeature->fresh();
     }
@@ -84,7 +87,7 @@ class PlanFeatureService
      */
     public function delete(PlanFeature $planFeature): bool
     {
-        return $planFeature->query()->delete() > 0;
+        return $planFeature->delete();
     }
 
     /**

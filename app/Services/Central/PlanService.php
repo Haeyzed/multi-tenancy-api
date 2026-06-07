@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\Plan;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -14,24 +15,51 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class PlanService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const DETAIL_RELATIONS = [
+        'planFeatures',
+    ];
+
+    /**
+     * Base query with plan detail relations.
+     *
+     * @return Builder<Plan>
+     */
+    private function queryWithDetails(): Builder
+    {
+        return Plan::query()->with(self::DETAIL_RELATIONS);
+    }
+
+    /**
      * Get all Plan records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, Plan>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return Plan::query()->get();
+        return $this->queryWithDetails()
+            ->search($search)
+            ->orderBy('sort_order')
+            ->get();
     }
 
     /**
      * Get paginated Plan records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Plan>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return Plan::query()->paginate($perPage);
+        return $this->queryWithDetails()
+            ->search($search)
+            ->orderBy('sort_order')
+            ->paginate($perPage);
     }
 
     /**
@@ -41,7 +69,7 @@ class PlanService
      */
     public function find(string $id): ?Plan
     {
-        return Plan::query()->find($id);
+        return $this->queryWithDetails()->find($id);
     }
 
     /**
@@ -51,7 +79,7 @@ class PlanService
      */
     public function findOrFail(string $id): Plan
     {
-        return Plan::query()->findOrFail($id);
+        return $this->queryWithDetails()->findOrFail($id);
     }
 
     /**
@@ -72,7 +100,7 @@ class PlanService
      */
     public function update(Plan $plan, array $data): Plan
     {
-        $plan->query()->update($data);
+        $plan->update($data);
 
         return $plan->fresh();
     }
@@ -84,7 +112,7 @@ class PlanService
      */
     public function delete(Plan $plan): bool
     {
-        return $plan->query()->delete() > 0;
+        return $plan->delete();
     }
 
     /**
@@ -95,7 +123,7 @@ class PlanService
     public function restore(string $id): Plan
     {
         $model = Plan::withTrashed()->findOrFail($id);
-        $model->query()->restore();
+        $model->restore();
 
         return $model;
     }
@@ -109,7 +137,7 @@ class PlanService
     {
         $model = Plan::withTrashed()->findOrFail($id);
 
-        return $model->query()->forceDelete() > 0;
+        return $model->forceDelete();
     }
 
     /**
@@ -119,20 +147,46 @@ class PlanService
      */
     public function getActive(): Collection
     {
-        return Plan::query()->where('is_active', true)->get();
+        return Plan::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
     }
 
     /**
-     * Get public active plans ordered by tier.
+     * Get active public plans for pricing/signup pages (includes display + enforceable features).
      *
      * @return Collection<int, Plan>
      */
     public function getPublicPlans(): Collection
     {
-        return Plan::query()->where('is_active', true)
+        return Plan::query()
+            ->where('is_active', true)
             ->where('is_public', true)
-            ->orderBy('sort_order', 'asc')
+            ->with('planFeatures')
+            ->orderBy('sort_order')
             ->get();
+    }
+
+    /**
+     * Get active plans as value/label pairs for select inputs.
+     *
+     * @param  bool  $publicOnly  When true, only plans marked public (self-service signup).
+     * @return list<array{value: string, label: string}>
+     */
+    public function getOptions(bool $publicOnly = false): array
+    {
+        return Plan::query()
+            ->where('is_active', true)
+            ->when($publicOnly, fn ($query) => $query->where('is_public', true))
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (Plan $plan): array => [
+                'value' => $plan->id,
+                'label' => $plan->name,
+            ])
+            ->values()
+            ->all();
     }
 
     /**
@@ -142,6 +196,26 @@ class PlanService
      */
     public function getWithFeatures(Plan $plan): Plan
     {
-        return $plan->query()->with('planFeatures')->first();
+        return $plan->load('planFeatures');
+    }
+
+    /**
+     * KPI card metrics for plans.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $total = Plan::query()->count();
+        $active = Plan::query()->where('is_active', true)->count();
+        $public = Plan::query()->where('is_public', true)->count();
+        $withFeatures = Plan::query()->whereHas('planFeatures')->count();
+
+        return [
+            ['key' => 'total', 'label' => 'Total Plans', 'value' => $total],
+            ['key' => 'active', 'label' => 'Active', 'value' => $active],
+            ['key' => 'public', 'label' => 'Public', 'value' => $public],
+            ['key' => 'with_features', 'label' => 'With Features', 'value' => $withFeatures],
+        ];
     }
 }

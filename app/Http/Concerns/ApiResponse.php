@@ -39,19 +39,27 @@ trait ApiResponse
      *
      * @param  LengthAwarePaginator<int, mixed>  $paginator  Paginated query result.
      * @param  mixed  $data  Resource collection for the current page.
+     * @param  string|null  $message  Optional human-readable status message.
      */
-    protected function paginated(LengthAwarePaginator $paginator, mixed $data): JsonResponse
+    protected function paginated(LengthAwarePaginator $paginator, mixed $data, ?string $message = null): JsonResponse
     {
-        return response()->json([
+        $payload = [
             'success' => true,
-            'data' => $data,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-            ],
-        ]);
+        ];
+
+        if ($message !== null) {
+            $payload['message'] = $message;
+        }
+
+        $payload['data'] = $data;
+        $payload['meta'] = [
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ];
+
+        return response()->json($payload);
     }
 
     /**

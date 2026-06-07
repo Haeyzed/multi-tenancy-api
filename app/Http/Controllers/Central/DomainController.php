@@ -30,9 +30,11 @@ class DomainController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, DomainResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, DomainResource::collection($items), 'Domains retrieved successfully.');
     }
 
     /**
@@ -54,7 +56,7 @@ class DomainController extends Controller
      */
     public function show(Domain $domain): JsonResponse
     {
-        return $this->success(new DomainResource($domain));
+        return $this->success(new DomainResource($domain), 'Domain retrieved successfully.');
     }
 
     /**

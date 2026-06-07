@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,10 +20,13 @@ use Illuminate\Support\Carbon;
  * @property string $token
  * @property Carbon $expires_at
  * @property Carbon|null $used_at
+ *
+ * @method static Builder|TenantImpersonationToken forTenant(?string $tenantId = null)
+ * @method static Builder|TenantImpersonationToken search(?string $search)
  */
 class TenantImpersonationToken extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -45,6 +50,16 @@ class TenantImpersonationToken extends Model
             'expires_at' => 'datetime',
             'used_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope a query to search by token.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where('token', 'like', "%{$search}%");
+        });
     }
 
     /**

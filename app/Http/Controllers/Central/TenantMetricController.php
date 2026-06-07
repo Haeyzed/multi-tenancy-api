@@ -30,9 +30,22 @@ class TenantMetricController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, TenantMetricResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, TenantMetricResource::collection($items), 'Tenant metrics retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for tenant usage and revenue.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Usage KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class TenantMetricController extends Controller
      */
     public function show(TenantMetric $metric): JsonResponse
     {
-        return $this->success(new TenantMetricResource($metric));
+        return $this->success(new TenantMetricResource($metric), 'Tenant metric retrieved successfully.');
     }
 
     /**

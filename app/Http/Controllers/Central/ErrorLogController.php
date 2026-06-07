@@ -30,9 +30,22 @@ class ErrorLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, ErrorLogResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, ErrorLogResource::collection($items), 'Error logs retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for error logs.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Error log KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class ErrorLogController extends Controller
      */
     public function show(ErrorLog $errorLog): JsonResponse
     {
-        return $this->success(new ErrorLogResource($errorLog));
+        return $this->success(new ErrorLogResource($errorLog), 'Error log retrieved successfully.');
     }
 
     /**

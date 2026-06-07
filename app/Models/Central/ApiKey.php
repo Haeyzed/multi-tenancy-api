@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,10 +22,13 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_used_at
  * @property Carbon|null $expires_at
  * @property bool $is_active
+ *
+ * @method static Builder|ApiKey forTenant(?string $tenantId = null)
+ * @method static Builder|ApiKey search(?string $search)
  */
 class ApiKey extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -51,6 +56,16 @@ class ApiKey extends Model
             'expires_at' => 'datetime',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Scope a query to search by name.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where('name', 'like', "%{$search}%");
+        });
     }
 
     /**

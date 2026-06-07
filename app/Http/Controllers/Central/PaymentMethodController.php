@@ -30,9 +30,11 @@ class PaymentMethodController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, PaymentMethodResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, PaymentMethodResource::collection($items), 'Payment methods retrieved successfully.');
     }
 
     /**
@@ -54,7 +56,7 @@ class PaymentMethodController extends Controller
      */
     public function show(PaymentMethod $paymentMethod): JsonResponse
     {
-        return $this->success(new PaymentMethodResource($paymentMethod));
+        return $this->success(new PaymentMethodResource($paymentMethod), 'Payment method retrieved successfully.');
     }
 
     /**

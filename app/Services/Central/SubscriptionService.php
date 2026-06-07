@@ -10,6 +10,7 @@ use App\Enums\Central\SubscriptionStatus;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
 use App\Models\Central\Tenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -18,29 +19,61 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class SubscriptionService
 {
+    /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const DETAIL_RELATIONS = [
+        'tenant',
+        'plan',
+        'latestInvoice',
+        'invoices',
+        'subscriptionItems',
+        'usageRecords',
+    ];
+
     public function __construct(
         private readonly SubscriptionLifecycleService $lifecycle,
     ) {}
 
     /**
+     * Base query with subscription detail relations.
+     *
+     * @return Builder<Subscription>
+     */
+    private function queryWithDetails(): Builder
+    {
+        return Subscription::query()->with(self::DETAIL_RELATIONS);
+    }
+
+    /**
      * Get all Subscription records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, Subscription>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return Subscription::query()->get();
+        return $this->queryWithDetails()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated Subscription records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Subscription>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return Subscription::query()->paginate($perPage);
+        return $this->queryWithDetails()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -50,7 +83,7 @@ class SubscriptionService
      */
     public function find(string $id): ?Subscription
     {
-        return Subscription::query()->find($id);
+        return $this->queryWithDetails()->find($id);
     }
 
     /**
@@ -60,7 +93,7 @@ class SubscriptionService
      */
     public function findOrFail(string $id): Subscription
     {
-        return Subscription::query()->findOrFail($id);
+        return $this->queryWithDetails()->findOrFail($id);
     }
 
     /**
@@ -194,5 +227,29 @@ class SubscriptionService
                 SubscriptionStatus::Trialing->value,
             ])
             ->get();
+    }
+
+    /**
+     * KPI card metrics for subscriptions.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $counts = Subscription::query()
+            ->forTenant()
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        return [
+            ['key' => 'total', 'label' => 'Total Subscriptions', 'value' => (int) $counts->sum()],
+            ['key' => 'active', 'label' => 'Active', 'value' => (int) ($counts[SubscriptionStatus::Active->value] ?? 0)],
+            ['key' => 'trialing', 'label' => 'Trialing', 'value' => (int) ($counts[SubscriptionStatus::Trialing->value] ?? 0)],
+            ['key' => 'past_due', 'label' => 'Past Due', 'value' => (int) ($counts[SubscriptionStatus::PastDue->value] ?? 0)],
+            ['key' => 'cancelled', 'label' => 'Cancelled', 'value' => (int) ($counts[SubscriptionStatus::Cancelled->value] ?? 0)],
+            ['key' => 'paused', 'label' => 'Paused', 'value' => (int) ($counts[SubscriptionStatus::Paused->value] ?? 0)],
+            ['key' => 'expired', 'label' => 'Expired', 'value' => (int) ($counts[SubscriptionStatus::Expired->value] ?? 0)],
+        ];
     }
 }

@@ -7,6 +7,8 @@ namespace App\Models\Central;
 use App\Enums\Central\BillingCycle;
 use App\Enums\Central\PaymentProvider;
 use App\Enums\Central\SubscriptionStatus;
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,10 +33,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $payment_provider_id
  * @property string|null $payment_method_id
  * @property string|null $latest_invoice_id
+ *
+ * @method static Builder|Subscription forTenant(?string $tenantId = null)
+ * @method static Builder|Subscription search(?string $search)
  */
 class Subscription extends Model
 {
-    use HasFactory, HasUuids;
+    use FilterableByTenant, HasFactory, HasUuids;
 
     /**
      * @var list<string>
@@ -71,6 +76,29 @@ class Subscription extends Model
             'trial_ends_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope a query to search by cancellation reason or payment provider ID.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('cancellation_reason', 'like', "%{$search}%")
+                    ->orWhere('payment_provider_id', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%")
+                            ->orWhere('domain', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('plan', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
+            });
+        });
     }
 
     /**

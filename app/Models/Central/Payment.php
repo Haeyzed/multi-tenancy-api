@@ -7,6 +7,8 @@ namespace App\Models\Central;
 use App\Enums\Central\PaymentMethodType;
 use App\Enums\Central\PaymentProvider;
 use App\Enums\Central\PaymentStatus;
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,10 +29,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $payment_method_last4
  * @property string|null $failure_message
  * @property int $refunded_amount
+ *
+ * @method static Builder|Payment forTenant(?string $tenantId = null)
+ * @method static Builder|Payment search(?string $search)
  */
 class Payment extends Model
 {
-    use HasFactory, HasUuids;
+    use FilterableByTenant, HasFactory, HasUuids;
 
     /**
      * @var list<string>
@@ -61,6 +66,20 @@ class Payment extends Model
             'payment_provider' => PaymentProvider::class,
             'payment_method_type' => PaymentMethodType::class,
         ];
+    }
+
+    /**
+     * Scope a query to search by provider payment ID, failure message, or currency.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('provider_payment_id', 'like', "%{$search}%")
+                    ->orWhere('failure_message', 'like', "%{$search}%")
+                    ->orWhere('currency', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

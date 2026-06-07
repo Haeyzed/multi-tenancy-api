@@ -30,9 +30,11 @@ class PlanController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, PlanResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, PlanResource::collection($items), 'Plans retrieved successfully.');
     }
 
     /**
@@ -40,15 +42,18 @@ class PlanController extends Controller
      */
     public function options(): JsonResponse
     {
-        $options = $this->service->getActive()
-            ->sortBy('sort_order')
-            ->values()
-            ->map(fn (Plan $plan): array => [
-                'value' => $plan->id,
-                'label' => $plan->name,
-            ]);
+        return $this->success($this->service->getOptions(), 'Plan options retrieved successfully.');
+    }
 
-        return $this->success($options);
+    /**
+     * KPI card metrics for plans.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Plan KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -70,7 +75,9 @@ class PlanController extends Controller
      */
     public function show(Plan $plan): JsonResponse
     {
-        return $this->success(new PlanResource($plan));
+        $item = $this->service->findOrFail($plan->id);
+
+        return $this->success(new PlanResource($item), 'Plan retrieved successfully.');
     }
 
     /**

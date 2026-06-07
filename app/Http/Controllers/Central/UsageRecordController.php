@@ -30,9 +30,11 @@ class UsageRecordController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, UsageRecordResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, UsageRecordResource::collection($items), 'Usage records retrieved successfully.');
     }
 
     /**
@@ -54,7 +56,7 @@ class UsageRecordController extends Controller
      */
     public function show(UsageRecord $usageRecord): JsonResponse
     {
-        return $this->success(new UsageRecordResource($usageRecord));
+        return $this->success(new UsageRecordResource($usageRecord), 'Usage record retrieved successfully.');
     }
 
     /**

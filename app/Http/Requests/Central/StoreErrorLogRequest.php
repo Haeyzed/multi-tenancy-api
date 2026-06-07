@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for creating a new platform error log entry.
  */
-class StoreErrorLogRequest extends FormRequest
+class StoreErrorLogRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

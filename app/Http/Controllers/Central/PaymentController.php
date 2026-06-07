@@ -30,9 +30,22 @@ class PaymentController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, PaymentResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, PaymentResource::collection($items), 'Payments retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for payments.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Payment KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class PaymentController extends Controller
      */
     public function show(Payment $payment): JsonResponse
     {
-        return $this->success(new PaymentResource($payment));
+        return $this->success(new PaymentResource($payment), 'Payment retrieved successfully.');
     }
 
     /**

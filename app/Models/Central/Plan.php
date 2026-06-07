@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use Database\Factories\Central\PlanFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +27,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $currency
  * @property int $trial_days
  * @property int $sort_order
- * @property array<string, mixed> $features
+ * @property array<string, mixed>|null $features Marketing/display copy for pricing UI (not used for access control).
+ *
+ * @method static Builder|Plan search(?string $search)
  */
 class Plan extends Model
 {
@@ -71,6 +74,20 @@ class Plan extends Model
     }
 
     /**
+     * Scope a query to search by name, slug, or description.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
      * Tenants currently assigned to this plan.
      */
     public function tenants(): HasMany
@@ -79,7 +96,7 @@ class Plan extends Model
     }
 
     /**
-     * Structured feature limits defined for this plan.
+     * Enforceable feature limits and flags for this plan (used by middleware and quotas).
      */
     public function planFeatures(): HasMany
     {

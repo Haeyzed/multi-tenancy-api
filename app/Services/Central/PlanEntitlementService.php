@@ -10,12 +10,14 @@ use App\Models\Central\Tenant;
 use Illuminate\Support\Collection;
 
 /**
- * Resolve plan feature entitlements for tenants.
+ * Resolve plan entitlements from {@see PlanFeature} rows (not plans.features JSON).
+ *
+ * The plans.features column is display/marketing copy only — see Plan::$features.
  */
 class PlanEntitlementService
 {
     /**
-     * Get all resolved features for a tenant keyed by feature_key.
+     * Get all enforceable entitlements for a tenant keyed by feature_key.
      *
      * @return array<string, bool|int|float|string>
      */
@@ -27,17 +29,13 @@ class PlanEntitlementService
             return [];
         }
 
-        $features = [];
+        $entitlements = [];
 
         foreach ($tenant->plan->planFeatures as $feature) {
-            $features[$feature->feature_key] = $this->castFeatureValue($feature);
+            $entitlements[$feature->feature_key] = $this->castFeatureValue($feature);
         }
 
-        foreach ($tenant->plan->features ?? [] as $key => $value) {
-            $features[$key] ??= $value;
-        }
-
-        return $features;
+        return $entitlements;
     }
 
     /**

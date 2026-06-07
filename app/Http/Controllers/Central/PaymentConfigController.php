@@ -28,6 +28,6 @@ class PaymentConfigController extends Controller
                 'success_url' => config('payments.checkout.success_url'),
                 'cancel_url' => config('payments.checkout.cancel_url'),
             ],
-        ]);
+        ], 'Payment configuration retrieved successfully.');
     }
 }

@@ -55,6 +55,13 @@ class RoleResource extends JsonResource
              * @example "2026-01-15T10:30:00+00:00"
              */
             'updated_at' => $this->updated_at?->toIso8601String(),
+
+            /**
+             * Permissions granted through this role when eager loaded.
+             *
+             * @default null
+             */
+            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
         ];
     }
 }

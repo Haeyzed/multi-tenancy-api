@@ -17,22 +17,30 @@ class ErrorLogService
     /**
      * Get all ErrorLog records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, ErrorLog>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return ErrorLog::query()->get();
+        return ErrorLog::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated ErrorLog records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, ErrorLog>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return ErrorLog::query()->paginate($perPage);
+        return ErrorLog::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -133,5 +141,36 @@ class ErrorLogService
             ->whereIn('severity', [ErrorLogSeverity::Error->value, ErrorLogSeverity::Critical->value])
             ->orderBy('created_at', 'desc')
             ->get();
+    }
+
+    /**
+     * KPI card metrics for error logs.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $query = ErrorLog::query()->forTenant();
+
+        $counts = (clone $query)
+            ->selectRaw('severity, COUNT(*) as count')
+            ->groupBy('severity')
+            ->pluck('count', 'severity');
+
+        $unresolved = (clone $query)->whereNull('resolved_at')->count();
+
+        $unresolvedCritical = (clone $query)
+            ->whereNull('resolved_at')
+            ->where('severity', ErrorLogSeverity::Critical->value)
+            ->count();
+
+        return [
+            ['key' => 'total', 'label' => 'Total Errors', 'value' => (int) $counts->sum()],
+            ['key' => 'unresolved', 'label' => 'Unresolved', 'value' => $unresolved],
+            ['key' => 'unresolved_critical', 'label' => 'Unresolved Critical', 'value' => $unresolvedCritical],
+            ['key' => 'critical', 'label' => 'Critical', 'value' => (int) ($counts[ErrorLogSeverity::Critical->value] ?? 0)],
+            ['key' => 'error', 'label' => 'Error', 'value' => (int) ($counts[ErrorLogSeverity::Error->value] ?? 0)],
+            ['key' => 'warning', 'label' => 'Warning', 'value' => (int) ($counts[ErrorLogSeverity::Warning->value] ?? 0)],
+        ];
     }
 }

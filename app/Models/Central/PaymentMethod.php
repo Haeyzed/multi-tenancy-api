@@ -6,6 +6,8 @@ namespace App\Models\Central;
 
 use App\Enums\Central\PaymentMethodKind;
 use App\Enums\Central\PaymentProvider;
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,10 +26,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $exp_year
  * @property bool $is_default
  * @property array<string, mixed>|null $billing_details
+ *
+ * @method static Builder|PaymentMethod forTenant(?string $tenantId = null)
+ * @method static Builder|PaymentMethod search(?string $search)
  */
 class PaymentMethod extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -58,6 +63,20 @@ class PaymentMethod extends Model
             'billing_details' => 'array',
             'is_default' => 'boolean',
         ];
+    }
+
+    /**
+     * Scope a query to search by brand, last4, or provider method ID.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('brand', 'like', "%{$search}%")
+                    ->orWhere('last4', 'like', "%{$search}%")
+                    ->orWhere('provider_method_id', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

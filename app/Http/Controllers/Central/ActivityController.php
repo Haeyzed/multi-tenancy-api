@@ -30,7 +30,7 @@ class ActivityController extends Controller
         $perPage = $request->integer('per_page', 15);
         $items = $this->service->getPaginated($perPage);
 
-        return $this->paginated($items, ActivityResource::collection($items));
+        return $this->paginated($items, ActivityResource::collection($items), 'Activities retrieved successfully.');
     }
 
     /**
@@ -52,7 +52,7 @@ class ActivityController extends Controller
      */
     public function show(Activity $activity): JsonResponse
     {
-        return $this->success(new ActivityResource($activity));
+        return $this->success(new ActivityResource($activity), 'Activity retrieved successfully.');
     }
 
     /**

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for updating an existing tenant subscription.
  */
-class UpdateSubscriptionRequest extends FormRequest
+class UpdateSubscriptionRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

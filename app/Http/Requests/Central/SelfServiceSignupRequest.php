@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates self-service tenant signup payload.
  */
-class SelfServiceSignupRequest extends FormRequest
+class SelfServiceSignupRequest extends BaseRequest
 {
     public function authorize(): bool
     {

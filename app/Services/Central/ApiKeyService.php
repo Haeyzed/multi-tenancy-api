@@ -16,22 +16,30 @@ class ApiKeyService
     /**
      * Get all ApiKey records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, ApiKey>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return ApiKey::query()->get();
+        return ApiKey::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated ApiKey records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, ApiKey>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return ApiKey::query()->paginate($perPage);
+        return ApiKey::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -130,5 +138,30 @@ class ApiKeyService
         $apiKey->query()->update(['is_active' => false]);
 
         return $apiKey->fresh();
+    }
+
+    /**
+     * KPI card metrics for API keys.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $query = ApiKey::query()->forTenant();
+
+        $total = (clone $query)->count();
+        $active = (clone $query)->where('is_active', true)->count();
+        $expired = (clone $query)
+            ->where('is_active', true)
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<', now())
+            ->count();
+
+        return [
+            ['key' => 'total', 'label' => 'Total API Keys', 'value' => $total],
+            ['key' => 'active', 'label' => 'Active', 'value' => $active],
+            ['key' => 'inactive', 'label' => 'Inactive', 'value' => $total - $active],
+            ['key' => 'expired', 'label' => 'Expired', 'value' => $expired],
+        ];
     }
 }

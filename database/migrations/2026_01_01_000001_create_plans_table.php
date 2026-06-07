@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('currency')->default('NGN');
             $table->integer('trial_days')->default(14);
             $table->integer('sort_order')->default(0);
-            $table->json('features');
+            $table->json('features'); // marketing/display copy only — enforcement uses plan_features table
             $table->timestamps();
             $table->softDeletes();
         });

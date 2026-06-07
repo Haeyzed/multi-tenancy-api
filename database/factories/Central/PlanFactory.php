@@ -38,10 +38,10 @@ class PlanFactory extends Factory
             'trial_days' => fake()->randomElement([7, 14, 30]),
             'sort_order' => fake()->numberBetween(1, 10),
             'features' => [
-                'max_products' => fake()->numberBetween(50, 1000),
-                'max_staff' => fake()->numberBetween(3, 50),
-                'storage_gb' => fake()->numberBetween(10, 500),
-                'api_access' => true,
+                'highlights' => [
+                    fake()->sentence(6),
+                    fake()->sentence(6),
+                ],
             ],
         ];
     }
@@ -57,17 +57,18 @@ class PlanFactory extends Factory
             'description' => 'Perfect for small businesses getting started.',
             'tier' => 1,
             'currency' => 'NGN',
-            'price_monthly' => 2_500_000,   // ₦25,000
-            'price_yearly' => 25_000_000,   // ₦250,000
+            'price_monthly' => 2_500_000,
+            'price_yearly' => 25_000_000,
             'trial_days' => 14,
             'sort_order' => 1,
             'features' => [
-                'max_products' => 100,
-                'max_staff' => 3,
-                'storage_gb' => 10,
-                'api_access' => true,
-                'custom_domain' => false,
-                'priority_support' => false,
+                'highlights' => [
+                    'Up to 100 products',
+                    '3 team members',
+                    '10 GB storage',
+                    'API access',
+                    'Email support',
+                ],
             ],
         ]);
     }
@@ -83,17 +84,19 @@ class PlanFactory extends Factory
             'description' => 'For growing businesses with advanced needs.',
             'tier' => 2,
             'currency' => 'NGN',
-            'price_monthly' => 7_500_000,   // ₦75,000
-            'price_yearly' => 75_000_000, // ₦750,000
+            'price_monthly' => 7_500_000,
+            'price_yearly' => 75_000_000,
             'trial_days' => 14,
             'sort_order' => 2,
             'features' => [
-                'max_products' => 1000,
-                'max_staff' => 10,
-                'storage_gb' => 50,
-                'api_access' => true,
-                'custom_domain' => true,
-                'priority_support' => true,
+                'highlights' => [
+                    'Up to 1,000 products',
+                    '10 team members',
+                    '50 GB storage',
+                    'API access',
+                    'Custom domain',
+                    'Priority support',
+                ],
             ],
         ]);
     }
@@ -109,19 +112,21 @@ class PlanFactory extends Factory
             'description' => 'Full-featured solution for large organizations.',
             'tier' => 3,
             'currency' => 'NGN',
-            'price_monthly' => 20_000_000,   // ₦200,000
-            'price_yearly' => 200_000_000,   // ₦2,000,000
+            'price_monthly' => 20_000_000,
+            'price_yearly' => 200_000_000,
             'trial_days' => 30,
             'sort_order' => 3,
             'features' => [
-                'max_products' => 'unlimited',
-                'max_staff' => 'unlimited',
-                'storage_gb' => 500,
-                'api_access' => true,
-                'custom_domain' => true,
-                'priority_support' => true,
-                'dedicated_manager' => true,
-                'sla_guarantee' => true,
+                'highlights' => [
+                    'Unlimited products',
+                    'Unlimited team members',
+                    '500 GB storage',
+                    'API access',
+                    'Custom domain',
+                    'Dedicated account manager',
+                    'SLA guarantee',
+                ],
+                'badge' => 'Best for scale',
             ],
         ]);
     }
@@ -139,11 +144,15 @@ class PlanFactory extends Factory
             'is_active' => false,
             'is_public' => false,
             'currency' => 'NGN',
-            'price_monthly' => 1_500_000,   // ₦15,000
-            'price_yearly' => 15_000_000,   // ₦150,000
+            'price_monthly' => 1_500_000,
+            'price_yearly' => 15_000_000,
             'trial_days' => 7,
             'sort_order' => 0,
-            'features' => ['max_products' => 50],
+            'features' => [
+                'highlights' => [
+                    'Up to 50 products',
+                ],
+            ],
         ]);
     }
 }

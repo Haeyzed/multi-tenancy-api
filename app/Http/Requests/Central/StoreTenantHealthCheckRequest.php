@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for creating a new tenant health check result.
  */
-class StoreTenantHealthCheckRequest extends FormRequest
+class StoreTenantHealthCheckRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

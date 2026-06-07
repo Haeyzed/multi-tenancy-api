@@ -32,9 +32,22 @@ class SubscriptionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, SubscriptionResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, SubscriptionResource::collection($items), 'Subscriptions retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for subscriptions.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Subscription KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -64,7 +77,7 @@ class SubscriptionController extends Controller
             'lifecycleEvents',
         ]);
 
-        return $this->success(new SubscriptionResource($subscription));
+        return $this->success(new SubscriptionResource($subscription), 'Subscription retrieved successfully.');
     }
 
     /**

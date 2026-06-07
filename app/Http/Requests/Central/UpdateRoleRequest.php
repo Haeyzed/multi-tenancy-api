@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates incoming data for updating an existing role.
  */
-class UpdateRoleRequest extends FormRequest
+class UpdateRoleRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,6 +26,9 @@ class UpdateRoleRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Central\Role|null $role */
+        $role = $this->route('role');
+
         return [
             /**
              * Unique role name; must be unique across roles; optional on update.
@@ -34,7 +37,12 @@ class UpdateRoleRequest extends FormRequest
              *
              * @example "platform-admin"
              */
-            'name' => 'sometimes|string|max:255|unique:roles,name',
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('roles', 'name')->ignore($role?->id),
+            ],
 
             /**
              * Authentication guard this role applies to; optional on update.

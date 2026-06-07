@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates subscription plan change payload.
  */
-class ChangePlanRequest extends FormRequest
+class ChangePlanRequest extends BaseRequest
 {
     public function authorize(): bool
     {

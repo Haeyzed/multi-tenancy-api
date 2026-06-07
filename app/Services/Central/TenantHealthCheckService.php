@@ -17,22 +17,30 @@ class TenantHealthCheckService
     /**
      * Get all TenantHealthCheck records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, TenantHealthCheck>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return TenantHealthCheck::query()->get();
+        return TenantHealthCheck::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated TenantHealthCheck records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantHealthCheck>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return TenantHealthCheck::query()->paginate($perPage);
+        return TenantHealthCheck::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -147,5 +155,33 @@ class TenantHealthCheckService
             ->with('tenant')
             ->orderBy('checked_at', 'desc')
             ->get();
+    }
+
+    /**
+     * KPI card metrics for tenant health checks.
+     *
+     * @return list<array{key: string, label: string, value: int|float}>
+     */
+    public function getMetrics(): array
+    {
+        $query = TenantHealthCheck::query()->forTenant();
+
+        $counts = (clone $query)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $avgResponseTime = (clone $query)
+            ->whereNotNull('response_time_ms')
+            ->avg('response_time_ms');
+
+        return [
+            ['key' => 'total', 'label' => 'Total Checks', 'value' => (int) $counts->sum()],
+            ['key' => 'healthy', 'label' => 'Healthy', 'value' => (int) ($counts[HealthCheckStatus::Healthy->value] ?? 0)],
+            ['key' => 'warning', 'label' => 'Warning', 'value' => (int) ($counts[HealthCheckStatus::Warning->value] ?? 0)],
+            ['key' => 'critical', 'label' => 'Critical', 'value' => (int) ($counts[HealthCheckStatus::Critical->value] ?? 0)],
+            ['key' => 'unknown', 'label' => 'Unknown', 'value' => (int) ($counts[HealthCheckStatus::Unknown->value] ?? 0)],
+            ['key' => 'avg_response_time_ms', 'label' => 'Avg Response Time (ms)', 'value' => round((float) $avgResponseTime, 2)],
+        ];
     }
 }

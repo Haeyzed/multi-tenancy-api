@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Enums\Central\InvoiceStatus;
 use App\Models\Central\Invoice;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,22 +17,30 @@ class InvoiceService
     /**
      * Get all Invoice records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, Invoice>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return Invoice::query()->get();
+        return Invoice::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated Invoice records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Invoice>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return Invoice::query()->paginate($perPage);
+        return Invoice::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -162,5 +171,48 @@ class InvoiceService
             ->where('tenant_id', $tenantId)
             ->orderBy('created_at', 'desc')
             ->get();
+    }
+
+    /**
+     * KPI card metrics for invoices.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $query = Invoice::query()->forTenant();
+
+        $counts = (clone $query)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $overdue = (clone $query)
+            ->where('status', InvoiceStatus::Open->value)
+            ->where('due_date', '<', now())
+            ->count();
+
+        $overdueAmount = (int) (clone $query)
+            ->where('status', InvoiceStatus::Open->value)
+            ->where('due_date', '<', now())
+            ->sum('amount_remaining');
+
+        $outstandingAmount = (int) (clone $query)
+            ->where('status', InvoiceStatus::Open->value)
+            ->sum('amount_remaining');
+
+        $collectedAmount = (int) (clone $query)
+            ->where('status', InvoiceStatus::Paid->value)
+            ->sum('amount_paid');
+
+        return [
+            ['key' => 'total', 'label' => 'Total Invoices', 'value' => (int) $counts->sum()],
+            ['key' => 'open', 'label' => 'Open', 'value' => (int) ($counts[InvoiceStatus::Open->value] ?? 0)],
+            ['key' => 'paid', 'label' => 'Paid', 'value' => (int) ($counts[InvoiceStatus::Paid->value] ?? 0)],
+            ['key' => 'overdue', 'label' => 'Overdue', 'value' => $overdue],
+            ['key' => 'overdue_amount', 'label' => 'Overdue Amount', 'value' => $overdueAmount],
+            ['key' => 'outstanding_amount', 'label' => 'Outstanding Amount', 'value' => $outstandingAmount],
+            ['key' => 'collected_amount', 'label' => 'Collected Amount', 'value' => $collectedAmount],
+        ];
     }
 }

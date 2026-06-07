@@ -30,9 +30,10 @@ class PlatformAnnouncementController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
+        $items = $this->service->getPaginated($perPage, $search);
 
-        return $this->paginated($items, PlatformAnnouncementResource::collection($items));
+        return $this->paginated($items, PlatformAnnouncementResource::collection($items), 'Announcements retrieved successfully.');
     }
 
     /**
@@ -54,7 +55,7 @@ class PlatformAnnouncementController extends Controller
      */
     public function show(PlatformAnnouncement $announcement): JsonResponse
     {
-        return $this->success(new PlatformAnnouncementResource($announcement));
+        return $this->success(new PlatformAnnouncementResource($announcement), 'Announcement retrieved successfully.');
     }
 
     /**

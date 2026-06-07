@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates credentials for central platform login.
  */
-class LoginRequest extends FormRequest
+class LoginRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -32,7 +30,7 @@ class LoginRequest extends FormRequest
              *
              * @var string $email
              *
-             * @example "admin@example.com"
+             * @example "admin@platform.com"
              */
             'email' => 'required|email',
 
@@ -41,7 +39,7 @@ class LoginRequest extends FormRequest
              *
              * @var string $password
              *
-             * @example "SecurePass123"
+             * @example "password"
              */
             'password' => 'required|string',
         ];

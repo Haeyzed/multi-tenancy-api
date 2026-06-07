@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Individual feature limit or flag defined on a plan.
+ * Enforceable feature limit or flag on a plan (used for middleware and usage quotas).
+ *
+ * Display copy for pricing pages lives on {@see Plan::$features}, not here.
  *
  * @property int $id
  * @property string $plan_id

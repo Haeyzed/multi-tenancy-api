@@ -32,7 +32,7 @@ class PlatformChangelogController extends Controller
         $perPage = $request->integer('per_page', 15);
         $items = $this->service->getPaginated($perPage);
 
-        return $this->paginated($items, PlatformChangelogResource::collection($items));
+        return $this->paginated($items, PlatformChangelogResource::collection($items), 'Changelog entries retrieved successfully.');
     }
 
     /**
@@ -54,7 +54,7 @@ class PlatformChangelogController extends Controller
      */
     public function show(PlatformChangelog $changelog): JsonResponse
     {
-        return $this->success(new PlatformChangelogResource($changelog));
+        return $this->success(new PlatformChangelogResource($changelog), 'Changelog entry retrieved successfully.');
     }
 
     /**

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for creating a new subscription plan.
  */
-class StorePlanRequest extends FormRequest
+class StorePlanRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -127,11 +125,11 @@ class StorePlanRequest extends FormRequest
             'sort_order' => 'sometimes|integer|min:0',
 
             /**
-             * Feature limits and flags keyed by feature name.
+             * Marketing/display copy for pricing pages (not used for access control).
              *
              * @var array<string, mixed> $features
              *
-             * @example {"max_products": 1000, "api_access": true}
+             * @example {"highlights":["Up to 100 products","API access"]}
              */
             'features' => 'required|array',
         ];

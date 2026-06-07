@@ -16,22 +16,30 @@ class TenantImpersonationTokenService
     /**
      * Get all TenantImpersonationToken records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, TenantImpersonationToken>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return TenantImpersonationToken::query()->get();
+        return TenantImpersonationToken::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated TenantImpersonationToken records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantImpersonationToken>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return TenantImpersonationToken::query()->paginate($perPage);
+        return TenantImpersonationToken::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**

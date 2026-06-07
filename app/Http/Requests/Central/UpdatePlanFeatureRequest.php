@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for updating an existing plan feature definition.
  */
-class UpdatePlanFeatureRequest extends FormRequest
+class UpdatePlanFeatureRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates incoming data for updating an existing permission.
  */
-class UpdatePermissionRequest extends FormRequest
+class UpdatePermissionRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,6 +26,9 @@ class UpdatePermissionRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Central\Permission|null $permission */
+        $permission = $this->route('permission');
+
         return [
             /**
              * Unique permission identifier; must be unique across permissions; optional on update.
@@ -34,7 +37,12 @@ class UpdatePermissionRequest extends FormRequest
              *
              * @example "tenants.manage"
              */
-            'name' => 'sometimes|string|max:255|unique:permissions,name',
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('permissions', 'name')->ignore($permission?->id),
+            ],
 
             /**
              * Authentication guard this permission applies to; optional on update.

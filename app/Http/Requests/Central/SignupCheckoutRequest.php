@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates checkout retry payload for pending signups.
  */
-class SignupCheckoutRequest extends FormRequest
+class SignupCheckoutRequest extends BaseRequest
 {
     public function authorize(): bool
     {

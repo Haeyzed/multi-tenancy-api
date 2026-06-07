@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates incoming data for updating an existing subscription plan.
  */
-class UpdatePlanRequest extends FormRequest
+class UpdatePlanRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,6 +26,9 @@ class UpdatePlanRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Central\Plan|null $plan */
+        $plan = $this->route('plan');
+
         return [
             /**
              * Display name of the subscription plan; optional on update.
@@ -43,7 +46,12 @@ class UpdatePlanRequest extends FormRequest
              *
              * @example "pro-plan"
              */
-            'slug' => 'sometimes|string|unique:plans,slug|max:255',
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('plans', 'slug')->ignore($plan?->id),
+            ],
 
             /**
              * Marketing description of the plan; nullable.
@@ -127,11 +135,11 @@ class UpdatePlanRequest extends FormRequest
             'sort_order' => 'sometimes|integer|min:0',
 
             /**
-             * Feature limits and flags keyed by feature name; optional on update.
+             * Marketing/display copy for pricing pages (not used for access control).
              *
              * @var array<string, mixed> $features
              *
-             * @example {"max_products": 5000, "api_access": true}
+             * @example {"highlights":["Up to 100 products","API access"]}
              */
             'features' => 'sometimes|array',
         ];

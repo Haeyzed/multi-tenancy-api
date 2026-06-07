@@ -8,6 +8,7 @@ use App\Enums\Central\BillingCycle;
 use App\Enums\Central\SubscriptionStatus;
 use App\Enums\Central\TenantStatus;
 use Database\Factories\Central\TenantFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,6 +40,8 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  * @property array<string, mixed>|null $settings
  * @property array<string, mixed>|null $meta
  * @property array<string, mixed>|null $data
+ *
+ * @method static Builder|Tenant search(?string $search)
  */
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
@@ -117,6 +120,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'subscribed_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope a query to search by core tenant fields.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('domain', 'like', "%{$search}%")
+                    ->orWhere('database', 'like', "%{$search}%")
+                    ->orWhere('owner_name', 'like', "%{$search}%")
+                    ->orWhere('owner_email', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

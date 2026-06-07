@@ -10,7 +10,7 @@ use Database\Seeders\Central\Concerns\InteractsWithCentralSeeders;
 use Illuminate\Database\Seeder;
 
 /**
- * Seed structured plan feature records.
+ * Seed enforceable plan feature records (middleware, limits, quotas).
  */
 class PlanFeatureSeeder extends Seeder
 {
@@ -22,12 +22,31 @@ class PlanFeatureSeeder extends Seeder
     public function run(): void
     {
         $features = [
+            // Starter
             ['plan' => 'starter', 'feature_key' => 'max_products', 'feature_value' => '100', 'feature_type' => FeatureType::Integer],
+            ['plan' => 'starter', 'feature_key' => 'max_staff', 'feature_value' => '3', 'feature_type' => FeatureType::Integer],
+            ['plan' => 'starter', 'feature_key' => 'storage_gb', 'feature_value' => '10', 'feature_type' => FeatureType::Integer],
             ['plan' => 'starter', 'feature_key' => 'api_access', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
+            ['plan' => 'starter', 'feature_key' => 'custom_domain', 'feature_value' => 'false', 'feature_type' => FeatureType::Boolean],
+            ['plan' => 'starter', 'feature_key' => 'priority_support', 'feature_value' => 'false', 'feature_type' => FeatureType::Boolean],
+
+            // Professional
             ['plan' => 'professional', 'feature_key' => 'max_products', 'feature_value' => '1000', 'feature_type' => FeatureType::Integer],
+            ['plan' => 'professional', 'feature_key' => 'max_staff', 'feature_value' => '10', 'feature_type' => FeatureType::Integer],
+            ['plan' => 'professional', 'feature_key' => 'storage_gb', 'feature_value' => '50', 'feature_type' => FeatureType::Integer],
+            ['plan' => 'professional', 'feature_key' => 'api_access', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
             ['plan' => 'professional', 'feature_key' => 'custom_domain', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
-            ['plan' => 'professional', 'feature_key' => 'storage_limit_gb', 'feature_value' => '50.00', 'feature_type' => FeatureType::Decimal],
+            ['plan' => 'professional', 'feature_key' => 'priority_support', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
+
+            // Enterprise
             ['plan' => 'enterprise', 'feature_key' => 'max_products', 'feature_value' => 'unlimited', 'feature_type' => FeatureType::String],
+            ['plan' => 'enterprise', 'feature_key' => 'max_staff', 'feature_value' => 'unlimited', 'feature_type' => FeatureType::String],
+            ['plan' => 'enterprise', 'feature_key' => 'storage_gb', 'feature_value' => '500', 'feature_type' => FeatureType::Integer],
+            ['plan' => 'enterprise', 'feature_key' => 'api_access', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
+            ['plan' => 'enterprise', 'feature_key' => 'custom_domain', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
+            ['plan' => 'enterprise', 'feature_key' => 'priority_support', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
+            ['plan' => 'enterprise', 'feature_key' => 'dedicated_manager', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
+            ['plan' => 'enterprise', 'feature_key' => 'sla_guarantee', 'feature_value' => 'true', 'feature_type' => FeatureType::Boolean],
             ['plan' => 'enterprise', 'feature_key' => 'sla_uptime', 'feature_value' => '99.99', 'feature_type' => FeatureType::Decimal],
         ];
 

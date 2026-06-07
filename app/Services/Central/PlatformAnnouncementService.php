@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\PlatformAnnouncement;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -27,11 +28,15 @@ class PlatformAnnouncementService
      * Get paginated PlatformAnnouncement records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, PlatformAnnouncement>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return PlatformAnnouncement::query()->paginate($perPage);
+        return PlatformAnnouncement::query()
+            ->search($search)
+            ->latest()
+            ->paginate($perPage);
     }
 
     /**
@@ -72,7 +77,7 @@ class PlatformAnnouncementService
      */
     public function update(PlatformAnnouncement $platformAnnouncement, array $data): PlatformAnnouncement
     {
-        $platformAnnouncement->query()->update($data);
+        $platformAnnouncement->update($data);
 
         return $platformAnnouncement->fresh();
     }
@@ -84,7 +89,7 @@ class PlatformAnnouncementService
      */
     public function delete(PlatformAnnouncement $platformAnnouncement): bool
     {
-        return $platformAnnouncement->query()->delete() > 0;
+        return (bool) $platformAnnouncement->delete();
     }
 
     /**

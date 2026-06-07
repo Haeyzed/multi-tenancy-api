@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates incoming data for updating an existing central platform user.
  */
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,6 +26,9 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Central\User|null $user */
+        $user = $this->route('user');
+
         return [
             /**
              * Full display name of the platform user; optional on update.
@@ -43,7 +46,11 @@ class UpdateUserRequest extends FormRequest
              *
              * @example "user@example.com"
              */
-            'email' => 'sometimes|email|unique:users,email',
+            'email' => [
+                'sometimes',
+                'email',
+                Rule::unique('users', 'email')->ignore($user?->id),
+            ],
 
             /**
              * New plain-text password; must be at least 8 characters when provided.
@@ -55,15 +62,6 @@ class UpdateUserRequest extends FormRequest
             'password' => 'sometimes|string|min:8',
 
             /**
-             * Platform role assigned to the user; optional on update.
-             *
-             * @var string $role
-             *
-             * @example "support"
-             */
-            'role' => 'sometimes|string|in:super_admin,support,billing,technical',
-
-            /**
              * Whether the user account is active; optional.
              *
              * @var bool $is_active
@@ -71,6 +69,22 @@ class UpdateUserRequest extends FormRequest
              * @example true
              */
             'is_active' => 'sometimes|boolean',
+
+            /**
+             * Spatie role IDs to assign to the user.
+             *
+             * @var list<int> $role_ids
+             */
+            'role_ids' => 'sometimes|array',
+            'role_ids.*' => 'integer|exists:roles,id',
+
+            /**
+             * Direct Spatie permission IDs to assign to the user.
+             *
+             * @var list<int> $permission_ids
+             */
+            'permission_ids' => 'sometimes|array',
+            'permission_ids.*' => 'integer|exists:permissions,id',
         ];
     }
 }

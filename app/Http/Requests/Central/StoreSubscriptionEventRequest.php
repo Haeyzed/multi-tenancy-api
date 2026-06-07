@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for creating a new subscription lifecycle event.
  */
-class StoreSubscriptionEventRequest extends FormRequest
+class StoreSubscriptionEventRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

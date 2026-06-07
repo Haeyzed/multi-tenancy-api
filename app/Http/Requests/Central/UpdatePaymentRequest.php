@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for updating an existing tenant payment record.
  */
-class UpdatePaymentRequest extends FormRequest
+class UpdatePaymentRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -30,9 +30,22 @@ class ApiKeyController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, ApiKeyResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, ApiKeyResource::collection($items), 'API keys retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for API keys.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'API key KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class ApiKeyController extends Controller
      */
     public function show(ApiKey $apiKey): JsonResponse
     {
-        return $this->success(new ApiKeyResource($apiKey));
+        return $this->success(new ApiKeyResource($apiKey), 'API key retrieved successfully.');
     }
 
     /**

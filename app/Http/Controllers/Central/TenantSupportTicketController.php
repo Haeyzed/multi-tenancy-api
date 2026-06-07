@@ -30,9 +30,22 @@ class TenantSupportTicketController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, TenantSupportTicketResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, TenantSupportTicketResource::collection($items), 'Support tickets retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for support tickets.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Support ticket KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class TenantSupportTicketController extends Controller
      */
     public function show(TenantSupportTicket $supportTicket): JsonResponse
     {
-        return $this->success(new TenantSupportTicketResource($supportTicket));
+        return $this->success(new TenantSupportTicketResource($supportTicket), 'Support ticket retrieved successfully.');
     }
 
     /**

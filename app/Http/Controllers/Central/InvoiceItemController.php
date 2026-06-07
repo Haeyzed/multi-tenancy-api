@@ -32,7 +32,7 @@ class InvoiceItemController extends Controller
         $perPage = $request->integer('per_page', 15);
         $items = $this->service->getPaginated($perPage);
 
-        return $this->paginated($items, InvoiceItemResource::collection($items));
+        return $this->paginated($items, InvoiceItemResource::collection($items), 'Invoice items retrieved successfully.');
     }
 
     /**
@@ -54,7 +54,7 @@ class InvoiceItemController extends Controller
      */
     public function show(InvoiceItem $invoiceItem): JsonResponse
     {
-        return $this->success(new InvoiceItemResource($invoiceItem));
+        return $this->success(new InvoiceItemResource($invoiceItem), 'Invoice item retrieved successfully.');
     }
 
     /**

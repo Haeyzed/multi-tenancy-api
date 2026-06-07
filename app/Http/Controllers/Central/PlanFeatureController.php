@@ -30,9 +30,10 @@ class PlanFeatureController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $planId = $request->query('plan_id');
+        $items = $this->service->getPaginated($perPage, is_string($planId) ? $planId : null);
 
-        return $this->paginated($items, PlanFeatureResource::collection($items));
+        return $this->paginated($items, PlanFeatureResource::collection($items), 'Plan features retrieved successfully.');
     }
 
     /**
@@ -54,7 +55,7 @@ class PlanFeatureController extends Controller
      */
     public function show(PlanFeature $planFeature): JsonResponse
     {
-        return $this->success(new PlanFeatureResource($planFeature));
+        return $this->success(new PlanFeatureResource($planFeature), 'Plan feature retrieved successfully.');
     }
 
     /**

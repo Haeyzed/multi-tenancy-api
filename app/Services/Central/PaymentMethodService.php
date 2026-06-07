@@ -16,22 +16,30 @@ class PaymentMethodService
     /**
      * Get all PaymentMethod records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, PaymentMethod>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return PaymentMethod::query()->get();
+        return PaymentMethod::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated PaymentMethod records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, PaymentMethod>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return PaymentMethod::query()->paginate($perPage);
+        return PaymentMethod::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**

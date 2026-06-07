@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Validates incoming data for creating a new tenant payment record.
  */
-class StorePaymentRequest extends FormRequest
+class StorePaymentRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\AttachRolePermissionsRequest;
 use App\Http\Requests\Central\StoreRoleRequest;
+use App\Http\Requests\Central\SyncRolePermissionsRequest;
 use App\Http\Requests\Central\UpdateRoleRequest;
 use App\Http\Resources\Central\RoleResource;
+use App\Models\Central\Permission;
 use App\Models\Central\Role;
 use App\Services\Central\RoleService;
 use Illuminate\Http\JsonResponse;
@@ -30,9 +33,21 @@ class RoleController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
+        $items = $this->service->getPaginated($perPage, is_string($search) ? $search : null);
 
-        return $this->paginated($items, RoleResource::collection($items));
+        return $this->paginated($items, RoleResource::collection($items), 'Roles retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for roles.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Role KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +69,9 @@ class RoleController extends Controller
      */
     public function show(Role $role): JsonResponse
     {
-        return $this->success(new RoleResource($role));
+        $item = $this->service->findOrFail($role->id);
+
+        return $this->success(new RoleResource($item), 'Role retrieved successfully.');
     }
 
     /**
@@ -80,5 +97,41 @@ class RoleController extends Controller
         $this->service->delete($role);
 
         return $this->deleted('Role deleted successfully.');
+    }
+
+    /**
+     * Replace all permissions assigned to the role.
+     */
+    public function syncPermissions(SyncRolePermissionsRequest $request, Role $role): JsonResponse
+    {
+        $item = $this->service->syncPermissions(
+            $role,
+            $request->validated('permission_ids', []),
+        );
+
+        return $this->updated(new RoleResource($item), 'Role permissions synced successfully.');
+    }
+
+    /**
+     * Attach permissions to the role without removing existing ones.
+     */
+    public function attachPermissions(AttachRolePermissionsRequest $request, Role $role): JsonResponse
+    {
+        $item = $this->service->attachPermissions(
+            $role,
+            $request->validated('permission_ids'),
+        );
+
+        return $this->updated(new RoleResource($item), 'Permissions attached to role successfully.');
+    }
+
+    /**
+     * Remove a permission from the role.
+     */
+    public function detachPermission(Role $role, Permission $permission): JsonResponse
+    {
+        $item = $this->service->detachPermission($role, $permission);
+
+        return $this->updated(new RoleResource($item), 'Permission removed from role successfully.');
     }
 }

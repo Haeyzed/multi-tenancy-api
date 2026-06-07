@@ -30,9 +30,11 @@ class TenantConfigController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, TenantConfigResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, TenantConfigResource::collection($items), 'Tenant configs retrieved successfully.');
     }
 
     /**
@@ -54,7 +56,7 @@ class TenantConfigController extends Controller
      */
     public function show(TenantConfig $tenantConfig): JsonResponse
     {
-        return $this->success(new TenantConfigResource($tenantConfig));
+        return $this->success(new TenantConfigResource($tenantConfig), 'Tenant config retrieved successfully.');
     }
 
     /**

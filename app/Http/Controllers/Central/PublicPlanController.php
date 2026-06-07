@@ -19,12 +19,13 @@ class PublicPlanController extends Controller
     ) {}
 
     /**
-     * List active public plans available for self-service signup.
+     * List active public plans with pricing and display copy for signup.
      */
     public function index(): JsonResponse
     {
-        $plans = $this->service->getPublicPlans()->load('planFeatures');
-
-        return $this->success(PlanResource::collection($plans));
+        return $this->success(
+            PlanResource::collection($this->service->getPublicPlans()),
+            'Public plans retrieved successfully.',
+        );
     }
 }

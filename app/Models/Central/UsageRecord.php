@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\UsageMetric;
+use App\Models\Concerns\FilterableByTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,10 +21,13 @@ use Illuminate\Support\Carbon;
  * @property UsageMetric $metric
  * @property string $quantity
  * @property Carbon $recorded_at
+ *
+ * @method static Builder|UsageRecord forTenant(?string $tenantId = null)
+ * @method static Builder|UsageRecord search(?string $search)
  */
 class UsageRecord extends Model
 {
-    use HasFactory;
+    use FilterableByTenant, HasFactory;
 
     /**
      * @var list<string>
@@ -47,6 +52,19 @@ class UsageRecord extends Model
             'quantity' => 'decimal:2',
             'recorded_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope a query to search by metric or subscription ID.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('metric', 'like', "%{$search}%")
+                    ->orWhere('subscription_id', 'like', "%{$search}%");
+            });
+        });
     }
 
     /**

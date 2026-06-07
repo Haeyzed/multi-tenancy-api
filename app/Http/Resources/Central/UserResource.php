@@ -52,13 +52,6 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
 
             /**
-             * Platform role assigned to the user.
-             *
-             * @example "admin"
-             */
-            'role' => $this->role,
-
-            /**
              * Timestamp of the user's most recent login.
              *
              * @example "2026-05-30T14:00:00+00:00"
@@ -119,6 +112,20 @@ class UserResource extends JsonResource
              * @default null
              */
             'sent_support_messages' => TenantSupportMessageResource::collection($this->whenLoaded('sentSupportMessages')),
+
+            /**
+             * Spatie roles assigned to this user when eager loaded.
+             *
+             * @default null
+             */
+            'roles' => RoleResource::collection($this->whenLoaded('roles')),
+
+            /**
+             * Direct Spatie permissions assigned to this user when eager loaded.
+             *
+             * @default null
+             */
+            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
         ];
     }
 }

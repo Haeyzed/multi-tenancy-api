@@ -32,9 +32,30 @@ class TenantController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, TenantResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, TenantResource::collection($items), 'Tenants retrieved successfully.');
+    }
+
+    /**
+     * List active tenants as value/label pairs for select inputs.
+     */
+    public function options(): JsonResponse
+    {
+        return $this->success($this->service->getOptions(), 'Tenant options retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for tenants.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Tenant KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -56,7 +77,7 @@ class TenantController extends Controller
      */
     public function show(Tenant $tenant): JsonResponse
     {
-        return $this->success(new TenantResource($tenant));
+        return $this->success(new TenantResource($tenant), 'Tenant retrieved successfully.');
     }
 
     /**
@@ -91,11 +112,14 @@ class TenantController extends Controller
      */
     public function features(Tenant $tenant): JsonResponse
     {
+        $tenant->loadMissing('plan');
+
         return $this->success([
             'tenant_id' => $tenant->id,
             'plan_id' => $tenant->plan_id,
-            'features' => $this->entitlements->all($tenant),
-        ]);
+            'entitlements' => $this->entitlements->all($tenant),
+            'display_features' => $tenant->plan?->features,
+        ], 'Tenant features retrieved successfully.');
     }
 
     /**
@@ -107,7 +131,7 @@ class TenantController extends Controller
     {
         $items = $this->service->getByStatus($status);
 
-        return $this->success(TenantResource::collection($items));
+        return $this->success(TenantResource::collection($items), 'Tenants retrieved successfully.');
     }
 
     /**
@@ -119,7 +143,7 @@ class TenantController extends Controller
     {
         $items = $this->service->getExpiring($days);
 
-        return $this->success(TenantResource::collection($items));
+        return $this->success(TenantResource::collection($items), 'Expiring tenants retrieved successfully.');
     }
 
     /**

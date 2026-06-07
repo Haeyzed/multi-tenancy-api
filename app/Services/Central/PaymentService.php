@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Enums\Central\PaymentStatus;
 use App\Models\Central\Payment;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,22 +17,30 @@ class PaymentService
     /**
      * Get all Payment records.
      *
+     * @param  string|null  $search  Optional search term.
      * @return Collection<int, Payment>
      */
-    public function getAll(): Collection
+    public function getAll(?string $search = null): Collection
     {
-        return Payment::query()->get();
+        return Payment::query()
+            ->forTenant()
+            ->search($search)
+            ->get();
     }
 
     /**
      * Get paginated Payment records.
      *
      * @param  int  $perPage  Number of records per page.
+     * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Payment>
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return Payment::query()->paginate($perPage);
+        return Payment::query()
+            ->forTenant()
+            ->search($search)
+            ->paginate($perPage);
     }
 
     /**
@@ -147,5 +156,36 @@ class PaymentService
             ->where('tenant_id', $tenantId)
             ->orderBy('created_at', 'desc')
             ->get();
+    }
+
+    /**
+     * KPI card metrics for payments.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    public function getMetrics(): array
+    {
+        $query = Payment::query()->forTenant();
+
+        $counts = (clone $query)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $totalCollected = (int) (clone $query)
+            ->where('status', PaymentStatus::Succeeded->value)
+            ->sum('amount');
+
+        $totalRefunded = (int) (clone $query)->sum('refunded_amount');
+
+        return [
+            ['key' => 'total', 'label' => 'Total Payments', 'value' => (int) $counts->sum()],
+            ['key' => 'succeeded', 'label' => 'Succeeded', 'value' => (int) ($counts[PaymentStatus::Succeeded->value] ?? 0)],
+            ['key' => 'pending', 'label' => 'Pending', 'value' => (int) ($counts[PaymentStatus::Pending->value] ?? 0)],
+            ['key' => 'failed', 'label' => 'Failed', 'value' => (int) ($counts[PaymentStatus::Failed->value] ?? 0)],
+            ['key' => 'refunded', 'label' => 'Refunded', 'value' => (int) ($counts[PaymentStatus::Refunded->value] ?? 0)],
+            ['key' => 'total_collected', 'label' => 'Total Collected', 'value' => $totalCollected],
+            ['key' => 'total_refunded', 'label' => 'Total Refunded', 'value' => $totalRefunded],
+        ];
     }
 }

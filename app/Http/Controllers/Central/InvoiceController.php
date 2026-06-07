@@ -30,9 +30,22 @@ class InvoiceController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, InvoiceResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, InvoiceResource::collection($items), 'Invoices retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for invoices.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Invoice KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice): JsonResponse
     {
-        return $this->success(new InvoiceResource($invoice));
+        return $this->success(new InvoiceResource($invoice), 'Invoice retrieved successfully.');
     }
 
     /**
@@ -89,7 +102,7 @@ class InvoiceController extends Controller
     {
         $items = $this->service->getOverdue();
 
-        return $this->success(InvoiceResource::collection($items));
+        return $this->success(InvoiceResource::collection($items), 'Overdue invoices retrieved successfully.');
     }
 
     /**

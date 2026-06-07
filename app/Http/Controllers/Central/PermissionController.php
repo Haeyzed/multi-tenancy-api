@@ -30,9 +30,21 @@ class PermissionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
+        $items = $this->service->getPaginated($perPage, is_string($search) ? $search : null);
 
-        return $this->paginated($items, PermissionResource::collection($items));
+        return $this->paginated($items, PermissionResource::collection($items), 'Permissions retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for permissions.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Permission KPI metrics retrieved successfully.',
+        );
     }
 
     /**
@@ -54,7 +66,9 @@ class PermissionController extends Controller
      */
     public function show(Permission $permission): JsonResponse
     {
-        return $this->success(new PermissionResource($permission));
+        $item = $this->service->findOrFail($permission->id);
+
+        return $this->success(new PermissionResource($item), 'Permission retrieved successfully.');
     }
 
     /**

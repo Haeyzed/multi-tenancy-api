@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Factories\Central;
 
-use App\Enums\Central\UserRole;
 use App\Models\Central\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -32,7 +31,6 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'role' => fake()->randomElement(UserRole::cases()),
             'last_login_at' => fake()->optional()->dateTimeBetween('-30 days', 'now'),
             'is_active' => true,
         ];
@@ -46,7 +44,6 @@ class UserFactory extends Factory
         return $this->state(fn () => [
             'name' => 'Super Admin',
             'email' => 'admin@platform.com',
-            'role' => UserRole::SuperAdmin,
         ]);
     }
 
@@ -58,7 +55,6 @@ class UserFactory extends Factory
         return $this->state(fn () => [
             'name' => $name,
             'email' => $email,
-            'role' => UserRole::Support,
         ]);
     }
 
@@ -70,7 +66,6 @@ class UserFactory extends Factory
         return $this->state(fn () => [
             'name' => $name,
             'email' => $email,
-            'role' => UserRole::Billing,
         ]);
     }
 
@@ -82,7 +77,6 @@ class UserFactory extends Factory
         return $this->state(fn () => [
             'name' => $name,
             'email' => $email,
-            'role' => UserRole::Technical,
             'is_active' => $active,
         ]);
     }

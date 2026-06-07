@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Ensure the tenant's plan includes a required feature.
+ * Ensure the tenant's plan includes a required feature (plan_features rows only).
  */
 class EnsurePlanFeature
 {

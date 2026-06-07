@@ -40,10 +40,7 @@ class DatabaseSeeder extends Seeder
             Central\TenantMetricSeeder::class,
             Central\ErrorLogSeeder::class,
 
-            // 4. Plan structure
-            Central\PlanFeatureSeeder::class,
-
-            // 5. Billing (subscriptions → invoices → link latest_invoice_id)
+            // 4. Billing (subscriptions → invoices → link latest_invoice_id)
             Central\SubscriptionSeeder::class,
             Central\InvoiceSeeder::class,
             Central\PaymentSeeder::class,

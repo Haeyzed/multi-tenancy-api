@@ -30,9 +30,11 @@ class TenantImpersonationTokenController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
 
-        return $this->paginated($items, TenantImpersonationTokenResource::collection($items));
+        $items = $this->service->getPaginated($perPage, $search);
+
+        return $this->paginated($items, TenantImpersonationTokenResource::collection($items), 'Impersonation tokens retrieved successfully.');
     }
 
     /**
@@ -54,7 +56,7 @@ class TenantImpersonationTokenController extends Controller
      */
     public function show(TenantImpersonationToken $impersonationToken): JsonResponse
     {
-        return $this->success(new TenantImpersonationTokenResource($impersonationToken));
+        return $this->success(new TenantImpersonationTokenResource($impersonationToken), 'Impersonation token retrieved successfully.');
     }
 
     /**
