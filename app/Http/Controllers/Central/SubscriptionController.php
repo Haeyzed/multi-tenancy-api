@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeleteSubscriptionsRequest;
 use App\Http\Requests\Central\ChangePlanRequest;
 use App\Http\Requests\Central\StoreSubscriptionRequest;
 use App\Http\Requests\Central\UpdateSubscriptionRequest;
@@ -103,6 +104,19 @@ class SubscriptionController extends Controller
         $this->service->delete($subscription);
 
         return $this->deleted('Subscription deleted successfully.');
+    }
+
+    /**
+     * Delete multiple subscriptions in one request.
+     */
+    public function bulkDestroy(BulkDeleteSubscriptionsRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} subscription(s) deleted successfully.",
+        );
     }
 
     /**

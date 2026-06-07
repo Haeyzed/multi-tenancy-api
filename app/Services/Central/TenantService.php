@@ -6,6 +6,7 @@ namespace App\Services\Central;
 
 use App\Enums\Central\TenantStatus;
 use App\Models\Central\Tenant;
+use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -14,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class TenantService
 {
+    use DeletesManyRecords;
     /**
      * Get all Tenant records.
      *
@@ -96,6 +98,16 @@ class TenantService
     public function delete(Tenant $tenant): bool
     {
         return $tenant->delete();
+    }
+
+    /**
+     * Delete multiple tenants by ID.
+     *
+     * @param  list<string>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        return $this->deleteManyByIds(Tenant::class, $ids);
     }
 
     /**

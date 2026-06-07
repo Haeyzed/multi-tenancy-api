@@ -131,6 +131,34 @@ class RoleService
     }
 
     /**
+     * Delete multiple non-system roles by ID.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        return DB::transaction(function () use ($ids): int {
+            $deleted = 0;
+
+            Role::query()
+                ->whereIn('id', $ids)
+                ->whereNotIn('name', self::SYSTEM_ROLE_NAMES)
+                ->get()
+                ->each(function (Role $role) use (&$deleted): void {
+                    if ($role->delete()) {
+                        $deleted++;
+                    }
+                });
+
+            if ($deleted > 0) {
+                $this->forgetPermissionCache();
+            }
+
+            return $deleted;
+        });
+    }
+
+    /**
      * Replace all permissions assigned to the role.
      *
      * @param  list<int>  $permissionIds

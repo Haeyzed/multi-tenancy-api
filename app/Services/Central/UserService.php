@@ -8,6 +8,7 @@ use App\Models\Central\Permission;
 use App\Models\Central\Role;
 use App\Models\Central\User;
 use App\Enums\Central\UserRole;
+use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -18,6 +19,7 @@ use Spatie\Permission\PermissionRegistrar;
  */
 class UserService
 {
+    use DeletesManyRecords;
     /**
      * Relations eager loaded for list and detail responses.
      *
@@ -239,6 +241,22 @@ class UserService
     public function delete(User $user): bool
     {
         return $user->delete();
+    }
+
+    /**
+     * Delete multiple users by ID.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        $deleted = $this->deleteManyByIds(User::class, $ids);
+
+        if ($deleted > 0) {
+            $this->forgetPermissionCache();
+        }
+
+        return $deleted;
     }
 
     /**

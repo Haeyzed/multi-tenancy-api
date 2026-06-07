@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeletePermissionsRequest;
 use App\Http\Requests\Central\StorePermissionRequest;
 use App\Http\Requests\Central\UpdatePermissionRequest;
 use App\Http\Resources\Central\PermissionResource;
@@ -94,5 +95,18 @@ class PermissionController extends Controller
         $this->service->delete($permission);
 
         return $this->deleted('Permission deleted successfully.');
+    }
+
+    /**
+     * Delete multiple permissions in one request.
+     */
+    public function bulkDestroy(BulkDeletePermissionsRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} permission(s) deleted successfully.",
+        );
     }
 }

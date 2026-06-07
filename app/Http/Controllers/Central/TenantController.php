@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeleteTenantsRequest;
 use App\Http\Requests\Central\StoreTenantRequest;
 use App\Http\Requests\Central\UpdateTenantRequest;
 use App\Http\Resources\Central\TenantResource;
@@ -103,6 +104,19 @@ class TenantController extends Controller
         $this->service->delete($tenant);
 
         return $this->deleted('Tenant deleted successfully.');
+    }
+
+    /**
+     * Delete multiple tenants in one request.
+     */
+    public function bulkDestroy(BulkDeleteTenantsRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} tenant(s) deleted successfully.",
+        );
     }
 
     /**

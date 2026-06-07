@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Listeners\Central\LogCentralLifecycleEvents;
 use App\Listeners\Central\SendBillingNotifications;
+use App\Enums\Central\UserRole;
 use App\Models\Central\User;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -28,6 +29,14 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::subscribe(LogCentralLifecycleEvents::class);
         Event::subscribe(SendBillingNotifications::class);
+
+        Gate::before(function (?User $user, string $ability) {
+            if ($user?->hasRole(UserRole::SuperAdmin->value)) {
+                return true;
+            }
+
+            return null;
+        });
 
         Gate::define('viewApiDocs', function (?User $user = null): bool {
             $user ??= auth()->user();

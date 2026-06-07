@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\PlatformAnnouncement;
+use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -14,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class PlatformAnnouncementService
 {
+    use DeletesManyRecords;
     /**
      * Get all PlatformAnnouncement records.
      *
@@ -90,6 +92,16 @@ class PlatformAnnouncementService
     public function delete(PlatformAnnouncement $platformAnnouncement): bool
     {
         return (bool) $platformAnnouncement->delete();
+    }
+
+    /**
+     * Delete multiple announcements by ID.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        return $this->deleteManyByIds(PlatformAnnouncement::class, $ids);
     }
 
     /**

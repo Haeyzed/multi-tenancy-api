@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\Permission;
+use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -14,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class PermissionService
 {
+    use DeletesManyRecords;
     /**
      * Base query for permission records.
      *
@@ -104,6 +106,16 @@ class PermissionService
     public function delete(Permission $permission): bool
     {
         return $permission->delete();
+    }
+
+    /**
+     * Delete multiple permissions by ID.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        return $this->deleteManyByIds(Permission::class, $ids);
     }
 
     /**

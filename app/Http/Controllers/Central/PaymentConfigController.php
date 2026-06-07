@@ -25,9 +25,11 @@ class PaymentConfigController extends Controller
                 'public_key' => config('payments.paystack.public_key'),
             ],
             'checkout' => [
-                'success_url' => config('payments.checkout.success_url'),
+                'callback_url' => config('payments.checkout.success_url'),
+                'frontend_success_url' => config('payments.checkout.frontend_success_url'),
                 'cancel_url' => config('payments.checkout.cancel_url'),
             ],
+            'trial_setup_amount' => (int) config('payments.trial_setup_amount', 10_000),
         ], 'Payment configuration retrieved successfully.');
     }
 }

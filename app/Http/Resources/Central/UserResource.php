@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Central;
 
+use App\Enums\Central\UserRole;
 use App\Models\Central\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -126,6 +127,40 @@ class UserResource extends JsonResource
              * @default null
              */
             'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
+
+            /**
+             * Role names when roles are eager loaded.
+             *
+             * @default null
+             *
+             * @var list<string>|null
+             */
+            'role_names' => $this->when(
+                $this->relationLoaded('roles'),
+                fn (): array => $this->getRoleNames()->values()->all(),
+            ),
+
+            /**
+             * Effective permission names (direct + via roles) when roles or permissions are loaded.
+             *
+             * @default null
+             *
+             * @var list<string>|null
+             */
+            'permission_names' => $this->when(
+                $this->relationLoaded('roles') || $this->relationLoaded('permissions'),
+                fn (): array => $this->getAllPermissions()->pluck('name')->values()->all(),
+            ),
+
+            /**
+             * Whether the user has the super admin role.
+             *
+             * @default null
+             */
+            'is_super_admin' => $this->when(
+                $this->relationLoaded('roles'),
+                fn (): bool => $this->hasRole(UserRole::SuperAdmin->value),
+            ),
         ];
     }
 }

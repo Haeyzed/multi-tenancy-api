@@ -41,6 +41,7 @@ class RoleAndPermissionSeeder extends Seeder
         $rolePermissions = [
             UserRole::SuperAdmin->value => $allPermissions,
             UserRole::Support->value => [
+                'dashboard.view',
                 'tenants.view',
                 'support.view',
                 'support.manage',
@@ -48,12 +49,14 @@ class RoleAndPermissionSeeder extends Seeder
                 'monitoring.view',
             ],
             UserRole::Billing->value => [
+                'dashboard.view',
                 'tenants.view',
                 'billing.view',
                 'billing.manage',
                 'support.view',
             ],
             UserRole::Technical->value => [
+                'dashboard.view',
                 'tenants.view',
                 'support.view',
                 'support.manage',
@@ -80,10 +83,22 @@ class RoleAndPermissionSeeder extends Seeder
     private function permissions(): array
     {
         return [
+            ['name' => 'dashboard.view', 'module' => 'dashboard'],
+
             ['name' => 'users.view', 'module' => 'users'],
             ['name' => 'users.create', 'module' => 'users'],
             ['name' => 'users.update', 'module' => 'users'],
             ['name' => 'users.delete', 'module' => 'users'],
+
+            ['name' => 'roles.view', 'module' => 'roles'],
+            ['name' => 'roles.create', 'module' => 'roles'],
+            ['name' => 'roles.update', 'module' => 'roles'],
+            ['name' => 'roles.delete', 'module' => 'roles'],
+
+            ['name' => 'permissions.view', 'module' => 'permissions'],
+            ['name' => 'permissions.create', 'module' => 'permissions'],
+            ['name' => 'permissions.update', 'module' => 'permissions'],
+            ['name' => 'permissions.delete', 'module' => 'permissions'],
 
             ['name' => 'tenants.view', 'module' => 'tenants'],
             ['name' => 'tenants.create', 'module' => 'tenants'],

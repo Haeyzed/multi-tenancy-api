@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeleteUsersRequest;
 use App\Http\Requests\Central\StoreUserRequest;
 use App\Http\Requests\Central\SyncUserPermissionsRequest;
 use App\Http\Requests\Central\SyncUserRolesRequest;
@@ -99,6 +100,19 @@ class UserController extends Controller
         $this->service->delete($user);
 
         return $this->deleted('User deleted successfully.');
+    }
+
+    /**
+     * Delete multiple users in one request.
+     */
+    public function bulkDestroy(BulkDeleteUsersRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} user(s) deleted successfully.",
+        );
     }
 
     /**

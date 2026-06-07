@@ -10,6 +10,7 @@ use App\Enums\Central\SubscriptionStatus;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
 use App\Models\Central\Tenant;
+use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,6 +20,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class SubscriptionService
 {
+    use DeletesManyRecords;
     /**
      * Relations eager loaded for list and detail responses.
      *
@@ -137,6 +139,16 @@ class SubscriptionService
         return Subscription::query()
             ->whereKey($subscription->getKey())
             ->delete() > 0;
+    }
+
+    /**
+     * Delete multiple subscriptions by ID.
+     *
+     * @param  list<string>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        return $this->deleteManyByIds(Subscription::class, $ids);
     }
 
     /**

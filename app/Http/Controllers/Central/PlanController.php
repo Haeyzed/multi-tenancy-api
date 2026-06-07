@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeletePlansRequest;
 use App\Http\Requests\Central\StorePlanRequest;
 use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Http\Resources\Central\PlanResource;
@@ -103,5 +104,18 @@ class PlanController extends Controller
         $this->service->delete($plan);
 
         return $this->deleted('Plan deleted successfully.');
+    }
+
+    /**
+     * Delete multiple plans in one request.
+     */
+    public function bulkDestroy(BulkDeletePlansRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} plan(s) deleted successfully.",
+        );
     }
 }

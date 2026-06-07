@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\AttachRolePermissionsRequest;
+use App\Http\Requests\Central\BulkDeleteRolesRequest;
 use App\Http\Requests\Central\StoreRoleRequest;
 use App\Http\Requests\Central\SyncRolePermissionsMatrixRequest;
 use App\Http\Requests\Central\SyncRolePermissionsRequest;
@@ -124,6 +125,19 @@ class RoleController extends Controller
         $this->service->delete($role);
 
         return $this->deleted('Role deleted successfully.');
+    }
+
+    /**
+     * Delete multiple roles in one request.
+     */
+    public function bulkDestroy(BulkDeleteRolesRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} role(s) deleted successfully.",
+        );
     }
 
     /**

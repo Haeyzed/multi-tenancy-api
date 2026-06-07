@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeleteAnnouncementsRequest;
 use App\Http\Requests\Central\StorePlatformAnnouncementRequest;
 use App\Http\Requests\Central\UpdatePlatformAnnouncementRequest;
 use App\Http\Resources\Central\PlatformAnnouncementResource;
@@ -81,5 +82,18 @@ class PlatformAnnouncementController extends Controller
         $this->service->delete($announcement);
 
         return $this->deleted('Announcement deleted successfully.');
+    }
+
+    /**
+     * Delete multiple announcements in one request.
+     */
+    public function bulkDestroy(BulkDeleteAnnouncementsRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} announcement(s) deleted successfully.",
+        );
     }
 }

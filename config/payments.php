@@ -23,9 +23,19 @@ return [
     ],
 
     'checkout' => [
+        // Paystack/Stripe redirect here first; the API verifies payment then sends the user to frontend_success_url.
         'success_url' => env('CHECKOUT_SUCCESS_URL', env('APP_URL').'/api/central/payments/paystack/callback'),
-        'cancel_url' => env('CHECKOUT_CANCEL_URL', env('APP_URL').'/signup/cancel'),
+        'frontend_success_url' => env(
+            'CHECKOUT_FRONTEND_SUCCESS_URL',
+            rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/central/signup/success',
+        ),
+        'cancel_url' => env(
+            'CHECKOUT_CANCEL_URL',
+            rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/central/signup/cancel',
+        ),
     ],
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
     // Card verification charge during trial signup (kobo). Default ₦100.
     'trial_setup_amount' => (int) env('PAYSTACK_TRIAL_SETUP_AMOUNT', 10_000),

@@ -65,6 +65,9 @@ AWS_USE_PATH_STYLE_ENDPOINT=false
 VITE_APP_NAME="${APP_NAME}"
 
 
+# Frontend app URL (Next.js) — used for post-payment redirects and cancel links
+FRONTEND_URL=http://localhost:3000
+
 # Payment providers (platform-level keys for self-service signup)
 STRIPE_KEY=
 STRIPE_SECRET=
@@ -73,8 +76,10 @@ STRIPE_WEBHOOK_SECRET=
 PAYSTACK_PUBLIC_KEY=pk_test_e361e1227b8abc0a1ed80d38e25e92c7696e4baa
 PAYSTACK_SECRET_KEY=sk_test_6aabb873734f2dd0eec9271338be66252d6a64e3
 
+# Paystack redirects here first; API verifies payment then sends the browser to CHECKOUT_FRONTEND_SUCCESS_URL
 CHECKOUT_SUCCESS_URL="${APP_URL}/api/central/payments/paystack/callback"
-CHECKOUT_CANCEL_URL="${APP_URL}/signup/cancel"
+CHECKOUT_FRONTEND_SUCCESS_URL="${FRONTEND_URL}/central/signup/success"
+CHECKOUT_CANCEL_URL="${FRONTEND_URL}/central/signup/cancel"
 
 # Paystack card verification amount during trial signup (in kobo)
 PAYSTACK_TRIAL_SETUP_AMOUNT=10000

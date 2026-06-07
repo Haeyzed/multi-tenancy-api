@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\Plan;
+use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -14,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class PlanService
 {
+    use DeletesManyRecords;
     /**
      * Relations eager loaded for list and detail responses.
      *
@@ -113,6 +115,16 @@ class PlanService
     public function delete(Plan $plan): bool
     {
         return $plan->delete();
+    }
+
+    /**
+     * Delete multiple plans by ID.
+     *
+     * @param  list<string>  $ids
+     */
+    public function deleteMany(array $ids): int
+    {
+        return $this->deleteManyByIds(Plan::class, $ids);
     }
 
     /**

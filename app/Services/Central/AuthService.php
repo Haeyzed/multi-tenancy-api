@@ -45,7 +45,7 @@ readonly class AuthService
         $user->update(['last_login_at' => now()]);
 
         return [
-            'user' => $user->fresh(),
+            'user' => $this->loadAuthorizationRelations($user->fresh()),
             'token' => $user->createToken('central-api')->plainTextToken,
         ];
     }
@@ -63,7 +63,15 @@ readonly class AuthService
      */
     public function me(User $user): User
     {
-        return $user;
+        return $this->loadAuthorizationRelations($user);
+    }
+
+    /**
+     * Eager-load roles and direct permissions for authorization payloads.
+     */
+    private function loadAuthorizationRelations(User $user): User
+    {
+        return $user->load(['roles.permissions', 'permissions']);
     }
 
     /**
