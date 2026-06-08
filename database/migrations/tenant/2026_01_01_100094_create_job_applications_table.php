@@ -1,0 +1,47 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('job_applications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('job_posting_id')->constrained('job_postings')->cascadeOnDelete();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('email');
+            $table->string('phone')->nullable();
+            $table->foreignId('resume_media_id')->nullable();
+            $table->text('cover_letter')->nullable();
+            $table->string('portfolio_url')->nullable();
+            $table->string('linkedin_url')->nullable();
+            $table->enum('source', ['website', 'referral', 'agency', 'job_board', 'social_media'])->default('website');
+            $table->string('referrer_name')->nullable();
+            $table->enum('status', ['new', 'screening', 'interview', 'assessment', 'offer', 'hired', 'rejected', 'withdrawn'])->default('new');
+            $table->decimal('current_salary', 12, 2)->nullable();
+            $table->decimal('expected_salary', 12, 2)->nullable();
+            $table->string('notice_period')->nullable();
+            $table->date('available_from')->nullable();
+            $table->decimal('rating', 3, 2)->nullable();
+            $table->text('notes')->nullable();
+            $table->foreignUuid('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
+            $table->timestamps();
+            $table->index(['job_posting_id', 'status']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('job_applications');
+    }
+};
