@@ -16,6 +16,7 @@ use App\Models\Central\Subscription;
 use App\Models\Central\Tenant;
 use App\Models\Central\TenantSupportTicket;
 use App\Models\Central\User;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,7 +24,7 @@ use Illuminate\Support\Collection;
  */
 class DashboardService
 {
-    private const CHART_DAYS = 30;
+    private const DEFAULT_RANGE_DAYS = 30;
 
     private const RECENT_LIMIT = 8;
 
@@ -32,36 +33,67 @@ class DashboardService
      *
      * @return array<string, mixed>
      */
-    public function getOverview(User $user): array
-    {
+    public function getOverview(
+        User $user,
+        ?string $startDate = null,
+        ?string $endDate = null,
+    ): array {
+        [$start, $end] = $this->resolveDateRange($startDate, $endDate);
+
         return [
-            'cards' => $this->getCards($user),
-            'charts' => $this->getCharts($user),
-            'recent' => $this->getRecent($user),
+            'range' => [
+                'start_date' => $start->toDateString(),
+                'end_date' => $end->toDateString(),
+            ],
+            'cards' => $this->getCards($user, $start, $end),
+            'charts' => $this->getCharts($user, $start, $end),
+            'recent' => $this->getRecent($user, $start, $end),
         ];
+    }
+
+    /**
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function resolveDateRange(?string $startDate, ?string $endDate): array
+    {
+        $end = $endDate !== null
+            ? Carbon::parse($endDate)->endOfDay()
+            : now()->endOfDay();
+
+        $start = $startDate !== null
+            ? Carbon::parse($startDate)->startOfDay()
+            : $end->copy()->subDays(self::DEFAULT_RANGE_DAYS - 1)->startOfDay();
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+        }
+
+        return [$start, $end];
     }
 
     /**
      * @return list<array{key: string, label: string, value: int|string, module: string}>
      */
-    private function getCards(User $user): array
+    private function getCards(User $user, Carbon $start, Carbon $end): array
     {
         $cards = [];
 
         if ($user->can('tenants.view')) {
-            $tenantCounts = Tenant::query()
+            $tenantQuery = Tenant::query()->whereBetween('created_at', [$start, $end]);
+
+            $tenantCounts = (clone $tenantQuery)
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status');
 
-            $onTrial = Tenant::query()
+            $onTrial = (clone $tenantQuery)
                 ->whereNotNull('trial_ends_at')
                 ->where('trial_ends_at', '>=', now())
                 ->count();
 
             $cards[] = [
                 'key' => 'tenants_total',
-                'label' => 'Total Tenants',
+                'label' => 'New Tenants',
                 'value' => (int) $tenantCounts->sum(),
                 'module' => 'tenants',
             ];
@@ -80,13 +112,16 @@ class DashboardService
         }
 
         if ($user->can('billing.view')) {
-            $subscriptionCounts = Subscription::query()
+            $subscriptionQuery = Subscription::query()->whereBetween('created_at', [$start, $end]);
+
+            $subscriptionCounts = (clone $subscriptionQuery)
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status');
 
             $revenueCollected = (int) Payment::query()
                 ->where('status', PaymentStatus::Succeeded)
+                ->whereBetween('created_at', [$start, $end])
                 ->sum('amount');
 
             $cards[] = [
@@ -110,16 +145,18 @@ class DashboardService
         }
 
         if ($user->can('users.view')) {
+            $userQuery = User::query()->whereBetween('created_at', [$start, $end]);
+
             $cards[] = [
                 'key' => 'users_total',
-                'label' => 'Platform Users',
-                'value' => User::query()->count(),
+                'label' => 'New Users',
+                'value' => (clone $userQuery)->count(),
                 'module' => 'users',
             ];
             $cards[] = [
                 'key' => 'users_active',
                 'label' => 'Active Users',
-                'value' => User::query()->where('is_active', true)->count(),
+                'value' => (clone $userQuery)->where('is_active', true)->count(),
                 'module' => 'users',
             ];
         }
@@ -131,11 +168,14 @@ class DashboardService
                 SupportTicketStatus::WaitingCustomer->value,
             ];
 
-            $openTickets = TenantSupportTicket::query()
+            $ticketQuery = TenantSupportTicket::query()
+                ->whereBetween('created_at', [$start, $end]);
+
+            $openTickets = (clone $ticketQuery)
                 ->whereIn('status', $openStatuses)
                 ->count();
 
-            $urgentOpen = TenantSupportTicket::query()
+            $urgentOpen = (clone $ticketQuery)
                 ->whereIn('status', $openStatuses)
                 ->where('priority', SupportTicketPriority::Urgent->value)
                 ->count();
@@ -157,6 +197,7 @@ class DashboardService
         if ($user->can('monitoring.view')) {
             $unresolvedErrors = ErrorLog::query()
                 ->whereNull('resolved_at')
+                ->whereBetween('created_at', [$start, $end])
                 ->count();
 
             $cards[] = [
@@ -173,23 +214,25 @@ class DashboardService
     /**
      * @return array<string, list<array<string, mixed>>>
      */
-    private function getCharts(User $user): array
+    private function getCharts(User $user, Carbon $start, Carbon $end): array
     {
         $charts = [];
-        $startDate = now()->subDays(self::CHART_DAYS)->startOfDay();
 
         if ($user->can('tenants.view')) {
             $charts['tenant_growth'] = $this->fillDateSeries(
                 Tenant::query()
-                    ->where('created_at', '>=', $startDate)
+                    ->whereBetween('created_at', [$start, $end])
                     ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
                     ->groupBy('date')
                     ->orderBy('date')
                     ->pluck('count', 'date'),
                 'count',
+                $start,
+                $end,
             );
 
             $tenantStatus = Tenant::query()
+                ->whereBetween('created_at', [$start, $end])
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status');
@@ -208,15 +251,18 @@ class DashboardService
             $charts['revenue_over_time'] = $this->fillDateSeries(
                 Payment::query()
                     ->where('status', PaymentStatus::Succeeded)
-                    ->where('created_at', '>=', $startDate)
+                    ->whereBetween('created_at', [$start, $end])
                     ->selectRaw('DATE(created_at) as date, SUM(amount) as revenue')
                     ->groupBy('date')
                     ->orderBy('date')
                     ->pluck('revenue', 'date'),
                 'revenue',
+                $start,
+                $end,
             );
 
             $subscriptionStatus = Subscription::query()
+                ->whereBetween('created_at', [$start, $end])
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status');
@@ -237,13 +283,14 @@ class DashboardService
     /**
      * @return array<string, list<array<string, mixed>>>
      */
-    private function getRecent(User $user): array
+    private function getRecent(User $user, Carbon $start, Carbon $end): array
     {
         $recent = [];
 
         if ($user->can('tenants.view')) {
             $recent['tenants'] = Tenant::query()
                 ->with('plan:id,name')
+                ->whereBetween('created_at', [$start, $end])
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
@@ -261,6 +308,7 @@ class DashboardService
         if ($user->can('billing.view')) {
             $recent['subscriptions'] = Subscription::query()
                 ->with(['tenant:id,name', 'plan:id,name'])
+                ->whereBetween('created_at', [$start, $end])
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
@@ -276,6 +324,7 @@ class DashboardService
 
             $recent['payments'] = Payment::query()
                 ->with('tenant:id,name')
+                ->whereBetween('created_at', [$start, $end])
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
@@ -292,6 +341,7 @@ class DashboardService
 
         if ($user->can('platform.view')) {
             $recent['activities'] = Activity::query()
+                ->whereBetween('created_at', [$start, $end])
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
@@ -315,6 +365,7 @@ class DashboardService
             $recent['support_tickets'] = TenantSupportTicket::query()
                 ->with('tenant:id,name')
                 ->whereIn('status', $openStatuses)
+                ->whereBetween('updated_at', [$start, $end])
                 ->latest('updated_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
@@ -336,13 +387,17 @@ class DashboardService
      * @param  Collection<int|string, int|string>  $values
      * @return list<array{date: string, count?: int, revenue?: int}>
      */
-    private function fillDateSeries(Collection $values, string $valueKey): array
-    {
+    private function fillDateSeries(
+        Collection $values,
+        string $valueKey,
+        Carbon $start,
+        Carbon $end,
+    ): array {
         $series = [];
-        $cursor = now()->subDays(self::CHART_DAYS - 1)->startOfDay();
-        $end = now()->startOfDay();
+        $cursor = $start->copy()->startOfDay();
+        $endDay = $end->copy()->startOfDay();
 
-        while ($cursor->lte($end)) {
+        while ($cursor->lte($endDay)) {
             $dateKey = $cursor->toDateString();
             $series[] = [
                 'date' => $dateKey,
