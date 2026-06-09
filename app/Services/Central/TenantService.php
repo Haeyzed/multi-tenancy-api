@@ -36,9 +36,17 @@ class TenantService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Tenant>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
-        $query = Tenant::query()->search($search);
+    /**
+     * @param  list<string>  $status
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+    ): LengthAwarePaginator {
+        $query = Tenant::query()
+            ->search($search)
+            ->filterStatus($status);
 
         if (request()->filled('tenant_id')) {
             $query->where('id', request('tenant_id'));

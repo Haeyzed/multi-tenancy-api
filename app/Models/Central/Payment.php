@@ -77,9 +77,26 @@ class Payment extends Model
             $q->where(function (Builder $q) use ($search) {
                 $q->where('provider_payment_id', 'like', "%{$search}%")
                     ->orWhere('failure_message', 'like', "%{$search}%")
-                    ->orWhere('currency', 'like', "%{$search}%");
+                    ->orWhere('currency', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('invoice', function (Builder $q) use ($search) {
+                        $q->where('invoice_number', 'like', "%{$search}%");
+                    });
             });
         });
+    }
+
+    /**
+     * Filter by payment status values.
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
     }
 
     /**

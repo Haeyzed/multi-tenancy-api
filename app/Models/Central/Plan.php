@@ -88,6 +88,30 @@ class Plan extends Model
     }
 
     /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = \App\Support\QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Filter by public/private visibility tokens (public, private).
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterIsPublic(Builder $query, array $values): void
+    {
+        $mapped = \App\Support\QueryFilter::booleanVisibility($values);
+
+        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('is_public', $mapped));
+    }
+
+    /**
      * Tenants currently assigned to this plan.
      */
     public function tenants(): HasMany

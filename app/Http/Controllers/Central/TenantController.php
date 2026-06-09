@@ -12,6 +12,7 @@ use App\Http\Resources\Central\TenantResource;
 use App\Models\Central\Tenant;
 use App\Services\Central\PlanEntitlementService;
 use App\Services\Central\TenantService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -34,8 +35,9 @@ class TenantController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status);
 
         return $this->paginated($items, TenantResource::collection($items), 'Tenants retrieved successfully.');
     }

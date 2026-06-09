@@ -13,6 +13,7 @@ use App\Http\Resources\Central\SubscriptionResource;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
 use App\Services\Central\SubscriptionService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -34,8 +35,9 @@ class SubscriptionController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status);
 
         return $this->paginated($items, SubscriptionResource::collection($items), 'Subscriptions retrieved successfully.');
     }

@@ -11,6 +11,7 @@ use App\Http\Requests\Central\UpdatePlatformAnnouncementRequest;
 use App\Http\Resources\Central\PlatformAnnouncementResource;
 use App\Models\Central\PlatformAnnouncement;
 use App\Services\Central\PlatformAnnouncementService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,9 +33,23 @@ class PlatformAnnouncementController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $items = $this->service->getPaginated($perPage, $search);
+        $isActive = QueryFilter::parseList($request->query('is_active'));
+        $types = QueryFilter::parseList($request->query('type'));
+        $targetAudiences = QueryFilter::parseList($request->query('target_audience'));
+        $items = $this->service->getPaginated($perPage, $search, $isActive, $types, $targetAudiences);
 
         return $this->paginated($items, PlatformAnnouncementResource::collection($items), 'Announcements retrieved successfully.');
+    }
+
+    /**
+     * KPI card metrics for announcements.
+     */
+    public function metrics(): JsonResponse
+    {
+        return $this->success(
+            ['cards' => $this->service->getMetrics()],
+            'Announcement KPI metrics retrieved successfully.',
+        );
     }
 
     /**

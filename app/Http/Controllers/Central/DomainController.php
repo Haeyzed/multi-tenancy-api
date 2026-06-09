@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateDomainRequest;
 use App\Http\Resources\Central\DomainResource;
 use App\Models\Central\Domain;
 use App\Services\Central\DomainService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,9 @@ class DomainController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $verified = QueryFilter::parseList($request->query('verified'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $verified);
 
         return $this->paginated($items, DomainResource::collection($items), 'Domains retrieved successfully.');
     }

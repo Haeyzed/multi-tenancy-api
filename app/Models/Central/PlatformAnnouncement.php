@@ -71,4 +71,50 @@ class PlatformAnnouncement extends Model
             });
         });
     }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = \App\Support\QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Filter by announcement type values.
+     *
+     * @param  list<string>  $types
+     */
+    public function scopeFilterType(Builder $query, array $types): void
+    {
+        $query->when($types !== [], fn (Builder $q) => $q->whereIn('type', $types));
+    }
+
+    /**
+     * Filter by target audience values.
+     *
+     * @param  list<string>  $audiences
+     */
+    public function scopeFilterTargetAudience(Builder $query, array $audiences): void
+    {
+        $query->when($audiences !== [], fn (Builder $q) => $q->whereIn('target_audience', $audiences));
+    }
+
+    /**
+     * Active announcements currently within their schedule window.
+     */
+    public function scopeCurrentlyLive(Builder $query): void
+    {
+        $query->where('is_active', true)
+            ->where(function (Builder $q): void {
+                $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+            })
+            ->where(function (Builder $q): void {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+            });
+    }
 }

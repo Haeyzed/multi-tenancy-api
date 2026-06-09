@@ -15,6 +15,7 @@ use App\Models\Central\Permission;
 use App\Models\Central\Role;
 use App\Models\Central\User;
 use App\Services\Central\UserService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,8 +37,9 @@ class UserController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $isActive = QueryFilter::parseList($request->query('is_active'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $isActive);
 
         return $this->paginated($items, UserResource::collection($items), 'Users retrieved successfully.');
     }

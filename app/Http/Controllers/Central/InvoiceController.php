@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateInvoiceRequest;
 use App\Http\Resources\Central\InvoiceResource;
 use App\Models\Central\Invoice;
 use App\Services\Central\InvoiceService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,9 @@ class InvoiceController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status);
 
         return $this->paginated($items, InvoiceResource::collection($items), 'Invoices retrieved successfully.');
     }
@@ -65,9 +67,11 @@ class InvoiceController extends Controller
      *
      * @param  Invoice  $invoice  Invoice instance.
      */
-    public function show(Invoice $invoice): JsonResponse
+    public function show(string $invoice): JsonResponse
     {
-        return $this->success(new InvoiceResource($invoice), 'Invoice retrieved successfully.');
+        $item = $this->service->findOrFail($invoice);
+
+        return $this->success(new InvoiceResource($item), 'Invoice retrieved successfully.');
     }
 
     /**

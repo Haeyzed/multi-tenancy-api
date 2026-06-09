@@ -15,6 +15,16 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class InvoiceService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+        'subscription.plan',
+    ];
+
+    /**
      * Get all Invoice records.
      *
      * @param  string|null  $search  Optional search term.
@@ -35,11 +45,20 @@ class InvoiceService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Invoice>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $status
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+    ): LengthAwarePaginator {
         return Invoice::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterStatus($status)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -60,7 +79,9 @@ class InvoiceService
      */
     public function findOrFail(string $id): Invoice
     {
-        return Invoice::query()->findOrFail($id);
+        return Invoice::query()
+            ->with([...self::LIST_RELATIONS, 'payments', 'invoiceItems'])
+            ->findOrFail($id);
     }
 
     /**
@@ -81,9 +102,9 @@ class InvoiceService
      */
     public function update(Invoice $invoice, array $data): Invoice
     {
-        $invoice->query()->update($data);
+        $invoice->update($data);
 
-        return $invoice->fresh();
+        return $invoice->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -93,7 +114,7 @@ class InvoiceService
      */
     public function delete(Invoice $invoice): bool
     {
-        return $invoice->query()->delete() > 0;
+        return (bool) $invoice->delete();
     }
 
     /**
@@ -136,8 +157,12 @@ class InvoiceService
      */
     public function getOverdue(): Collection
     {
-        return Invoice::query()->where('status', 'open')
+        return Invoice::query()
+            ->with(self::LIST_RELATIONS)
+            ->forTenant()
+            ->where('status', InvoiceStatus::Open->value)
             ->where('due_date', '<', now())
+            ->latest()
             ->get();
     }
 
@@ -149,15 +174,15 @@ class InvoiceService
      */
     public function markAsPaid(Invoice $invoice, ?string $paymentIntentId = null): Invoice
     {
-        $invoice->query()->update([
-            'status' => 'paid',
+        $invoice->update([
+            'status' => InvoiceStatus::Paid->value,
             'amount_paid' => $invoice->amount_due,
             'amount_remaining' => 0,
             'paid_at' => now(),
-            'payment_intent_id' => $paymentIntentId,
+            'payment_intent_id' => $paymentIntentId ?? $invoice->payment_intent_id,
         ]);
 
-        return $invoice->fresh();
+        return $invoice->fresh(self::LIST_RELATIONS);
     }
 
     /**

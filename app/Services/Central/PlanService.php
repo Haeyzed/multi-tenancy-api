@@ -56,10 +56,20 @@ class PlanService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Plan>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $isActive
+     * @param  list<string>  $isPublic
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $isActive = [],
+        array $isPublic = [],
+    ): LengthAwarePaginator {
         return $this->queryWithDetails()
             ->search($search)
+            ->filterIsActive($isActive)
+            ->filterIsPublic($isPublic)
             ->orderBy('sort_order')
             ->paginate($perPage);
     }

@@ -14,6 +14,15 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class TenantConfigService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+    ];
+
+    /**
      * Get all TenantConfig records.
      *
      * @param  string|null  $search  Optional search term.
@@ -37,8 +46,10 @@ class TenantConfigService
     public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
         return TenantConfig::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -80,9 +91,9 @@ class TenantConfigService
      */
     public function update(TenantConfig $tenantConfig, array $data): TenantConfig
     {
-        $tenantConfig->query()->update($data);
+        $tenantConfig->update($data);
 
-        return $tenantConfig->fresh();
+        return $tenantConfig->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -92,7 +103,7 @@ class TenantConfigService
      */
     public function delete(TenantConfig $tenantConfig): bool
     {
-        return $tenantConfig->query()->delete() > 0;
+        return (bool) $tenantConfig->delete();
     }
 
     /**

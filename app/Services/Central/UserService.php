@@ -62,10 +62,17 @@ class UserService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, User>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $isActive
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $isActive = [],
+    ): LengthAwarePaginator {
         return $this->queryWithDetails()
             ->search($search)
+            ->filterIsActive($isActive)
             ->paginate($perPage);
     }
 

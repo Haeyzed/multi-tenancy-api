@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\RefundPaymentRequest;
 use App\Http\Requests\Central\StorePaymentRequest;
 use App\Http\Requests\Central\UpdatePaymentRequest;
 use App\Http\Resources\Central\PaymentResource;
 use App\Models\Central\Payment;
 use App\Services\Central\PaymentService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +33,9 @@ class PaymentController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status);
 
         return $this->paginated($items, PaymentResource::collection($items), 'Payments retrieved successfully.');
     }
@@ -65,9 +68,11 @@ class PaymentController extends Controller
      *
      * @param  Payment  $payment  Payment instance.
      */
-    public function show(Payment $payment): JsonResponse
+    public function show(string $payment): JsonResponse
     {
-        return $this->success(new PaymentResource($payment), 'Payment retrieved successfully.');
+        $item = $this->service->findOrFail($payment);
+
+        return $this->success(new PaymentResource($item), 'Payment retrieved successfully.');
     }
 
     /**
@@ -101,9 +106,10 @@ class PaymentController extends Controller
      * @param  Request  $request  Must include `amount` in smallest currency unit.
      * @param  Payment  $payment  Payment instance.
      */
-    public function refund(Request $request, Payment $payment): JsonResponse
+    public function refund(RefundPaymentRequest $request, Payment $payment): JsonResponse
     {
-        $item = $this->service->refund($payment, $request->integer('amount'));
+        $amount = $request->validated('amount');
+        $item = $this->service->refund($payment, is_int($amount) ? $amount : null);
 
         return $this->success(new PaymentResource($item), 'Payment refunded.');
     }

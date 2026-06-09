@@ -102,6 +102,16 @@ class Subscription extends Model
     }
 
     /**
+     * Filter by subscription status values.
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
      * Tenant that owns this subscription.
      */
     public function tenant(): BelongsTo

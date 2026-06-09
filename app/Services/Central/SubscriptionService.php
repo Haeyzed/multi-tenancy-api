@@ -70,11 +70,18 @@ class SubscriptionService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Subscription>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $status
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+    ): LengthAwarePaginator {
         return $this->queryWithDetails()
             ->forTenant()
             ->search($search)
+            ->filterStatus($status)
             ->paginate($perPage);
     }
 

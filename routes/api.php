@@ -385,6 +385,7 @@ Route::prefix('central')
             |------------------------------------------------------------------
             */
             Route::middleware('permission:platform.view')->group(function (): void {
+                Route::get('announcements/metrics/cards', [PlatformAnnouncementController::class, 'metrics'])->name('announcements.metrics');
                 Route::get('announcements', [PlatformAnnouncementController::class, 'index'])->name('announcements.index');
                 Route::get('announcements/{announcement}', [PlatformAnnouncementController::class, 'show'])->name('announcements.show');
                 Route::get('changelog', [PlatformChangelogController::class, 'index'])->name('changelog.index');

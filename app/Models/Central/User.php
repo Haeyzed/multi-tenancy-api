@@ -97,6 +97,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = \App\Support\QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
      * Support tickets currently assigned to this administrator.
      */
     public function assignedSupportTickets(): HasMany

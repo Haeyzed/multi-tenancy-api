@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Models\Central\Plan;
 use App\Models\Central\PlatformAnnouncement;
 use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,14 +32,29 @@ class PlatformAnnouncementService
      *
      * @param  int  $perPage  Number of records per page.
      * @param  string|null  $search  Optional search term.
+     * @param  list<string>  $isActive
+     * @param  list<string>  $types
+     * @param  list<string>  $targetAudiences
      * @return LengthAwarePaginator<int, PlatformAnnouncement>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
-        return PlatformAnnouncement::query()
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $isActive = [],
+        array $types = [],
+        array $targetAudiences = [],
+    ): LengthAwarePaginator {
+        $paginator = PlatformAnnouncement::query()
             ->search($search)
+            ->filterIsActive($isActive)
+            ->filterType($types)
+            ->filterTargetAudience($targetAudiences)
             ->latest()
             ->paginate($perPage);
+
+        $this->hydrateTargetPlanNames($paginator->getCollection());
+
+        return $paginator;
     }
 
     /**
@@ -58,7 +74,10 @@ class PlatformAnnouncementService
      */
     public function findOrFail(int $id): PlatformAnnouncement
     {
-        return PlatformAnnouncement::query()->findOrFail($id);
+        $announcement = PlatformAnnouncement::query()->findOrFail($id);
+        $this->hydrateTargetPlanNames(collect([$announcement]));
+
+        return $announcement;
     }
 
     /**
@@ -68,7 +87,10 @@ class PlatformAnnouncementService
      */
     public function create(array $data): PlatformAnnouncement
     {
-        return PlatformAnnouncement::query()->create($data);
+        $announcement = PlatformAnnouncement::query()->create($data);
+        $this->hydrateTargetPlanNames(collect([$announcement]));
+
+        return $announcement;
     }
 
     /**
@@ -81,7 +103,10 @@ class PlatformAnnouncementService
     {
         $platformAnnouncement->update($data);
 
-        return $platformAnnouncement->fresh();
+        $announcement = $platformAnnouncement->fresh();
+        $this->hydrateTargetPlanNames(collect([$announcement]));
+
+        return $announcement;
     }
 
     /**
@@ -130,5 +155,63 @@ class PlatformAnnouncementService
     public function getByType(string $type): Collection
     {
         return PlatformAnnouncement::query()->where('type', $type)->get();
+    }
+
+    /**
+     * KPI card metrics for announcements.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+    /**
+     * Resolve plan names for API responses without N+1 queries.
+     *
+     * @param  Collection<int, PlatformAnnouncement>  $announcements
+     */
+    private function hydrateTargetPlanNames(Collection $announcements): void
+    {
+        if ($announcements->isEmpty()) {
+            return;
+        }
+
+        $planIds = $announcements
+            ->flatMap(fn (PlatformAnnouncement $announcement) => $announcement->target_plans ?? [])
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($planIds === []) {
+            return;
+        }
+
+        $namesById = Plan::query()
+            ->whereIn('id', $planIds)
+            ->pluck('name', 'id');
+
+        foreach ($announcements as $announcement) {
+            $announcement->setAttribute(
+                'target_plan_names',
+                collect($announcement->target_plans ?? [])
+                    ->map(fn (string $id): ?string => $namesById[$id] ?? null)
+                    ->filter()
+                    ->values()
+                    ->all(),
+            );
+        }
+    }
+
+    public function getMetrics(): array
+    {
+        $total = PlatformAnnouncement::query()->count();
+        $active = PlatformAnnouncement::query()->where('is_active', true)->count();
+        $live = PlatformAnnouncement::query()->currentlyLive()->count();
+        $alerts = PlatformAnnouncement::query()->where('type', 'alert')->count();
+
+        return [
+            ['key' => 'total', 'label' => 'Total Announcements', 'value' => $total],
+            ['key' => 'active', 'label' => 'Active', 'value' => $active],
+            ['key' => 'live', 'label' => 'Currently Live', 'value' => $live],
+            ['key' => 'alerts', 'label' => 'Alerts', 'value' => $alerts],
+        ];
     }
 }

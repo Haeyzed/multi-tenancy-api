@@ -47,8 +47,26 @@ class Domain extends BaseDomain
     public function scopeSearch(Builder $query, ?string $search): void
     {
         $query->when($search, function (Builder $q, string $search) {
-            $q->where('domain', 'like', "%{$search}%");
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('domain', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
+            });
         });
+    }
+
+    /**
+     * Filter by verified/unverified tokens.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterVerified(Builder $query, array $values): void
+    {
+        $mapped = \App\Support\QueryFilter::booleanVerified($values);
+
+        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('verified', $mapped));
     }
 
     /**

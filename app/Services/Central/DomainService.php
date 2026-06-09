@@ -14,6 +14,15 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class DomainService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+    ];
+
+    /**
      * Get all Domain records.
      *
      * @param  string|null  $search  Optional search term.
@@ -34,11 +43,20 @@ class DomainService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Domain>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $verified
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $verified = [],
+    ): LengthAwarePaginator {
         return Domain::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterVerified($verified)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -80,9 +98,9 @@ class DomainService
      */
     public function update(Domain $domain, array $data): Domain
     {
-        $domain->query()->update($data);
+        $domain->update($data);
 
-        return $domain->fresh();
+        return $domain->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -92,7 +110,7 @@ class DomainService
      */
     public function delete(Domain $domain): bool
     {
-        return $domain->query()->delete() > 0;
+        return (bool) $domain->delete();
     }
 
     /**
@@ -116,9 +134,9 @@ class DomainService
         Domain::query()->where('tenant_id', $domain->tenant_id)
             ->where('id', '!=', $domain->id)
             ->update(['is_primary' => false]);
-        $domain->query()->update(['is_primary' => true]);
+        $domain->update(['is_primary' => true]);
 
-        return $domain->fresh();
+        return $domain->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -128,8 +146,8 @@ class DomainService
      */
     public function verify(Domain $domain): Domain
     {
-        $domain->query()->update(['verified' => true]);
+        $domain->update(['verified' => true]);
 
-        return $domain->fresh();
+        return $domain->fresh(self::LIST_RELATIONS);
     }
 }

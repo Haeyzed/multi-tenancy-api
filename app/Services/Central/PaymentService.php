@@ -15,6 +15,16 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class PaymentService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+        'invoice',
+    ];
+
+    /**
      * Get all Payment records.
      *
      * @param  string|null  $search  Optional search term.
@@ -35,11 +45,20 @@ class PaymentService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, Payment>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $status
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+    ): LengthAwarePaginator {
         return Payment::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterStatus($status)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -60,7 +79,9 @@ class PaymentService
      */
     public function findOrFail(string $id): Payment
     {
-        return Payment::query()->findOrFail($id);
+        return Payment::query()
+            ->with(self::LIST_RELATIONS)
+            ->findOrFail($id);
     }
 
     /**
@@ -81,9 +102,9 @@ class PaymentService
      */
     public function update(Payment $payment, array $data): Payment
     {
-        $payment->query()->update($data);
+        $payment->update($data);
 
-        return $payment->fresh();
+        return $payment->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -93,7 +114,7 @@ class PaymentService
      */
     public function delete(Payment $payment): bool
     {
-        return $payment->query()->delete() > 0;
+        return (bool) $payment->delete();
     }
 
     /**
@@ -135,14 +156,16 @@ class PaymentService
      * @param  Payment  $payment  The payment to refund.
      * @param  int  $amount  Refunded amount in smallest currency unit.
      */
-    public function refund(Payment $payment, int $amount): Payment
+    public function refund(Payment $payment, ?int $amount = null): Payment
     {
-        $payment->query()->update([
-            'status' => 'refunded',
-            'refunded_amount' => $amount,
+        $refundAmount = $amount ?? $payment->amount;
+
+        $payment->update([
+            'status' => PaymentStatus::Refunded->value,
+            'refunded_amount' => $refundAmount,
         ]);
 
-        return $payment->fresh();
+        return $payment->fresh(self::LIST_RELATIONS);
     }
 
     /**

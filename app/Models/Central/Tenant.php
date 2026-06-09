@@ -140,6 +140,16 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
+     * Filter by tenant lifecycle status values.
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
      * Subscription plan assigned to this tenant.
      */
     public function plan(): BelongsTo

@@ -56,7 +56,11 @@ class TenantConfig extends Model
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $q) use ($search) {
                 $q->where('key', 'like', "%{$search}%")
-                    ->orWhere('value', 'like', "%{$search}%");
+                    ->orWhere('value', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
             });
         });
     }

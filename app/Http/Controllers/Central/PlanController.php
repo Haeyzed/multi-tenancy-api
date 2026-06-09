@@ -11,6 +11,7 @@ use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Http\Resources\Central\PlanResource;
 use App\Models\Central\Plan;
 use App\Services\Central\PlanService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,8 +33,10 @@ class PlanController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $isActive = QueryFilter::parseList($request->query('is_active'));
+        $isPublic = QueryFilter::parseList($request->query('is_public'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $isActive, $isPublic);
 
         return $this->paginated($items, PlanResource::collection($items), 'Plans retrieved successfully.');
     }
