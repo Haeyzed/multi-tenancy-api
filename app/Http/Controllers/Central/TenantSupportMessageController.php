@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateTenantSupportMessageRequest;
 use App\Http\Resources\Central\TenantSupportMessageResource;
 use App\Models\Central\TenantSupportMessage;
 use App\Services\Central\TenantSupportMessageService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,7 +31,11 @@ class TenantSupportMessageController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
+        $ticketId = $request->filled('ticket_id') ? $request->integer('ticket_id') : null;
+        $isRead = QueryFilter::parseList($request->query('is_read'));
+
+        $items = $this->service->getPaginated($perPage, $search, $ticketId, $isRead);
 
         return $this->paginated($items, TenantSupportMessageResource::collection($items), 'Support messages retrieved successfully.');
     }

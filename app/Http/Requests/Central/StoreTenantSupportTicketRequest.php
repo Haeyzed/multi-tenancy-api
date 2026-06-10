@@ -59,7 +59,7 @@ class StoreTenantSupportTicketRequest extends BaseRequest
              *
              * @example "open"
              */
-            'status' => 'required|string|in:open,in_progress,waiting_customer,resolved,closed',
+            'status' => 'sometimes|string|in:open,in_progress,waiting_customer,resolved,closed',
 
             /**
              * Brief summary of the support issue.

@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateTenantHealthCheckRequest;
 use App\Http\Resources\Central\TenantHealthCheckResource;
 use App\Models\Central\TenantHealthCheck;
 use App\Services\Central\TenantHealthCheckService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,9 @@ class TenantHealthCheckController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status);
 
         return $this->paginated($items, TenantHealthCheckResource::collection($items), 'Health checks retrieved successfully.');
     }

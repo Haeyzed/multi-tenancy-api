@@ -79,6 +79,18 @@ class ApiKeyResource extends JsonResource
             'is_active' => (bool) $this->is_active,
 
             /**
+             * Plain-text key returned only once after creation.
+             *
+             * @example "ak_live_abc123..."
+             *
+             * @default null
+             */
+            'plain_key' => $this->when(
+                isset($this->plain_key),
+                fn () => $this->plain_key,
+            ),
+
+            /**
              * Timestamp when the key was created.
              *
              * @example "2026-01-01T00:00:00+00:00"

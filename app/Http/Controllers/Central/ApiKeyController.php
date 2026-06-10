@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateApiKeyRequest;
 use App\Http\Resources\Central\ApiKeyResource;
 use App\Models\Central\ApiKey;
 use App\Services\Central\ApiKeyService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,9 @@ class ApiKeyController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $isActive = QueryFilter::parseList($request->query('is_active'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $isActive);
 
         return $this->paginated($items, ApiKeyResource::collection($items), 'API keys retrieved successfully.');
     }

@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateUsageRecordRequest;
 use App\Http\Resources\Central\UsageRecordResource;
 use App\Models\Central\UsageRecord;
 use App\Services\Central\UsageRecordService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,9 @@ class UsageRecordController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $metrics = QueryFilter::parseList($request->query('metric'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $metrics);
 
         return $this->paginated($items, UsageRecordResource::collection($items), 'Usage records retrieved successfully.');
     }
@@ -56,7 +58,12 @@ class UsageRecordController extends Controller
      */
     public function show(UsageRecord $usageRecord): JsonResponse
     {
-        return $this->success(new UsageRecordResource($usageRecord), 'Usage record retrieved successfully.');
+        return $this->success(
+            new UsageRecordResource(
+                $usageRecord->load(['tenant', 'subscription']),
+            ),
+            'Usage record retrieved successfully.',
+        );
     }
 
     /**

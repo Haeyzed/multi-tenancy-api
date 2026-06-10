@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  *
  * @method static Builder|UsageRecord forTenant(?string $tenantId = null)
  * @method static Builder|UsageRecord search(?string $search)
+ * @method static Builder|UsageRecord filterMetric(array $values)
  */
 class UsageRecord extends Model
 {
@@ -60,11 +61,28 @@ class UsageRecord extends Model
     public function scopeSearch(Builder $query, ?string $search): void
     {
         $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
-                $q->where('metric', 'like', "%{$search}%")
-                    ->orWhere('subscription_id', 'like', "%{$search}%");
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('metric', 'like', "%{$search}%")
+                    ->orWhere('subscription_id', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $tenant) use ($search) {
+                        $tenant->where('name', 'like', "%{$search}%");
+                    });
             });
         });
+    }
+
+    /**
+     * Scope a query to filter by usage metric.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterMetric(Builder $query, array $values): void
+    {
+        if ($values === []) {
+            return;
+        }
+
+        $query->whereIn('metric', $values);
     }
 
     /**

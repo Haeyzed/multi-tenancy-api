@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateTenantSupportTicketRequest;
 use App\Http\Resources\Central\TenantSupportTicketResource;
 use App\Models\Central\TenantSupportTicket;
 use App\Services\Central\TenantSupportTicketService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,11 @@ class TenantSupportTicketController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
+        $priority = QueryFilter::parseList($request->query('priority'));
+        $category = QueryFilter::parseList($request->query('category'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status, $priority, $category);
 
         return $this->paginated($items, TenantSupportTicketResource::collection($items), 'Support tickets retrieved successfully.');
     }
@@ -67,7 +71,9 @@ class TenantSupportTicketController extends Controller
      */
     public function show(TenantSupportTicket $supportTicket): JsonResponse
     {
-        return $this->success(new TenantSupportTicketResource($supportTicket), 'Support ticket retrieved successfully.');
+        $item = $this->service->findOrFail($supportTicket->id);
+
+        return $this->success(new TenantSupportTicketResource($item), 'Support ticket retrieved successfully.');
     }
 
     /**
@@ -103,7 +109,11 @@ class TenantSupportTicketController extends Controller
      */
     public function assign(Request $request, TenantSupportTicket $supportTicket): JsonResponse
     {
-        $item = $this->service->assign($supportTicket, $request->integer('admin_id'));
+        $validated = $request->validate([
+            'admin_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $item = $this->service->assign($supportTicket, (int) $validated['admin_id']);
 
         return $this->success(new TenantSupportTicketResource($item), 'Support ticket assigned.');
     }

@@ -50,7 +50,7 @@ class StoreApiKeyRequest extends BaseRequest
              *
              * @example "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
              */
-            'key_hash' => 'required|string',
+            'key_hash' => 'nullable|string',
 
             /**
              * Optional list of permission scopes granted to this key.

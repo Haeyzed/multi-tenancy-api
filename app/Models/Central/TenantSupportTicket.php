@@ -72,9 +72,37 @@ class TenantSupportTicket extends Model
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                    ->orWhere('body', 'like', "%{$search}%");
+                    ->orWhere('body', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
             });
         });
+    }
+
+    /**
+     * @param  list<string>  $values
+     */
+    public function scopeFilterStatus(Builder $query, array $values): void
+    {
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('status', $values));
+    }
+
+    /**
+     * @param  list<string>  $values
+     */
+    public function scopeFilterPriority(Builder $query, array $values): void
+    {
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('priority', $values));
+    }
+
+    /**
+     * @param  list<string>  $values
+     */
+    public function scopeFilterCategory(Builder $query, array $values): void
+    {
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('category', $values));
     }
 
     /**

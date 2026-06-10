@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdatePlatformChangelogRequest;
 use App\Http\Resources\Central\PlatformChangelogResource;
 use App\Models\Central\PlatformChangelog;
 use App\Services\Central\PlatformChangelogService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,7 +31,11 @@ class PlatformChangelogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
+        $type = QueryFilter::parseList($request->query('type'));
+        $isPublished = QueryFilter::parseList($request->query('is_published'));
+
+        $items = $this->service->getPaginated($perPage, $search, $type, $isPublished);
 
         return $this->paginated($items, PlatformChangelogResource::collection($items), 'Changelog entries retrieved successfully.');
     }

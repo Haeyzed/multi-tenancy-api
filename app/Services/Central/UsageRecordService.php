@@ -14,6 +14,16 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class UsageRecordService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+        'subscription',
+    ];
+
+    /**
      * Get all UsageRecord records.
      *
      * @param  string|null  $search  Optional search term.
@@ -34,11 +44,20 @@ class UsageRecordService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, UsageRecord>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $metrics
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $metrics = [],
+    ): LengthAwarePaginator {
         return UsageRecord::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterMetric($metrics)
+            ->latest('recorded_at')
             ->paginate($perPage);
     }
 
@@ -69,7 +88,9 @@ class UsageRecordService
      */
     public function create(array $data): UsageRecord
     {
-        return UsageRecord::query()->create($data);
+        return UsageRecord::query()
+            ->create($data)
+            ->load(self::LIST_RELATIONS);
     }
 
     /**
@@ -80,9 +101,9 @@ class UsageRecordService
      */
     public function update(UsageRecord $usageRecord, array $data): UsageRecord
     {
-        $usageRecord->query()->update($data);
+        $usageRecord->update($data);
 
-        return $usageRecord->fresh();
+        return $usageRecord->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -92,7 +113,7 @@ class UsageRecordService
      */
     public function delete(UsageRecord $usageRecord): bool
     {
-        return $usageRecord->query()->delete() > 0;
+        return $usageRecord->delete();
     }
 
     /**

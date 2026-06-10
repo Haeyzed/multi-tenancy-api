@@ -15,6 +15,15 @@ use Illuminate\Support\Carbon;
 class TenantMetricService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+    ];
+
+    /**
      * Get all TenantMetric records.
      *
      * @param  string|null  $search  Optional search term.
@@ -35,11 +44,18 @@ class TenantMetricService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantMetric>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
+    ): LengthAwarePaginator {
         return TenantMetric::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterDateRange($startDate, $endDate)
+            ->latest('metric_date')
             ->paginate($perPage);
     }
 
@@ -70,7 +86,9 @@ class TenantMetricService
      */
     public function create(array $data): TenantMetric
     {
-        return TenantMetric::query()->create($data);
+        return TenantMetric::query()
+            ->create($data)
+            ->load(self::LIST_RELATIONS);
     }
 
     /**
@@ -81,9 +99,9 @@ class TenantMetricService
      */
     public function update(TenantMetric $tenantMetric, array $data): TenantMetric
     {
-        $tenantMetric->query()->update($data);
+        $tenantMetric->update($data);
 
-        return $tenantMetric->fresh();
+        return $tenantMetric->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -93,7 +111,7 @@ class TenantMetricService
      */
     public function delete(TenantMetric $tenantMetric): bool
     {
-        return $tenantMetric->query()->delete() > 0;
+        return $tenantMetric->delete();
     }
 
     /**

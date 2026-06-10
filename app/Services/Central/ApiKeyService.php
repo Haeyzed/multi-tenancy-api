@@ -7,12 +7,23 @@ namespace App\Services\Central;
 use App\Models\Central\ApiKey;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Central ApiKey records and queries.
  */
 class ApiKeyService
 {
+    /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+    ];
+
     /**
      * Get all ApiKey records.
      *
@@ -28,17 +39,19 @@ class ApiKeyService
     }
 
     /**
-     * Get paginated ApiKey records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
-     * @return LengthAwarePaginator<int, ApiKey>
+     * @param  list<string>  $isActive
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $isActive = [],
+    ): LengthAwarePaginator {
         return ApiKey::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterIsActive($isActive)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -69,7 +82,20 @@ class ApiKeyService
      */
     public function create(array $data): ApiKey
     {
-        return ApiKey::query()->create($data);
+        $plainKey = null;
+
+        if (empty($data['key_hash'])) {
+            $plainKey = 'ak_live_'.Str::random(40);
+            $data['key_hash'] = Hash::make($plainKey);
+        }
+
+        $apiKey = ApiKey::query()->create($data);
+
+        if ($plainKey !== null) {
+            $apiKey->setAttribute('plain_key', $plainKey);
+        }
+
+        return $apiKey->load(self::LIST_RELATIONS);
     }
 
     /**
@@ -80,9 +106,11 @@ class ApiKeyService
      */
     public function update(ApiKey $apiKey, array $data): ApiKey
     {
-        $apiKey->query()->update($data);
+        unset($data['key_hash']);
 
-        return $apiKey->fresh();
+        $apiKey->update($data);
+
+        return $apiKey->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -92,7 +120,7 @@ class ApiKeyService
      */
     public function delete(ApiKey $apiKey): bool
     {
-        return $apiKey->query()->delete() > 0;
+        return (bool) $apiKey->delete();
     }
 
     /**
@@ -123,9 +151,9 @@ class ApiKeyService
      */
     public function recordUsage(ApiKey $apiKey): ApiKey
     {
-        $apiKey->query()->update(['last_used_at' => now()]);
+        $apiKey->update(['last_used_at' => now()]);
 
-        return $apiKey->fresh();
+        return $apiKey->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -135,9 +163,9 @@ class ApiKeyService
      */
     public function revoke(ApiKey $apiKey): ApiKey
     {
-        $apiKey->query()->update(['is_active' => false]);
+        $apiKey->update(['is_active' => false]);
 
-        return $apiKey->fresh();
+        return $apiKey->fresh(self::LIST_RELATIONS);
     }
 
     /**

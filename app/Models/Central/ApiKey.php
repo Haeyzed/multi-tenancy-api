@@ -64,8 +64,26 @@ class ApiKey extends Model
     public function scopeSearch(Builder $query, ?string $search): void
     {
         $query->when($search, function (Builder $q, string $search) {
-            $q->where('name', 'like', "%{$search}%");
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
+            });
         });
+    }
+
+    /**
+     * Filter by active/inactive tokens.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterIsActive(Builder $query, array $values): void
+    {
+        $mapped = \App\Support\QueryFilter::booleanStatuses($values);
+
+        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('is_active', $mapped));
     }
 
     /**

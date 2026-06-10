@@ -102,4 +102,76 @@ final class QueryFilter
             static fn (?bool $value): bool => $value !== null,
         )));
     }
+
+    /**
+     * Map resolved/unresolved string tokens to boolean values for whereIn filters.
+     *
+     * @param  list<string>  $values
+     * @return list<bool>
+     */
+    public static function booleanResolved(array $values): array
+    {
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'resolved' => true,
+                'unresolved' => false,
+                default => null,
+            };
+        }
+
+        return array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+    }
+
+    /**
+     * Map read/unread string tokens to boolean values for whereIn filters.
+     *
+     * @param  list<string>  $values
+     * @return list<bool>
+     */
+    public static function booleanRead(array $values): array
+    {
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'read' => true,
+                'unread' => false,
+                default => null,
+            };
+        }
+
+        return array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+    }
+
+    /**
+     * Map published/draft string tokens to boolean values for whereIn filters.
+     *
+     * @param  list<string>  $values
+     * @return list<bool>
+     */
+    public static function booleanPublished(array $values): array
+    {
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'published' => true,
+                'draft' => false,
+                default => null,
+            };
+        }
+
+        return array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+    }
 }

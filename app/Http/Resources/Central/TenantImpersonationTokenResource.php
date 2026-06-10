@@ -85,6 +85,16 @@ class TenantImpersonationTokenResource extends JsonResource
              * @default null
              */
             'administrator' => new UserResource($this->whenLoaded('administrator')),
+
+            /**
+             * Plain-text token returned only immediately after creation.
+             *
+             * @default null
+             */
+            'plain_token' => $this->when(
+                isset($this->plain_token),
+                fn () => $this->plain_token,
+            ),
         ];
     }
 }

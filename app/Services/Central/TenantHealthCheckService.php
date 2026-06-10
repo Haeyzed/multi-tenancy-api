@@ -15,6 +15,15 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class TenantHealthCheckService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+    ];
+
+    /**
      * Get all TenantHealthCheck records.
      *
      * @param  string|null  $search  Optional search term.
@@ -29,17 +38,19 @@ class TenantHealthCheckService
     }
 
     /**
-     * Get paginated TenantHealthCheck records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
-     * @return LengthAwarePaginator<int, TenantHealthCheck>
+     * @param  list<string>  $status
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+    ): LengthAwarePaginator {
         return TenantHealthCheck::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterStatus($status)
+            ->latest('checked_at')
             ->paginate($perPage);
     }
 
@@ -81,9 +92,9 @@ class TenantHealthCheckService
      */
     public function update(TenantHealthCheck $tenantHealthCheck, array $data): TenantHealthCheck
     {
-        $tenantHealthCheck->query()->update($data);
+        $tenantHealthCheck->update($data);
 
-        return $tenantHealthCheck->fresh();
+        return $tenantHealthCheck->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -93,7 +104,7 @@ class TenantHealthCheckService
      */
     public function delete(TenantHealthCheck $tenantHealthCheck): bool
     {
-        return $tenantHealthCheck->query()->delete() > 0;
+        return (bool) $tenantHealthCheck->delete();
     }
 
     /**

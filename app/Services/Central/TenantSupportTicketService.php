@@ -16,6 +16,27 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class TenantSupportTicketService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+        'assignee',
+    ];
+
+    /**
+     * Relations eager loaded for detail responses with conversation.
+     *
+     * @var list<string>
+     */
+    private const DETAIL_RELATIONS = [
+        'tenant',
+        'assignee',
+        'messages.sender',
+    ];
+
+    /**
      * Get all TenantSupportTicket records.
      *
      * @param  string|null  $search  Optional search term.
@@ -30,17 +51,25 @@ class TenantSupportTicketService
     }
 
     /**
-     * Get paginated TenantSupportTicket records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
-     * @return LengthAwarePaginator<int, TenantSupportTicket>
+     * @param  list<string>  $status
+     * @param  list<string>  $priority
+     * @param  list<string>  $category
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+        array $priority = [],
+        array $category = [],
+    ): LengthAwarePaginator {
         return TenantSupportTicket::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterStatus($status)
+            ->filterPriority($priority)
+            ->filterCategory($category)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -61,7 +90,9 @@ class TenantSupportTicketService
      */
     public function findOrFail(int $id): TenantSupportTicket
     {
-        return TenantSupportTicket::query()->findOrFail($id);
+        return TenantSupportTicket::query()
+            ->with(self::DETAIL_RELATIONS)
+            ->findOrFail($id);
     }
 
     /**
@@ -71,7 +102,11 @@ class TenantSupportTicketService
      */
     public function create(array $data): TenantSupportTicket
     {
-        return TenantSupportTicket::query()->create($data);
+        $data['status'] ??= SupportTicketStatus::Open->value;
+
+        $ticket = TenantSupportTicket::query()->create($data);
+
+        return $ticket->load(self::LIST_RELATIONS);
     }
 
     /**
@@ -82,9 +117,9 @@ class TenantSupportTicketService
      */
     public function update(TenantSupportTicket $tenantSupportTicket, array $data): TenantSupportTicket
     {
-        $tenantSupportTicket->query()->update($data);
+        $tenantSupportTicket->update($data);
 
-        return $tenantSupportTicket->fresh();
+        return $tenantSupportTicket->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -94,7 +129,7 @@ class TenantSupportTicketService
      */
     public function delete(TenantSupportTicket $tenantSupportTicket): bool
     {
-        return $tenantSupportTicket->query()->delete() > 0;
+        return (bool) $tenantSupportTicket->delete();
     }
 
     /**
@@ -149,9 +184,14 @@ class TenantSupportTicketService
      */
     public function assign(TenantSupportTicket $supportTicket, int $adminId): TenantSupportTicket
     {
-        $supportTicket->query()->update(['assigned_to' => $adminId]);
+        $supportTicket->update([
+            'assigned_to' => $adminId,
+            'status' => $supportTicket->status === SupportTicketStatus::Open
+                ? SupportTicketStatus::InProgress->value
+                : $supportTicket->status->value,
+        ]);
 
-        return $supportTicket->fresh();
+        return $supportTicket->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -161,12 +201,12 @@ class TenantSupportTicketService
      */
     public function resolve(TenantSupportTicket $supportTicket): TenantSupportTicket
     {
-        $supportTicket->query()->update([
+        $supportTicket->update([
             'status' => SupportTicketStatus::Resolved->value,
             'resolved_at' => now(),
         ]);
 
-        return $supportTicket->fresh();
+        return $supportTicket->fresh(self::LIST_RELATIONS);
     }
 
     /**

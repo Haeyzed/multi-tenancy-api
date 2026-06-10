@@ -14,24 +14,45 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class TenantSupportMessageService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'ticket.tenant',
+        'sender',
+    ];
+
+    /**
      * Get all TenantSupportMessage records.
      *
      * @return Collection<int, TenantSupportMessage>
      */
     public function getAll(): Collection
     {
-        return TenantSupportMessage::query()->get();
+        return TenantSupportMessage::query()
+            ->with(self::LIST_RELATIONS)
+            ->latest()
+            ->get();
     }
 
     /**
-     * Get paginated TenantSupportMessage records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @return LengthAwarePaginator<int, TenantSupportMessage>
+     * @param  list<string>  $isRead
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
-    {
-        return TenantSupportMessage::query()->paginate($perPage);
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        ?int $ticketId = null,
+        array $isRead = [],
+    ): LengthAwarePaginator {
+        return TenantSupportMessage::query()
+            ->with(self::LIST_RELATIONS)
+            ->forTenant()
+            ->search($search)
+            ->filterTicket($ticketId)
+            ->filterIsRead($isRead)
+            ->latest()
+            ->paginate($perPage);
     }
 
     /**
@@ -51,7 +72,9 @@ class TenantSupportMessageService
      */
     public function findOrFail(int $id): TenantSupportMessage
     {
-        return TenantSupportMessage::query()->findOrFail($id);
+        return TenantSupportMessage::query()
+            ->with(self::LIST_RELATIONS)
+            ->findOrFail($id);
     }
 
     /**
@@ -61,7 +84,9 @@ class TenantSupportMessageService
      */
     public function create(array $data): TenantSupportMessage
     {
-        return TenantSupportMessage::query()->create($data);
+        $message = TenantSupportMessage::query()->create($data);
+
+        return $message->load(self::LIST_RELATIONS);
     }
 
     /**
@@ -72,9 +97,9 @@ class TenantSupportMessageService
      */
     public function update(TenantSupportMessage $tenantSupportMessage, array $data): TenantSupportMessage
     {
-        $tenantSupportMessage->query()->update($data);
+        $tenantSupportMessage->update($data);
 
-        return $tenantSupportMessage->fresh();
+        return $tenantSupportMessage->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -84,7 +109,7 @@ class TenantSupportMessageService
      */
     public function delete(TenantSupportMessage $tenantSupportMessage): bool
     {
-        return $tenantSupportMessage->query()->delete() > 0;
+        return (bool) $tenantSupportMessage->delete();
     }
 
     /**
@@ -94,12 +119,12 @@ class TenantSupportMessageService
      */
     public function markAsRead(TenantSupportMessage $supportMessage): TenantSupportMessage
     {
-        $supportMessage->query()->update([
+        $supportMessage->update([
             'is_read' => true,
             'read_at' => now(),
         ]);
 
-        return $supportMessage->fresh();
+        return $supportMessage->fresh(self::LIST_RELATIONS);
     }
 
     /**

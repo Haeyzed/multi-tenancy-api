@@ -7,12 +7,23 @@ namespace App\Services\Central;
 use App\Models\Central\TenantImpersonationToken;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 /**
  * Central TenantImpersonationToken records and queries.
  */
 class TenantImpersonationTokenService
 {
+    /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+        'administrator',
+    ];
+
     /**
      * Get all TenantImpersonationToken records.
      *
@@ -34,11 +45,20 @@ class TenantImpersonationTokenService
      * @param  string|null  $search  Optional search term.
      * @return LengthAwarePaginator<int, TenantImpersonationToken>
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    /**
+     * @param  list<string>  $status
+     */
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $status = [],
+    ): LengthAwarePaginator {
         return TenantImpersonationToken::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterStatus($status)
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -69,7 +89,20 @@ class TenantImpersonationTokenService
      */
     public function create(array $data): TenantImpersonationToken
     {
-        return TenantImpersonationToken::query()->create($data);
+        $plainToken = null;
+
+        if (empty($data['token'])) {
+            $plainToken = Str::random(64);
+            $data['token'] = $plainToken;
+        }
+
+        $token = TenantImpersonationToken::query()->create($data);
+
+        if ($plainToken !== null) {
+            $token->setAttribute('plain_token', $plainToken);
+        }
+
+        return $token->load(self::LIST_RELATIONS);
     }
 
     /**
@@ -82,7 +115,7 @@ class TenantImpersonationTokenService
     {
         $tenantImpersonationToken->update($data);
 
-        return $tenantImpersonationToken->fresh();
+        return $tenantImpersonationToken->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -92,7 +125,7 @@ class TenantImpersonationTokenService
      */
     public function delete(TenantImpersonationToken $tenantImpersonationToken): bool
     {
-        return $tenantImpersonationToken->query()->delete() > 0;
+        return $tenantImpersonationToken->delete();
     }
 
     /**
@@ -113,9 +146,9 @@ class TenantImpersonationTokenService
      */
     public function markAsUsed(TenantImpersonationToken $impersonationToken): TenantImpersonationToken
     {
-        $impersonationToken->query()->update(['used_at' => now()]);
+        $impersonationToken->update(['used_at' => now()]);
 
-        return $impersonationToken->fresh();
+        return $impersonationToken->fresh(self::LIST_RELATIONS);
     }
 
     /**

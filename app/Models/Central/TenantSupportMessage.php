@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\MessageSenderType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,6 +53,54 @@ class TenantSupportMessage extends Model
             'is_read' => 'boolean',
             'read_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope messages to tickets belonging to the selected tenant.
+     */
+    public function scopeForTenant(Builder $query, ?string $tenantId = null): void
+    {
+        $tenantId ??= request()->header('X-Tenant-Id');
+
+        $query->when($tenantId, function (Builder $q, string $tenantId) {
+            $q->whereHas('ticket', fn (Builder $q) => $q->where('tenant_id', $tenantId));
+        });
+    }
+
+    /**
+     * Scope a query to search by message body.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, fn (Builder $q, string $search) => $q->where('body', 'like', "%{$search}%"));
+    }
+
+    /**
+     * Filter by parent ticket ID.
+     */
+    public function scopeFilterTicket(Builder $query, ?int $ticketId): void
+    {
+        $query->when($ticketId, fn (Builder $q) => $q->where('ticket_id', $ticketId));
+    }
+
+    /**
+     * Filter by read/unread tokens.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterIsRead(Builder $query, array $values): void
+    {
+        $mapped = \App\Support\QueryFilter::booleanRead($values);
+
+        if ($mapped === []) {
+            return;
+        }
+
+        $query->where(function (Builder $q) use ($mapped) {
+            foreach ($mapped as $isRead) {
+                $q->orWhere('is_read', $isRead);
+            }
+        });
     }
 
     /**

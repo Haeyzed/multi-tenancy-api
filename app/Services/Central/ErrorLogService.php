@@ -15,6 +15,15 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class ErrorLogService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'tenant',
+    ];
+
+    /**
      * Get all ErrorLog records.
      *
      * @param  string|null  $search  Optional search term.
@@ -29,17 +38,22 @@ class ErrorLogService
     }
 
     /**
-     * Get paginated ErrorLog records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
-     * @return LengthAwarePaginator<int, ErrorLog>
+     * @param  list<string>  $severity
+     * @param  list<string>  $resolution
      */
-    public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
-    {
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $severity = [],
+        array $resolution = [],
+    ): LengthAwarePaginator {
         return ErrorLog::query()
+            ->with(self::LIST_RELATIONS)
             ->forTenant()
             ->search($search)
+            ->filterSeverity($severity)
+            ->filterResolution($resolution)
+            ->latest('occurred_at')
             ->paginate($perPage);
     }
 
@@ -81,9 +95,9 @@ class ErrorLogService
      */
     public function update(ErrorLog $errorLog, array $data): ErrorLog
     {
-        $errorLog->query()->update($data);
+        $errorLog->update($data);
 
-        return $errorLog->fresh();
+        return $errorLog->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -93,7 +107,7 @@ class ErrorLogService
      */
     public function delete(ErrorLog $errorLog): bool
     {
-        return $errorLog->query()->delete() > 0;
+        return (bool) $errorLog->delete();
     }
 
     /**
@@ -125,9 +139,9 @@ class ErrorLogService
      */
     public function resolve(ErrorLog $errorLog): ErrorLog
     {
-        $errorLog->query()->update(['resolved_at' => now()]);
+        $errorLog->update(['resolved_at' => now()]);
 
-        return $errorLog->fresh();
+        return $errorLog->fresh(self::LIST_RELATIONS);
     }
 
     /**

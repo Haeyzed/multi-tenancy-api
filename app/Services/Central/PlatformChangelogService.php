@@ -20,18 +20,26 @@ class PlatformChangelogService
      */
     public function getAll(): Collection
     {
-        return PlatformChangelog::query()->get();
+        return PlatformChangelog::query()->latest('published_at')->get();
     }
 
     /**
-     * Get paginated PlatformChangelog records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @return LengthAwarePaginator<int, PlatformChangelog>
+     * @param  list<string>  $type
+     * @param  list<string>  $isPublished
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
-    {
-        return PlatformChangelog::query()->paginate($perPage);
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $type = [],
+        array $isPublished = [],
+    ): LengthAwarePaginator {
+        return PlatformChangelog::query()
+            ->search($search)
+            ->filterType($type)
+            ->filterIsPublished($isPublished)
+            ->latest('published_at')
+            ->latest()
+            ->paginate($perPage);
     }
 
     /**
@@ -72,7 +80,7 @@ class PlatformChangelogService
      */
     public function update(PlatformChangelog $platformChangelog, array $data): PlatformChangelog
     {
-        $platformChangelog->query()->update($data);
+        $platformChangelog->update($data);
 
         return $platformChangelog->fresh();
     }
@@ -84,7 +92,7 @@ class PlatformChangelogService
      */
     public function delete(PlatformChangelog $platformChangelog): bool
     {
-        return $platformChangelog->query()->delete() > 0;
+        return (bool) $platformChangelog->delete();
     }
 
     /**

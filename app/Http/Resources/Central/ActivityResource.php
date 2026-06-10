@@ -143,6 +143,7 @@ class ActivityResource extends JsonResource
             'causer' => $this->whenLoaded('causer', fn () => $this->causer ? [
                 'id' => $this->causer->getKey(),
                 'type' => $this->causer_type,
+                'name' => $this->causer->name ?? null,
             ] : null),
         ];
     }

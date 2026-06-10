@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateTenantImpersonationTokenRequest;
 use App\Http\Resources\Central\TenantImpersonationTokenResource;
 use App\Models\Central\TenantImpersonationToken;
 use App\Services\Central\TenantImpersonationTokenService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,9 @@ class TenantImpersonationTokenController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $status = QueryFilter::parseList($request->query('status'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $status);
 
         return $this->paginated($items, TenantImpersonationTokenResource::collection($items), 'Impersonation tokens retrieved successfully.');
     }
@@ -56,7 +58,12 @@ class TenantImpersonationTokenController extends Controller
      */
     public function show(TenantImpersonationToken $impersonationToken): JsonResponse
     {
-        return $this->success(new TenantImpersonationTokenResource($impersonationToken), 'Impersonation token retrieved successfully.');
+        return $this->success(
+            new TenantImpersonationTokenResource(
+                $impersonationToken->load(['tenant', 'administrator']),
+            ),
+            'Impersonation token retrieved successfully.',
+        );
     }
 
     /**

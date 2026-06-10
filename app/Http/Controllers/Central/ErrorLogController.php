@@ -10,6 +10,7 @@ use App\Http\Requests\Central\UpdateErrorLogRequest;
 use App\Http\Resources\Central\ErrorLogResource;
 use App\Models\Central\ErrorLog;
 use App\Services\Central\ErrorLogService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,10 @@ class ErrorLogController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $severity = QueryFilter::parseList($request->query('severity'));
+        $resolution = QueryFilter::parseList($request->query('resolution'));
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $severity, $resolution);
 
         return $this->paginated($items, ErrorLogResource::collection($items), 'Error logs retrieved successfully.');
     }

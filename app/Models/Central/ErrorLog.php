@@ -67,8 +67,46 @@ class ErrorLog extends Model
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $q) use ($search) {
                 $q->where('message', 'like', "%{$search}%")
-                    ->orWhere('channel', 'like', "%{$search}%");
+                    ->orWhere('channel', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
             });
+        });
+    }
+
+    /**
+     * Filter by severity values.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterSeverity(Builder $query, array $values): void
+    {
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('severity', $values));
+    }
+
+    /**
+     * Filter by resolved/unresolved tokens.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterResolution(Builder $query, array $values): void
+    {
+        $mapped = \App\Support\QueryFilter::booleanResolved($values);
+
+        if ($mapped === []) {
+            return;
+        }
+
+        $query->where(function (Builder $q) use ($mapped) {
+            foreach ($mapped as $resolved) {
+                if ($resolved) {
+                    $q->orWhereNotNull('resolved_at');
+                } else {
+                    $q->orWhereNull('resolved_at');
+                }
+            }
         });
     }
 

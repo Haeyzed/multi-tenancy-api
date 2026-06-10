@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  *
  * @method static Builder|TenantMetric forTenant(?string $tenantId = null)
  * @method static Builder|TenantMetric search(?string $search)
+ * @method static Builder|TenantMetric filterDateRange(?string $startDate, ?string $endDate)
  */
 class TenantMetric extends Model
 {
@@ -66,8 +67,30 @@ class TenantMetric extends Model
     public function scopeSearch(Builder $query, ?string $search): void
     {
         $query->when($search, function (Builder $q, string $search) {
-            $q->where('metric_date', 'like', "%{$search}%");
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('metric_date', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $tenant) use ($search) {
+                        $tenant->where('name', 'like', "%{$search}%");
+                    });
+            });
         });
+    }
+
+    /**
+     * Scope a query to filter by metric date range.
+     */
+    public function scopeFilterDateRange(
+        Builder $query,
+        ?string $startDate,
+        ?string $endDate,
+    ): void {
+        if ($startDate !== null && $startDate !== '') {
+            $query->whereDate('metric_date', '>=', Carbon::parse($startDate));
+        }
+
+        if ($endDate !== null && $endDate !== '') {
+            $query->whereDate('metric_date', '<=', Carbon::parse($endDate));
+        }
     }
 
     /**

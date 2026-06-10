@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Central\ActivityResource;
 use App\Models\Central\Activity;
 use App\Services\Central\ActivityService;
+use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,11 @@ class ActivityController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
-        $items = $this->service->getPaginated($perPage);
+        $search = $request->query('search');
+        $logName = QueryFilter::parseList($request->query('log_name'));
+        $event = QueryFilter::parseList($request->query('event'));
+
+        $items = $this->service->getPaginated($perPage, $search, $logName, $event);
 
         return $this->paginated($items, ActivityResource::collection($items), 'Activities retrieved successfully.');
     }
@@ -52,7 +57,9 @@ class ActivityController extends Controller
      */
     public function show(Activity $activity): JsonResponse
     {
-        return $this->success(new ActivityResource($activity), 'Activity retrieved successfully.');
+        $item = $this->service->findOrFail($activity->id);
+
+        return $this->success(new ActivityResource($item), 'Activity retrieved successfully.');
     }
 
     /**

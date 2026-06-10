@@ -14,24 +14,45 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class ActivityService
 {
     /**
+     * Relations eager loaded for list and detail responses.
+     *
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = [
+        'causer',
+        'subject',
+    ];
+
+    /**
      * Get all Activity records.
      *
      * @return Collection<int, Activity>
      */
     public function getAll(): Collection
     {
-        return Activity::query()->get();
+        return Activity::query()
+            ->with(self::LIST_RELATIONS)
+            ->latest()
+            ->get();
     }
 
     /**
-     * Get paginated Activity records.
-     *
-     * @param  int  $perPage  Number of records per page.
-     * @return LengthAwarePaginator<int, Activity>
+     * @param  list<string>  $logName
+     * @param  list<string>  $event
      */
-    public function getPaginated(int $perPage = 15): LengthAwarePaginator
-    {
-        return Activity::query()->paginate($perPage);
+    public function getPaginated(
+        int $perPage = 15,
+        ?string $search = null,
+        array $logName = [],
+        array $event = [],
+    ): LengthAwarePaginator {
+        return Activity::query()
+            ->with(self::LIST_RELATIONS)
+            ->search($search)
+            ->filterLogName($logName)
+            ->filterEvent($event)
+            ->latest()
+            ->paginate($perPage);
     }
 
     /**
@@ -51,7 +72,9 @@ class ActivityService
      */
     public function findOrFail(int $id): Activity
     {
-        return Activity::query()->findOrFail($id);
+        return Activity::query()
+            ->with(self::LIST_RELATIONS)
+            ->findOrFail($id);
     }
 
     /**
@@ -74,7 +97,7 @@ class ActivityService
     {
         $activity->update($data);
 
-        return $activity->fresh();
+        return $activity->fresh(self::LIST_RELATIONS);
     }
 
     /**
@@ -84,6 +107,6 @@ class ActivityService
      */
     public function delete(Activity $activity): bool
     {
-        return $activity->delete();
+        return (bool) $activity->delete();
     }
 }

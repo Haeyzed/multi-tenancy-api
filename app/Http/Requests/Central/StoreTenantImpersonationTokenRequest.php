@@ -50,7 +50,7 @@ class StoreTenantImpersonationTokenRequest extends BaseRequest
              *
              * @example "a1b2c3d4e5f6789012345678901234567890123456789012345678901234abcd"
              */
-            'token' => 'required|string|size:64|unique:tenant_impersonation_tokens,token',
+            'token' => 'nullable|string|size:64|unique:tenant_impersonation_tokens,token',
 
             /**
              * Timestamp when the token expires and can no longer be used.

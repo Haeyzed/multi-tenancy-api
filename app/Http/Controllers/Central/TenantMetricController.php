@@ -31,8 +31,10 @@ class TenantMetricController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
 
-        $items = $this->service->getPaginated($perPage, $search);
+        $items = $this->service->getPaginated($perPage, $search, $startDate, $endDate);
 
         return $this->paginated($items, TenantMetricResource::collection($items), 'Tenant metrics retrieved successfully.');
     }
@@ -67,7 +69,10 @@ class TenantMetricController extends Controller
      */
     public function show(TenantMetric $metric): JsonResponse
     {
-        return $this->success(new TenantMetricResource($metric), 'Tenant metric retrieved successfully.');
+        return $this->success(
+            new TenantMetricResource($metric->load(['tenant'])),
+            'Tenant metric retrieved successfully.',
+        );
     }
 
     /**

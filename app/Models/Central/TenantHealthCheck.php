@@ -66,9 +66,23 @@ class TenantHealthCheck extends Model
             $q->where(function (Builder $q) use ($search) {
                 $q->where('message', 'like', "%{$search}%")
                     ->orWhere('check_type', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%");
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
             });
         });
+    }
+
+    /**
+     * Filter by health check status values.
+     *
+     * @param  list<string>  $values
+     */
+    public function scopeFilterStatus(Builder $query, array $values): void
+    {
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('status', $values));
     }
 
     /**
