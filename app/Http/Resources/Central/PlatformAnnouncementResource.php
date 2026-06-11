@@ -85,7 +85,7 @@ class PlatformAnnouncementResource extends JsonResource
                         ->pluck('name', 'id');
 
                     return collect($this->target_plans)
-                        ->map(fn (string $id): ?string => $namesById[$id] ?? null)
+                        ->map(fn(string $id): ?string => $namesById[$id] ?? null)
                         ->filter()
                         ->values()
                         ->all();
@@ -99,7 +99,7 @@ class PlatformAnnouncementResource extends JsonResource
              *
              * @default false
              */
-            'is_active' => (bool) $this->is_active,
+            'is_active' => (bool)$this->is_active,
 
             /**
              * Timestamp when the announcement becomes visible.

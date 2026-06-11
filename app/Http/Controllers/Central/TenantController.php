@@ -22,14 +22,16 @@ use Illuminate\Http\Request;
 class TenantController extends Controller
 {
     public function __construct(
-        private readonly TenantService $service,
+        private readonly TenantService          $service,
         private readonly PlanEntitlementService $entitlements,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Tenant records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -64,7 +66,7 @@ class TenantController extends Controller
     /**
      * Create a new Tenant.
      *
-     * @param  StoreTenantRequest  $request  Validated request payload.
+     * @param StoreTenantRequest $request Validated request payload.
      */
     public function store(StoreTenantRequest $request): JsonResponse
     {
@@ -76,7 +78,7 @@ class TenantController extends Controller
     /**
      * Find Tenant by route binding.
      *
-     * @param  Tenant  $tenant  Tenant instance.
+     * @param Tenant $tenant Tenant instance.
      */
     public function show(Tenant $tenant): JsonResponse
     {
@@ -86,8 +88,8 @@ class TenantController extends Controller
     /**
      * Update Tenant.
      *
-     * @param  UpdateTenantRequest  $request  Validated request payload.
-     * @param  Tenant  $tenant  Tenant instance.
+     * @param UpdateTenantRequest $request Validated request payload.
+     * @param Tenant $tenant Tenant instance.
      */
     public function update(UpdateTenantRequest $request, Tenant $tenant): JsonResponse
     {
@@ -99,7 +101,7 @@ class TenantController extends Controller
     /**
      * Delete Tenant.
      *
-     * @param  Tenant  $tenant  Tenant instance.
+     * @param Tenant $tenant Tenant instance.
      */
     public function destroy(Tenant $tenant): JsonResponse
     {
@@ -124,7 +126,7 @@ class TenantController extends Controller
     /**
      * Get plan feature entitlements for a tenant.
      *
-     * @param  Tenant  $tenant  Tenant instance.
+     * @param Tenant $tenant Tenant instance.
      */
     public function features(Tenant $tenant): JsonResponse
     {
@@ -141,7 +143,7 @@ class TenantController extends Controller
     /**
      * List tenants filtered by lifecycle status.
      *
-     * @param  string  $status  Tenant status (pending, active, suspended, cancelled).
+     * @param string $status Tenant status (pending, active, suspended, cancelled).
      */
     public function getByStatus(string $status): JsonResponse
     {
@@ -153,7 +155,7 @@ class TenantController extends Controller
     /**
      * List tenants expiring within the given number of days.
      *
-     * @param  int  $days  Number of days ahead to check for expiration.
+     * @param int $days Number of days ahead to check for expiration.
      */
     public function getExpiring(int $days): JsonResponse
     {
@@ -165,7 +167,7 @@ class TenantController extends Controller
     /**
      * Restore a soft-deleted tenant.
      *
-     * @param  string  $tenant  UUID of the trashed tenant (no model binding; uses withTrashed).
+     * @param string $tenant UUID of the trashed tenant (no model binding; uses withTrashed).
      */
     public function restore(string $tenant): JsonResponse
     {
@@ -177,7 +179,7 @@ class TenantController extends Controller
     /**
      * Permanently delete a tenant and its data.
      *
-     * @param  string  $tenant  UUID of the tenant to force delete (uses withTrashed).
+     * @param string $tenant UUID of the tenant to force delete (uses withTrashed).
      */
     public function forceDestroy(string $tenant): JsonResponse
     {

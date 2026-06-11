@@ -14,6 +14,8 @@ class TrialEndingSoon
 
     public function __construct(
         public Subscription $subscription,
-        public int $daysRemaining,
-    ) {}
+        public int          $daysRemaining,
+    )
+    {
+    }
 }

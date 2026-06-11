@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Notifications stored in the tenant database.
+ *
  * @property string $id
  * @property string $user_id
  * @property string|null $type
@@ -30,10 +31,8 @@ class Notification extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'notifications';
-
     public $incrementing = false;
-
+    protected $table = 'notifications';
     protected $keyType = 'string';
 
     /**
@@ -51,18 +50,6 @@ class Notification extends TenantModel
         'sent_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'data' => 'array',
-            'is_read' => 'boolean',
-            'read_at' => 'datetime',
-            'sent_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related User.
      */
@@ -78,8 +65,20 @@ class Notification extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-            );
+                $inner->where('title', 'like', "%{$search}%");
+            });
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+            'is_read' => 'boolean',
+            'read_at' => 'datetime',
+            'sent_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

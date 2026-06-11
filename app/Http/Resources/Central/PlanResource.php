@@ -65,7 +65,7 @@ class PlanResource extends JsonResource
              *
              * @default true
              */
-            'is_active' => (bool) $this->is_active,
+            'is_active' => (bool)$this->is_active,
 
             /**
              * Whether the plan is visible on public pricing pages.
@@ -74,7 +74,7 @@ class PlanResource extends JsonResource
              *
              * @default true
              */
-            'is_public' => (bool) $this->is_public,
+            'is_public' => (bool)$this->is_public,
 
             /**
              * Monthly price in the plan currency.

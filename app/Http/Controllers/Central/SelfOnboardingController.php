@@ -20,14 +20,16 @@ class SelfOnboardingController extends Controller
 {
     public function __construct(
         private readonly SelfOnboardingService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Register a new tenant and optionally redirect to payment.
      */
     public function store(SelfOnboardingRequest $request): JsonResponse
     {
-        set_time_limit((int) config('tenancy.self_onboarding_max_execution_time', 600));
+        set_time_limit((int)config('tenancy.self_onboarding_max_execution_time', 600));
 
         $result = $this->service->onboard($request->validated());
 

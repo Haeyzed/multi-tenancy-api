@@ -99,7 +99,7 @@ class PaymentMethodResource extends JsonResource
              *
              * @default false
              */
-            'is_default' => (bool) $this->is_default,
+            'is_default' => (bool)$this->is_default,
 
             /**
              * Billing details associated with the payment method.

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Inventory adjustments stored in the tenant database.
+ * Inventory adjustment stored in the tenant database.
+ *
  * @property string $id
  * @property string $product_id
  * @property string|null $variant_id
@@ -28,10 +28,8 @@ class InventoryAdjustment extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'inventory_adjustments';
-
     public $incrementing = false;
-
+    protected $table = 'inventory_adjustments';
     protected $keyType = 'string';
 
     /**
@@ -48,16 +46,8 @@ class InventoryAdjustment extends TenantModel
         'created_by',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
-     * Related Product.
+     * Product being adjusted.
      */
     public function product(): BelongsTo
     {
@@ -65,10 +55,23 @@ class InventoryAdjustment extends TenantModel
     }
 
     /**
-     * Related Warehouse.
+     * Warehouse where the adjustment occurred.
      */
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

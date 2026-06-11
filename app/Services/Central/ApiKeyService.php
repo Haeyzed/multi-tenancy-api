@@ -27,7 +27,7 @@ class ApiKeyService
     /**
      * Get all ApiKey records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, ApiKey>
      */
     public function getAll(?string $search = null): Collection
@@ -39,13 +39,14 @@ class ApiKeyService
     }
 
     /**
-     * @param  list<string>  $isActive
+     * @param list<string> $isActive
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $isActive = [],
-    ): LengthAwarePaginator {
+        array   $isActive = [],
+    ): LengthAwarePaginator
+    {
         return ApiKey::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -58,7 +59,7 @@ class ApiKeyService
     /**
      * Find ApiKey by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?ApiKey
     {
@@ -68,7 +69,7 @@ class ApiKeyService
     /**
      * Find ApiKey by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): ApiKey
     {
@@ -78,14 +79,14 @@ class ApiKeyService
     /**
      * Create a new ApiKey.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): ApiKey
     {
         $plainKey = null;
 
         if (empty($data['key_hash'])) {
-            $plainKey = 'ak_live_'.Str::random(40);
+            $plainKey = 'ak_live_' . Str::random(40);
             $data['key_hash'] = Hash::make($plainKey);
         }
 
@@ -99,34 +100,19 @@ class ApiKeyService
     }
 
     /**
-     * Update ApiKey.
-     *
-     * @param  ApiKey  $apiKey  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(ApiKey $apiKey, array $data): ApiKey
-    {
-        unset($data['key_hash']);
-
-        $apiKey->update($data);
-
-        return $apiKey->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete ApiKey.
      *
-     * @param  ApiKey  $apiKey  The model instance to delete.
+     * @param ApiKey $apiKey The model instance to delete.
      */
     public function delete(ApiKey $apiKey): bool
     {
-        return (bool) $apiKey->delete();
+        return (bool)$apiKey->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, ApiKey>
      */
     public function getByTenant(string $tenantId): Collection
@@ -147,7 +133,7 @@ class ApiKeyService
     /**
      * Record API key usage by updating last_used_at.
      *
-     * @param  ApiKey  $apiKey  The API key that was used.
+     * @param ApiKey $apiKey The API key that was used.
      */
     public function recordUsage(ApiKey $apiKey): ApiKey
     {
@@ -157,9 +143,24 @@ class ApiKeyService
     }
 
     /**
+     * Update ApiKey.
+     *
+     * @param ApiKey $apiKey The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(ApiKey $apiKey, array $data): ApiKey
+    {
+        unset($data['key_hash']);
+
+        $apiKey->update($data);
+
+        return $apiKey->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
      * Revoke an API key by deactivating it.
      *
-     * @param  ApiKey  $apiKey  The API key to revoke.
+     * @param ApiKey $apiKey The API key to revoke.
      */
     public function revoke(ApiKey $apiKey): ApiKey
     {

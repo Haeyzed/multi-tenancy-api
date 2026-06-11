@@ -24,12 +24,14 @@ class SubscriptionController extends Controller
 {
     public function __construct(
         private readonly SubscriptionService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Subscription records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -56,7 +58,7 @@ class SubscriptionController extends Controller
     /**
      * Create a new Subscription.
      *
-     * @param  StoreSubscriptionRequest  $request  Validated request payload.
+     * @param StoreSubscriptionRequest $request Validated request payload.
      */
     public function store(StoreSubscriptionRequest $request): JsonResponse
     {
@@ -68,7 +70,7 @@ class SubscriptionController extends Controller
     /**
      * Find Subscription by route binding.
      *
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param Subscription $subscription Subscription instance.
      */
     public function show(Subscription $subscription): JsonResponse
     {
@@ -86,8 +88,8 @@ class SubscriptionController extends Controller
     /**
      * Update Subscription.
      *
-     * @param  UpdateSubscriptionRequest  $request  Validated request payload.
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param UpdateSubscriptionRequest $request Validated request payload.
+     * @param Subscription $subscription Subscription instance.
      */
     public function update(UpdateSubscriptionRequest $request, Subscription $subscription): JsonResponse
     {
@@ -99,7 +101,7 @@ class SubscriptionController extends Controller
     /**
      * Delete Subscription.
      *
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param Subscription $subscription Subscription instance.
      */
     public function destroy(Subscription $subscription): JsonResponse
     {
@@ -124,8 +126,8 @@ class SubscriptionController extends Controller
     /**
      * Cancel an active subscription.
      *
-     * @param  Request  $request  May include optional `reason` for cancellation.
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param Request $request May include optional `reason` for cancellation.
+     * @param Subscription $subscription Subscription instance.
      */
     public function cancel(Request $request, Subscription $subscription): JsonResponse
     {
@@ -137,7 +139,7 @@ class SubscriptionController extends Controller
     /**
      * Renew a subscription billing period.
      *
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param Subscription $subscription Subscription instance.
      */
     public function renew(Subscription $subscription): JsonResponse
     {
@@ -149,8 +151,8 @@ class SubscriptionController extends Controller
     /**
      * Upgrade subscription to a higher plan.
      *
-     * @param  ChangePlanRequest  $request  Validated plan change payload.
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param ChangePlanRequest $request Validated plan change payload.
+     * @param Subscription $subscription Subscription instance.
      */
     public function upgrade(ChangePlanRequest $request, Subscription $subscription): JsonResponse
     {
@@ -163,8 +165,8 @@ class SubscriptionController extends Controller
     /**
      * Downgrade subscription to a lower plan.
      *
-     * @param  ChangePlanRequest  $request  Validated plan change payload.
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param ChangePlanRequest $request Validated plan change payload.
+     * @param Subscription $subscription Subscription instance.
      */
     public function downgrade(ChangePlanRequest $request, Subscription $subscription): JsonResponse
     {
@@ -177,7 +179,7 @@ class SubscriptionController extends Controller
     /**
      * Reactivate a cancelled subscription.
      *
-     * @param  Subscription  $subscription  Subscription instance.
+     * @param Subscription $subscription Subscription instance.
      */
     public function reactivate(Subscription $subscription): JsonResponse
     {

@@ -20,12 +20,14 @@ class PaymentMethodController extends Controller
 {
     public function __construct(
         private readonly PaymentMethodService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated PaymentMethod records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -40,7 +42,7 @@ class PaymentMethodController extends Controller
     /**
      * Create a new PaymentMethod.
      *
-     * @param  StorePaymentMethodRequest  $request  Validated request payload.
+     * @param StorePaymentMethodRequest $request Validated request payload.
      */
     public function store(StorePaymentMethodRequest $request): JsonResponse
     {
@@ -52,7 +54,7 @@ class PaymentMethodController extends Controller
     /**
      * Find PaymentMethod by route binding.
      *
-     * @param  PaymentMethod  $paymentMethod  PaymentMethod instance.
+     * @param PaymentMethod $paymentMethod PaymentMethod instance.
      */
     public function show(PaymentMethod $paymentMethod): JsonResponse
     {
@@ -62,8 +64,8 @@ class PaymentMethodController extends Controller
     /**
      * Update PaymentMethod.
      *
-     * @param  UpdatePaymentMethodRequest  $request  Validated request payload.
-     * @param  PaymentMethod  $paymentMethod  PaymentMethod instance.
+     * @param UpdatePaymentMethodRequest $request Validated request payload.
+     * @param PaymentMethod $paymentMethod PaymentMethod instance.
      */
     public function update(UpdatePaymentMethodRequest $request, PaymentMethod $paymentMethod): JsonResponse
     {
@@ -75,7 +77,7 @@ class PaymentMethodController extends Controller
     /**
      * Delete PaymentMethod.
      *
-     * @param  PaymentMethod  $paymentMethod  PaymentMethod instance.
+     * @param PaymentMethod $paymentMethod PaymentMethod instance.
      */
     public function destroy(PaymentMethod $paymentMethod): JsonResponse
     {
@@ -87,7 +89,7 @@ class PaymentMethodController extends Controller
     /**
      * Set a payment method as the tenant default.
      *
-     * @param  PaymentMethod  $paymentMethod  PaymentMethod instance.
+     * @param PaymentMethod $paymentMethod PaymentMethod instance.
      */
     public function setDefault(PaymentMethod $paymentMethod): JsonResponse
     {

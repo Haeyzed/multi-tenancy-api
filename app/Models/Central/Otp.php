@@ -50,22 +50,6 @@ class Otp extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'purpose' => OtpPurpose::class,
-            'expires_at' => 'datetime',
-            'verified_at' => 'datetime',
-            'verification_token_expires_at' => 'datetime',
-            'last_sent_at' => 'datetime',
-        ];
-    }
-
-    /**
      * User associated with this OTP, when known.
      */
     public function user(): BelongsTo
@@ -97,5 +81,21 @@ class Otp extends Model
         return $this->verification_token !== null
             && $this->verification_token_expires_at !== null
             && $this->verification_token_expires_at->isFuture();
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'purpose' => OtpPurpose::class,
+            'expires_at' => 'datetime',
+            'verified_at' => 'datetime',
+            'verification_token_expires_at' => 'datetime',
+            'last_sent_at' => 'datetime',
+        ];
     }
 }

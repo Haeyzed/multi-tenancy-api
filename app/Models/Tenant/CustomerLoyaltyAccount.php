@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Customer loyalty accounts stored in the tenant database.
+ * Customer loyalty account stored in the tenant database.
+ *
  * @property string $id
  * @property string $user_id
  * @property string $program_id
@@ -28,10 +28,8 @@ class CustomerLoyaltyAccount extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'customer_loyalty_accounts';
-
     public $incrementing = false;
-
+    protected $table = 'customer_loyalty_accounts';
     protected $keyType = 'string';
 
     /**
@@ -48,6 +46,19 @@ class CustomerLoyaltyAccount extends TenantModel
         'card_number',
     ];
 
+    /**
+     * Customer who owns this loyalty account.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -55,13 +66,5 @@ class CustomerLoyaltyAccount extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

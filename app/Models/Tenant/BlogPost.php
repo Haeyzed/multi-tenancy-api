@@ -7,11 +7,12 @@ namespace App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
- * Blog posts stored in the tenant database.
+ * Blog post stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $title
  * @property string|null $slug
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|BlogPost search(?string $search)
+ * @method static Builder|BlogPost filterStatus(array $statuses)
  */
 class BlogPost extends TenantModel
 {
@@ -52,6 +54,42 @@ class BlogPost extends TenantModel
         'published_at',
     ];
 
+    /**
+     * Product category assigned to this post.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Scope a query to search by title or slug.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -62,26 +100,5 @@ class BlogPost extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Category.
-     */
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-            );
-        });
     }
 }

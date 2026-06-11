@@ -24,15 +24,16 @@ class PlatformChangelogService
     }
 
     /**
-     * @param  list<string>  $type
-     * @param  list<string>  $isPublished
+     * @param list<string> $type
+     * @param list<string> $isPublished
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $type = [],
-        array $isPublished = [],
-    ): LengthAwarePaginator {
+        array   $type = [],
+        array   $isPublished = [],
+    ): LengthAwarePaginator
+    {
         return PlatformChangelog::query()
             ->search($search)
             ->filterType($type)
@@ -45,7 +46,7 @@ class PlatformChangelogService
     /**
      * Find PlatformChangelog by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?PlatformChangelog
     {
@@ -55,7 +56,7 @@ class PlatformChangelogService
     /**
      * Find PlatformChangelog by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): PlatformChangelog
     {
@@ -65,7 +66,7 @@ class PlatformChangelogService
     /**
      * Create a new PlatformChangelog.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): PlatformChangelog
     {
@@ -75,8 +76,8 @@ class PlatformChangelogService
     /**
      * Update PlatformChangelog.
      *
-     * @param  PlatformChangelog  $platformChangelog  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param PlatformChangelog $platformChangelog The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(PlatformChangelog $platformChangelog, array $data): PlatformChangelog
     {
@@ -88,17 +89,17 @@ class PlatformChangelogService
     /**
      * Delete PlatformChangelog.
      *
-     * @param  PlatformChangelog  $platformChangelog  The model instance to delete.
+     * @param PlatformChangelog $platformChangelog The model instance to delete.
      */
     public function delete(PlatformChangelog $platformChangelog): bool
     {
-        return (bool) $platformChangelog->delete();
+        return (bool)$platformChangelog->delete();
     }
 
     /**
      * Filter by type.
      *
-     * @param  string  $type  Content type to filter by.
+     * @param string $type Content type to filter by.
      * @return Collection<int, PlatformChangelog>
      */
     public function getByType(string $type): Collection

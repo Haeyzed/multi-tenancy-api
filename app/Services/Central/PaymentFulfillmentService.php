@@ -7,7 +7,6 @@ namespace App\Services\Central;
 use App\Enums\Central\EventTriggeredBy;
 use App\Enums\Central\InvoiceStatus;
 use App\Enums\Central\PaymentProvider;
-use App\Enums\Central\PaymentStatus;
 use App\Enums\Central\SubscriptionEventType;
 use App\Enums\Central\SubscriptionStatus;
 use App\Enums\Central\TenantStatus;
@@ -15,7 +14,6 @@ use App\Events\Central\SubscriptionCreated;
 use App\Events\Central\SubscriptionPaymentCompleted;
 use App\Events\Central\TenantOnboarded;
 use App\Models\Central\Invoice;
-use App\Models\Central\Payment;
 use App\Models\Central\Subscription;
 use App\Models\Central\SubscriptionEvent;
 use App\Models\Central\Tenant;
@@ -30,21 +28,24 @@ class PaymentFulfillmentService
 {
     public function __construct(
         private readonly SubscriptionLifecycleService $lifecycle,
-        private readonly PaymentRecordingService $payments,
-    ) {}
+        private readonly PaymentRecordingService      $payments,
+    )
+    {
+    }
 
     /**
      * Activate a subscription after initial or trial-conversion payment.
      *
-     * @param  array<string, mixed>|null  $cardMetadata
+     * @param array<string, mixed>|null $cardMetadata
      */
     public function fulfill(
-        Invoice $invoice,
-        string $providerPaymentId,
+        Invoice         $invoice,
+        string          $providerPaymentId,
         PaymentProvider $provider,
-        bool $trialConversion = false,
-        ?array $cardMetadata = null,
-    ): Subscription {
+        bool            $trialConversion = false,
+        ?array          $cardMetadata = null,
+    ): Subscription
+    {
         return DB::transaction(function () use ($invoice, $providerPaymentId, $provider, $trialConversion, $cardMetadata) {
             $invoice->refresh();
 
@@ -63,7 +64,7 @@ class PaymentFulfillmentService
 
             $subscriptionStatus = SubscriptionStatus::Active;
 
-            if (! $trialConversion && $subscription->trial_ends_at !== null && $subscription->trial_ends_at->isFuture()) {
+            if (!$trialConversion && $subscription->trial_ends_at !== null && $subscription->trial_ends_at->isFuture()) {
                 $subscriptionStatus = SubscriptionStatus::Trialing;
             }
 
@@ -107,15 +108,80 @@ class PaymentFulfillmentService
     }
 
     /**
+     * @param array<string, mixed>|null $cardMetadata
+     */
+    private function recordPayment(
+        Invoice         $invoice,
+        string          $providerPaymentId,
+        PaymentProvider $provider,
+        ?array          $cardMetadata = null,
+    ): void
+    {
+        $tenant = $invoice->tenant ?? Tenant::query()->findOrFail($invoice->tenant_id);
+
+        $this->payments->recordSucceeded(
+            $tenant,
+            $provider,
+            $providerPaymentId,
+            $invoice->amount_due,
+            $invoice->currency,
+            $invoice,
+            $cardMetadata,
+        );
+    }
+
+    private function markInvoicePaid(
+        Invoice         $invoice,
+        string          $providerPaymentId,
+        PaymentProvider $provider,
+    ): void
+    {
+        $invoice->update([
+            'status' => InvoiceStatus::Paid,
+            'amount_paid' => $invoice->amount_due,
+            'amount_remaining' => 0,
+            'paid_at' => now(),
+            'payment_intent_id' => $providerPaymentId,
+            'notes' => OnboardingNotes::compose(
+                $invoice->notes,
+                OnboardingNotes::invoicePaid($provider->value, $providerPaymentId),
+            ),
+        ]);
+    }
+
+    private function recordPaymentEvent(
+        Subscription $subscription,
+        ?string      $planId,
+        string       $providerPaymentId,
+        string       $invoiceId,
+        ?string      $note = null,
+    ): void
+    {
+        SubscriptionEvent::query()->create([
+            'subscription_id' => $subscription->id,
+            'event_type' => SubscriptionEventType::PaymentSucceeded,
+            'from_plan_id' => $planId,
+            'to_plan_id' => $planId,
+            'triggered_by' => EventTriggeredBy::Payment,
+            'metadata' => array_filter([
+                'invoice_id' => $invoiceId,
+                'provider_payment_id' => $providerPaymentId,
+                'note' => $note,
+            ], fn($value) => $value !== null && $value !== ''),
+        ]);
+    }
+
+    /**
      * Fulfill a renewal invoice and advance the billing period.
      */
     public function fulfillRenewal(
-        Invoice $invoice,
-        string $providerPaymentId,
+        Invoice         $invoice,
+        string          $providerPaymentId,
         PaymentProvider $provider,
-        Carbon $periodStart,
-        Carbon $periodEnd,
-    ): Subscription {
+        Carbon          $periodStart,
+        Carbon          $periodEnd,
+    ): Subscription
+    {
         return DB::transaction(function () use ($invoice, $providerPaymentId, $provider, $periodStart, $periodEnd) {
             $invoice->refresh();
 
@@ -143,66 +209,5 @@ class PaymentFulfillmentService
                 EventTriggeredBy::Payment,
             );
         });
-    }
-
-    /**
-     * @param  array<string, mixed>|null  $cardMetadata
-     */
-    private function recordPayment(
-        Invoice $invoice,
-        string $providerPaymentId,
-        PaymentProvider $provider,
-        ?array $cardMetadata = null,
-    ): void {
-        $tenant = $invoice->tenant ?? Tenant::query()->findOrFail($invoice->tenant_id);
-
-        $this->payments->recordSucceeded(
-            $tenant,
-            $provider,
-            $providerPaymentId,
-            $invoice->amount_due,
-            $invoice->currency,
-            $invoice,
-            $cardMetadata,
-        );
-    }
-
-    private function markInvoicePaid(
-        Invoice $invoice,
-        string $providerPaymentId,
-        PaymentProvider $provider,
-    ): void {
-        $invoice->update([
-            'status' => InvoiceStatus::Paid,
-            'amount_paid' => $invoice->amount_due,
-            'amount_remaining' => 0,
-            'paid_at' => now(),
-            'payment_intent_id' => $providerPaymentId,
-            'notes' => OnboardingNotes::compose(
-                $invoice->notes,
-                OnboardingNotes::invoicePaid($provider->value, $providerPaymentId),
-            ),
-        ]);
-    }
-
-    private function recordPaymentEvent(
-        Subscription $subscription,
-        ?string $planId,
-        string $providerPaymentId,
-        string $invoiceId,
-        ?string $note = null,
-    ): void {
-        SubscriptionEvent::query()->create([
-            'subscription_id' => $subscription->id,
-            'event_type' => SubscriptionEventType::PaymentSucceeded,
-            'from_plan_id' => $planId,
-            'to_plan_id' => $planId,
-            'triggered_by' => EventTriggeredBy::Payment,
-            'metadata' => array_filter([
-                'invoice_id' => $invoiceId,
-                'provider_payment_id' => $providerPaymentId,
-                'note' => $note,
-            ], fn ($value) => $value !== null && $value !== ''),
-        ]);
     }
 }

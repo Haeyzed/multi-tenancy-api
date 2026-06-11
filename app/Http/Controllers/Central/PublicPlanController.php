@@ -16,7 +16,9 @@ class PublicPlanController extends Controller
 {
     public function __construct(
         private readonly PlanService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * List active public plans with pricing and display copy for signup.

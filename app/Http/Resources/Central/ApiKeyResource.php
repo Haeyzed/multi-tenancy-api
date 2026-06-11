@@ -76,7 +76,7 @@ class ApiKeyResource extends JsonResource
              *
              * @default true
              */
-            'is_active' => (bool) $this->is_active,
+            'is_active' => (bool)$this->is_active,
 
             /**
              * Plain-text key returned only once after creation.
@@ -87,7 +87,7 @@ class ApiKeyResource extends JsonResource
              */
             'plain_key' => $this->when(
                 isset($this->plain_key),
-                fn () => $this->plain_key,
+                fn() => $this->plain_key,
             ),
 
             /**

@@ -10,10 +10,12 @@ namespace App\Data\Payment;
 readonly class ChargeResult
 {
     public function __construct(
-        public bool $success,
+        public bool    $success,
         public ?string $reference = null,
         public ?string $failureMessage = null,
-    ) {}
+    )
+    {
+    }
 
     public static function succeeded(string $reference): self
     {

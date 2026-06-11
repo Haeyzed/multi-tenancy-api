@@ -19,12 +19,14 @@ class ActivityController extends Controller
 {
     public function __construct(
         private readonly ActivityService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Activity records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -41,7 +43,7 @@ class ActivityController extends Controller
     /**
      * Create a new Activity.
      *
-     * @param  Request  $request  Validated request payload.
+     * @param Request $request Validated request payload.
      */
     public function store(Request $request): JsonResponse
     {
@@ -53,7 +55,7 @@ class ActivityController extends Controller
     /**
      * Find Activity by route binding.
      *
-     * @param  Activity  $activity  Activity instance.
+     * @param Activity $activity Activity instance.
      */
     public function show(Activity $activity): JsonResponse
     {
@@ -65,8 +67,8 @@ class ActivityController extends Controller
     /**
      * Update Activity.
      *
-     * @param  Request  $request  Validated request payload.
-     * @param  Activity  $activity  Activity instance.
+     * @param Request $request Validated request payload.
+     * @param Activity $activity Activity instance.
      */
     public function update(Request $request, Activity $activity): JsonResponse
     {
@@ -78,7 +80,7 @@ class ActivityController extends Controller
     /**
      * Delete Activity.
      *
-     * @param  Activity  $activity  Activity instance.
+     * @param Activity $activity Activity instance.
      */
     public function destroy(Activity $activity): JsonResponse
     {

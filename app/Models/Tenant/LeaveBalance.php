@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Leave balances stored in the tenant database.
+ * Employee leave balance stored in the tenant database.
+ *
  * @property int $id
  * @property string $employee_id
  * @property int $leave_type_id
@@ -43,6 +43,27 @@ class LeaveBalance extends TenantModel
         'forfeited_days',
     ];
 
+    /**
+     * Employee this balance belongs to.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Leave type for this balance.
+     */
+    public function leaveType(): BelongsTo
+    {
+        return $this->belongsTo(LeaveType::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -54,21 +75,5 @@ class LeaveBalance extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
-    }
-
-    /**
-     * Related LeaveType.
-     */
-    public function leaveType(): BelongsTo
-    {
-        return $this->belongsTo(LeaveType::class);
     }
 }

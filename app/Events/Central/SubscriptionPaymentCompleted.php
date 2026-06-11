@@ -15,6 +15,8 @@ class SubscriptionPaymentCompleted
 
     public function __construct(
         public Subscription $subscription,
-        public Invoice $invoice,
-    ) {}
+        public Invoice      $invoice,
+    )
+    {
+    }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Shipment items stored in the tenant database.
+ *
  * @property int $id
  * @property int $shipment_id
  * @property int $order_item_id
@@ -33,14 +33,6 @@ class ShipmentItem extends TenantModel
         'quantity',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related Shipment.
      */
@@ -55,5 +47,13 @@ class ShipmentItem extends TenantModel
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

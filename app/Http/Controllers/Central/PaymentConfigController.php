@@ -29,7 +29,7 @@ class PaymentConfigController extends Controller
                 'frontend_success_url' => config('payments.checkout.frontend_success_url'),
                 'cancel_url' => config('payments.checkout.cancel_url'),
             ],
-            'trial_setup_amount' => (int) config('payments.trial_setup_amount', 10_000),
+            'trial_setup_amount' => (int)config('payments.trial_setup_amount', 10_000),
         ], 'Payment configuration retrieved successfully.');
     }
 }

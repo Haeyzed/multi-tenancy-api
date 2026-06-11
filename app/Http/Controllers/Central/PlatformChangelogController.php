@@ -21,12 +21,14 @@ class PlatformChangelogController extends Controller
 {
     public function __construct(
         private readonly PlatformChangelogService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated PlatformChangelog records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -43,7 +45,7 @@ class PlatformChangelogController extends Controller
     /**
      * Create a new PlatformChangelog.
      *
-     * @param  StorePlatformChangelogRequest  $request  Validated request payload.
+     * @param StorePlatformChangelogRequest $request Validated request payload.
      */
     public function store(StorePlatformChangelogRequest $request): JsonResponse
     {
@@ -55,7 +57,7 @@ class PlatformChangelogController extends Controller
     /**
      * Find PlatformChangelog by route binding.
      *
-     * @param  PlatformChangelog  $changelog  PlatformChangelog instance.
+     * @param PlatformChangelog $changelog PlatformChangelog instance.
      */
     public function show(PlatformChangelog $changelog): JsonResponse
     {
@@ -65,8 +67,8 @@ class PlatformChangelogController extends Controller
     /**
      * Update PlatformChangelog.
      *
-     * @param  UpdatePlatformChangelogRequest  $request  Validated request payload.
-     * @param  PlatformChangelog  $changelog  PlatformChangelog instance.
+     * @param UpdatePlatformChangelogRequest $request Validated request payload.
+     * @param PlatformChangelog $changelog PlatformChangelog instance.
      */
     public function update(UpdatePlatformChangelogRequest $request, PlatformChangelog $changelog): JsonResponse
     {
@@ -78,7 +80,7 @@ class PlatformChangelogController extends Controller
     /**
      * Delete PlatformChangelog.
      *
-     * @param  PlatformChangelog  $changelog  PlatformChangelog instance.
+     * @param PlatformChangelog $changelog PlatformChangelog instance.
      */
     public function destroy(PlatformChangelog $changelog): JsonResponse
     {

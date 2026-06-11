@@ -27,7 +27,7 @@ class PaymentService
     /**
      * Get all Payment records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, Payment>
      */
     public function getAll(?string $search = null): Collection
@@ -41,18 +41,19 @@ class PaymentService
     /**
      * Get paginated Payment records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, Payment>
      */
     /**
-     * @param  list<string>  $status
+     * @param list<string> $status
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $status = [],
-    ): LengthAwarePaginator {
+        array   $status = [],
+    ): LengthAwarePaginator
+    {
         return Payment::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -65,7 +66,7 @@ class PaymentService
     /**
      * Find Payment by ID.
      *
-     * @param  string  $id  Record identifier.
+     * @param string $id Record identifier.
      */
     public function find(string $id): ?Payment
     {
@@ -75,7 +76,7 @@ class PaymentService
     /**
      * Find Payment by ID or fail.
      *
-     * @param  string  $id  Record identifier.
+     * @param string $id Record identifier.
      */
     public function findOrFail(string $id): Payment
     {
@@ -87,7 +88,7 @@ class PaymentService
     /**
      * Create a new Payment.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Payment
     {
@@ -95,32 +96,19 @@ class PaymentService
     }
 
     /**
-     * Update Payment.
-     *
-     * @param  Payment  $payment  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(Payment $payment, array $data): Payment
-    {
-        $payment->update($data);
-
-        return $payment->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete Payment.
      *
-     * @param  Payment  $payment  The model instance to delete.
+     * @param Payment $payment The model instance to delete.
      */
     public function delete(Payment $payment): bool
     {
-        return (bool) $payment->delete();
+        return (bool)$payment->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, Payment>
      */
     public function getByTenant(string $tenantId): Collection
@@ -131,7 +119,7 @@ class PaymentService
     /**
      * Filter by status.
      *
-     * @param  string  $status  Status value to filter by.
+     * @param string $status Status value to filter by.
      * @return Collection<int, Payment>
      */
     public function getByStatus(string $status): Collection
@@ -142,7 +130,7 @@ class PaymentService
     /**
      * Filter by invoice.
      *
-     * @param  string  $invoiceId  Invoice UUID to filter by.
+     * @param string $invoiceId Invoice UUID to filter by.
      * @return Collection<int, Payment>
      */
     public function getByInvoice(string $invoiceId): Collection
@@ -153,8 +141,8 @@ class PaymentService
     /**
      * Process a payment refund.
      *
-     * @param  Payment  $payment  The payment to refund.
-     * @param  int  $amount  Refunded amount in smallest currency unit.
+     * @param Payment $payment The payment to refund.
+     * @param int $amount Refunded amount in smallest currency unit.
      */
     public function refund(Payment $payment, ?int $amount = null): Payment
     {
@@ -164,6 +152,19 @@ class PaymentService
             'status' => PaymentStatus::Refunded->value,
             'refunded_amount' => $refundAmount,
         ]);
+
+        return $payment->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
+     * Update Payment.
+     *
+     * @param Payment $payment The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(Payment $payment, array $data): Payment
+    {
+        $payment->update($data);
 
         return $payment->fresh(self::LIST_RELATIONS);
     }
@@ -195,18 +196,18 @@ class PaymentService
             ->groupBy('status')
             ->pluck('count', 'status');
 
-        $totalCollected = (int) (clone $query)
+        $totalCollected = (int)(clone $query)
             ->where('status', PaymentStatus::Succeeded->value)
             ->sum('amount');
 
-        $totalRefunded = (int) (clone $query)->sum('refunded_amount');
+        $totalRefunded = (int)(clone $query)->sum('refunded_amount');
 
         return [
-            ['key' => 'total', 'label' => 'Total Payments', 'value' => (int) $counts->sum()],
-            ['key' => 'succeeded', 'label' => 'Succeeded', 'value' => (int) ($counts[PaymentStatus::Succeeded->value] ?? 0)],
-            ['key' => 'pending', 'label' => 'Pending', 'value' => (int) ($counts[PaymentStatus::Pending->value] ?? 0)],
-            ['key' => 'failed', 'label' => 'Failed', 'value' => (int) ($counts[PaymentStatus::Failed->value] ?? 0)],
-            ['key' => 'refunded', 'label' => 'Refunded', 'value' => (int) ($counts[PaymentStatus::Refunded->value] ?? 0)],
+            ['key' => 'total', 'label' => 'Total Payments', 'value' => (int)$counts->sum()],
+            ['key' => 'succeeded', 'label' => 'Succeeded', 'value' => (int)($counts[PaymentStatus::Succeeded->value] ?? 0)],
+            ['key' => 'pending', 'label' => 'Pending', 'value' => (int)($counts[PaymentStatus::Pending->value] ?? 0)],
+            ['key' => 'failed', 'label' => 'Failed', 'value' => (int)($counts[PaymentStatus::Failed->value] ?? 0)],
+            ['key' => 'refunded', 'label' => 'Refunded', 'value' => (int)($counts[PaymentStatus::Refunded->value] ?? 0)],
             ['key' => 'total_collected', 'label' => 'Total Collected', 'value' => $totalCollected],
             ['key' => 'total_refunded', 'label' => 'Total Refunded', 'value' => $totalRefunded],
         ];

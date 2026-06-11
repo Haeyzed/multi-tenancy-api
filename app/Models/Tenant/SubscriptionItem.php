@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Subscription items stored in the tenant database.
+ *
  * @property int $id
  * @property string $subscription_id
  * @property string $product_id
@@ -39,6 +39,14 @@ class SubscriptionItem extends TenantModel
         'line_total',
     ];
 
+    /**
+     * Related Product.
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -47,13 +55,5 @@ class SubscriptionItem extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Product.
-     */
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class);
     }
 }

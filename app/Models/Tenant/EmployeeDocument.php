@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Employee documents stored in the tenant database.
+ * Employee document stored in the tenant database.
+ *
  * @property int $id
  * @property string $employee_id
  * @property string $document_type
@@ -46,6 +47,31 @@ class EmployeeDocument extends TenantModel
         'notes',
     ];
 
+    /**
+     * Employee this document belongs to.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Scope a query to search by title.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('title', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -55,25 +81,5 @@ class EmployeeDocument extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-            );
-        });
     }
 }

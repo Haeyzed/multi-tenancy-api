@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Inventory locations stored in the tenant database.
+ * Warehouse inventory location stored in the tenant database.
+ *
  * @property int $id
  * @property string $product_id
  * @property string|null $variant_id
@@ -47,16 +47,8 @@ class InventoryLocation extends TenantModel
         'reorder_qty',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
-     * Related Product.
+     * Product at this location.
      */
     public function product(): BelongsTo
     {
@@ -64,10 +56,23 @@ class InventoryLocation extends TenantModel
     }
 
     /**
-     * Related Warehouse.
+     * Warehouse for this inventory location.
      */
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Customer subscriptions stored in the tenant database.
+ * Customer subscription to a plan stored in the tenant database.
+ *
  * @property string $id
  * @property string $user_id
  * @property string $plan_id
@@ -25,15 +26,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property Carbon|null $cancelled_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|CustomerSubscription filterStatus(array $statuses)
  */
 class CustomerSubscription extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'customer_subscriptions';
-
     public $incrementing = false;
-
+    protected $table = 'customer_subscriptions';
     protected $keyType = 'string';
 
     /**
@@ -52,6 +52,29 @@ class CustomerSubscription extends TenantModel
         'cancelled_at',
     ];
 
+    /**
+     * Customer who owns this subscription.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -63,13 +86,5 @@ class CustomerSubscription extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

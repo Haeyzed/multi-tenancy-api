@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Goods receipt items stored in the tenant database.
+ * Goods receipt line item stored in the tenant database.
+ *
  * @property int $id
  * @property string $grn_id
  * @property int $po_item_id
@@ -43,6 +42,11 @@ class GoodsReceiptItem extends TenantModel
         'expiry_date',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

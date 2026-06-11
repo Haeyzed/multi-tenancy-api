@@ -21,12 +21,14 @@ class PermissionController extends Controller
 {
     public function __construct(
         private readonly PermissionService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Permission records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -51,7 +53,7 @@ class PermissionController extends Controller
     /**
      * Create a new Permission.
      *
-     * @param  StorePermissionRequest  $request  Validated request payload.
+     * @param StorePermissionRequest $request Validated request payload.
      */
     public function store(StorePermissionRequest $request): JsonResponse
     {
@@ -63,7 +65,7 @@ class PermissionController extends Controller
     /**
      * Find Permission by route binding.
      *
-     * @param  Permission  $permission  Permission instance.
+     * @param Permission $permission Permission instance.
      */
     public function show(Permission $permission): JsonResponse
     {
@@ -75,8 +77,8 @@ class PermissionController extends Controller
     /**
      * Update Permission.
      *
-     * @param  UpdatePermissionRequest  $request  Validated request payload.
-     * @param  Permission  $permission  Permission instance.
+     * @param UpdatePermissionRequest $request Validated request payload.
+     * @param Permission $permission Permission instance.
      */
     public function update(UpdatePermissionRequest $request, Permission $permission): JsonResponse
     {
@@ -88,7 +90,7 @@ class PermissionController extends Controller
     /**
      * Delete Permission.
      *
-     * @param  Permission  $permission  Permission instance.
+     * @param Permission $permission Permission instance.
      */
     public function destroy(Permission $permission): JsonResponse
     {

@@ -17,7 +17,9 @@ class WelcomeSignupNotification extends Notification implements ShouldQueue
 
     public function __construct(
         private readonly Tenant $tenant,
-    ) {}
+    )
+    {
+    }
 
     /**
      * @return list<string>
@@ -31,14 +33,14 @@ class WelcomeSignupNotification extends Notification implements ShouldQueue
     {
         $planName = $this->tenant->plan?->name ?? 'your plan';
         $loginUrl = $this->tenant->meta['owner_login_url'] ?? TenantUrl::ownerLogin($this->tenant);
-        $requiresSetup = (bool) ($this->tenant->meta['owner_requires_password_setup'] ?? false);
+        $requiresSetup = (bool)($this->tenant->meta['owner_requires_password_setup'] ?? false);
         $setupUrl = $this->tenant->meta['owner_password_setup_url'] ?? null;
 
         $message = (new MailMessage)
-            ->subject('Welcome to '.config('app.name'))
-            ->greeting('Hello '.$this->tenant->owner_name.',')
-            ->line('Your account **'.$this->tenant->name.'** has been created on '.$planName.'.')
-            ->line('Domain: '.$this->tenant->domain);
+            ->subject('Welcome to ' . config('app.name'))
+            ->greeting('Hello ' . $this->tenant->owner_name . ',')
+            ->line('Your account **' . $this->tenant->name . '** has been created on ' . $planName . '.')
+            ->line('Domain: ' . $this->tenant->domain);
 
         if ($requiresSetup && is_string($setupUrl) && $setupUrl !== '') {
             return $message

@@ -23,12 +23,14 @@ class PaymentMethodSetupService
 {
     public function __construct(
         private readonly PaymentMethodStorageService $storage,
-        private readonly StripeGateway $stripe,
-        private readonly PaystackGateway $paystack,
-    ) {}
+        private readonly StripeGateway               $stripe,
+        private readonly PaystackGateway             $paystack,
+    )
+    {
+    }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public function handleStripeSetup(array $payload): void
     {
@@ -38,7 +40,7 @@ class PaymentMethodSetupService
             return;
         }
 
-        $details = $this->stripe->resolveSetupDetails((string) $sessionId);
+        $details = $this->stripe->resolveSetupDetails((string)$sessionId);
 
         if ($details === null) {
             return;
@@ -48,29 +50,7 @@ class PaymentMethodSetupService
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     */
-    public function handlePaystackSetup(array $payload): void
-    {
-        $details = $this->paystack->extractPaymentMethodFromWebhook($payload);
-
-        if ($details === null) {
-            return;
-        }
-
-        $this->persistFromDetails($details, PaymentProvider::Paystack);
-    }
-
-    /**
-     * @param  array<string, mixed>  $details
-     */
-    public function persistDetails(array $details, PaymentProvider $provider): void
-    {
-        $this->persistFromDetails($details, $provider);
-    }
-
-    /**
-     * @param  array<string, mixed>  $details
+     * @param array<string, mixed> $details
      */
     private function persistFromDetails(array $details, PaymentProvider $provider): void
     {
@@ -101,7 +81,7 @@ class PaymentMethodSetupService
             $meta['onboarding_notes'] ?? null,
             OnboardingNotes::cardVerified(
                 $provider->value,
-                isset($details['provider_method_id']) ? (string) $details['provider_method_id'] : null,
+                isset($details['provider_method_id']) ? (string)$details['provider_method_id'] : null,
             ),
         );
 
@@ -130,5 +110,27 @@ class PaymentMethodSetupService
         if (empty($meta['owner_user_id'])) {
             event(new TenantOnboarded($tenant));
         }
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function handlePaystackSetup(array $payload): void
+    {
+        $details = $this->paystack->extractPaymentMethodFromWebhook($payload);
+
+        if ($details === null) {
+            return;
+        }
+
+        $this->persistFromDetails($details, PaymentProvider::Paystack);
+    }
+
+    /**
+     * @param array<string, mixed> $details
+     */
+    public function persistDetails(array $details, PaymentProvider $provider): void
+    {
+        $this->persistFromDetails($details, $provider);
     }
 }

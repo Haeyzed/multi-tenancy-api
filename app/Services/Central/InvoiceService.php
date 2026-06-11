@@ -27,7 +27,7 @@ class InvoiceService
     /**
      * Get all Invoice records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, Invoice>
      */
     public function getAll(?string $search = null): Collection
@@ -41,18 +41,19 @@ class InvoiceService
     /**
      * Get paginated Invoice records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, Invoice>
      */
     /**
-     * @param  list<string>  $status
+     * @param list<string> $status
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $status = [],
-    ): LengthAwarePaginator {
+        array   $status = [],
+    ): LengthAwarePaginator
+    {
         return Invoice::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -65,7 +66,7 @@ class InvoiceService
     /**
      * Find Invoice by ID.
      *
-     * @param  string  $id  Record identifier.
+     * @param string $id Record identifier.
      */
     public function find(string $id): ?Invoice
     {
@@ -75,7 +76,7 @@ class InvoiceService
     /**
      * Find Invoice by ID or fail.
      *
-     * @param  string  $id  Record identifier.
+     * @param string $id Record identifier.
      */
     public function findOrFail(string $id): Invoice
     {
@@ -87,7 +88,7 @@ class InvoiceService
     /**
      * Create a new Invoice.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Invoice
     {
@@ -95,32 +96,19 @@ class InvoiceService
     }
 
     /**
-     * Update Invoice.
-     *
-     * @param  Invoice  $invoice  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(Invoice $invoice, array $data): Invoice
-    {
-        $invoice->update($data);
-
-        return $invoice->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete Invoice.
      *
-     * @param  Invoice  $invoice  The model instance to delete.
+     * @param Invoice $invoice The model instance to delete.
      */
     public function delete(Invoice $invoice): bool
     {
-        return (bool) $invoice->delete();
+        return (bool)$invoice->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, Invoice>
      */
     public function getByTenant(string $tenantId): Collection
@@ -131,7 +119,7 @@ class InvoiceService
     /**
      * Filter by status.
      *
-     * @param  string  $status  Status value to filter by.
+     * @param string $status Status value to filter by.
      * @return Collection<int, Invoice>
      */
     public function getByStatus(string $status): Collection
@@ -142,7 +130,7 @@ class InvoiceService
     /**
      * Filter by subscription.
      *
-     * @param  string  $subscriptionId  Subscription UUID to filter by.
+     * @param string $subscriptionId Subscription UUID to filter by.
      * @return Collection<int, Invoice>
      */
     public function getBySubscription(string $subscriptionId): Collection
@@ -169,8 +157,8 @@ class InvoiceService
     /**
      * Mark an invoice as paid.
      *
-     * @param  Invoice  $invoice  The invoice to mark as paid.
-     * @param  string|null  $paymentIntentId  Optional payment provider intent identifier.
+     * @param Invoice $invoice The invoice to mark as paid.
+     * @param string|null $paymentIntentId Optional payment provider intent identifier.
      */
     public function markAsPaid(Invoice $invoice, ?string $paymentIntentId = null): Invoice
     {
@@ -181,6 +169,19 @@ class InvoiceService
             'paid_at' => now(),
             'payment_intent_id' => $paymentIntentId ?? $invoice->payment_intent_id,
         ]);
+
+        return $invoice->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
+     * Update Invoice.
+     *
+     * @param Invoice $invoice The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(Invoice $invoice, array $data): Invoice
+    {
+        $invoice->update($data);
 
         return $invoice->fresh(self::LIST_RELATIONS);
     }
@@ -217,23 +218,23 @@ class InvoiceService
             ->where('due_date', '<', now())
             ->count();
 
-        $overdueAmount = (int) (clone $query)
+        $overdueAmount = (int)(clone $query)
             ->where('status', InvoiceStatus::Open->value)
             ->where('due_date', '<', now())
             ->sum('amount_remaining');
 
-        $outstandingAmount = (int) (clone $query)
+        $outstandingAmount = (int)(clone $query)
             ->where('status', InvoiceStatus::Open->value)
             ->sum('amount_remaining');
 
-        $collectedAmount = (int) (clone $query)
+        $collectedAmount = (int)(clone $query)
             ->where('status', InvoiceStatus::Paid->value)
             ->sum('amount_paid');
 
         return [
-            ['key' => 'total', 'label' => 'Total Invoices', 'value' => (int) $counts->sum()],
-            ['key' => 'open', 'label' => 'Open', 'value' => (int) ($counts[InvoiceStatus::Open->value] ?? 0)],
-            ['key' => 'paid', 'label' => 'Paid', 'value' => (int) ($counts[InvoiceStatus::Paid->value] ?? 0)],
+            ['key' => 'total', 'label' => 'Total Invoices', 'value' => (int)$counts->sum()],
+            ['key' => 'open', 'label' => 'Open', 'value' => (int)($counts[InvoiceStatus::Open->value] ?? 0)],
+            ['key' => 'paid', 'label' => 'Paid', 'value' => (int)($counts[InvoiceStatus::Paid->value] ?? 0)],
             ['key' => 'overdue', 'label' => 'Overdue', 'value' => $overdue],
             ['key' => 'overdue_amount', 'label' => 'Overdue Amount', 'value' => $overdueAmount],
             ['key' => 'outstanding_amount', 'label' => 'Outstanding Amount', 'value' => $outstandingAmount],

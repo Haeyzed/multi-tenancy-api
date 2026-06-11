@@ -128,7 +128,7 @@ class ActivityResource extends JsonResource
              *
              * @default null
              */
-            'subject' => $this->whenLoaded('subject', fn () => $this->subject ? [
+            'subject' => $this->whenLoaded('subject', fn() => $this->subject ? [
                 'id' => $this->subject->getKey(),
                 'type' => $this->subject_type,
             ] : null),
@@ -140,7 +140,7 @@ class ActivityResource extends JsonResource
              *
              * @default null
              */
-            'causer' => $this->whenLoaded('causer', fn () => $this->causer ? [
+            'causer' => $this->whenLoaded('causer', fn() => $this->causer ? [
                 'id' => $this->causer->getKey(),
                 'type' => $this->causer_type,
                 'name' => $this->causer->name ?? null,

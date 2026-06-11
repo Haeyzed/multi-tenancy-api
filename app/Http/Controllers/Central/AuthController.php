@@ -26,12 +26,14 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Authenticate and issue an API token.
      *
-     * @param  LoginRequest  $request  Validated login credentials.
+     * @param LoginRequest $request Validated login credentials.
      */
     public function login(LoginRequest $request): JsonResponse
     {
@@ -49,7 +51,7 @@ class AuthController extends Controller
     /**
      * Revoke the current API token.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function logout(Request $request): JsonResponse
     {
@@ -63,7 +65,7 @@ class AuthController extends Controller
     /**
      * Get the authenticated user profile.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function me(Request $request): JsonResponse
     {
@@ -76,7 +78,7 @@ class AuthController extends Controller
     /**
      * Send a password-reset OTP to the given email address.
      *
-     * @param  ForgotPasswordRequest  $request  Validated email address.
+     * @param ForgotPasswordRequest $request Validated email address.
      *
      * @throws RandomException
      */
@@ -90,7 +92,7 @@ class AuthController extends Controller
     /**
      * Resend an OTP for the given email and purpose.
      *
-     * @param  ResendOtpRequest  $request  Validated resend payload.
+     * @param ResendOtpRequest $request Validated resend payload.
      *
      * @throws RandomException
      */
@@ -107,7 +109,7 @@ class AuthController extends Controller
     /**
      * Verify an OTP and issue a short-lived verification token.
      *
-     * @param  VerifyOtpRequest  $request  Validated verification payload.
+     * @param VerifyOtpRequest $request Validated verification payload.
      */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
@@ -123,7 +125,7 @@ class AuthController extends Controller
     /**
      * Reset the account password using a verified OTP token.
      *
-     * @param  ResetPasswordRequest  $request  Validated reset payload.
+     * @param ResetPasswordRequest $request Validated reset payload.
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
@@ -139,7 +141,7 @@ class AuthController extends Controller
     /**
      * Send an OTP to confirm a password change for the authenticated user.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      *
      * @throws RandomException
      */
@@ -155,7 +157,7 @@ class AuthController extends Controller
     /**
      * Change the authenticated user's password.
      *
-     * @param  ChangePasswordRequest  $request  Validated change payload.
+     * @param ChangePasswordRequest $request Validated change payload.
      */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {

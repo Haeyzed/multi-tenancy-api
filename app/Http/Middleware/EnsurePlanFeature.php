@@ -17,11 +17,13 @@ class EnsurePlanFeature
 {
     public function __construct(
         private readonly PlanEntitlementService $entitlements,
-    ) {}
+    )
+    {
+    }
 
     /**
-     * @param  Closure(Request): Response  $next
-     * @param  string  $feature  Feature key required for the route.
+     * @param Closure(Request): Response $next
+     * @param string $feature Feature key required for the route.
      */
     public function handle(Request $request, Closure $next, string $feature): Response
     {
@@ -32,7 +34,7 @@ class EnsurePlanFeature
             return response()->json(['message' => 'Tenant context not initialized.'], 403);
         }
 
-        if (! $this->entitlements->hasFeature($tenant, $feature)) {
+        if (!$this->entitlements->hasFeature($tenant, $feature)) {
             return response()->json([
                 'message' => 'This feature is not available on your current plan.',
                 'feature' => $feature,

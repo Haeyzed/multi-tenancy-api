@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Designations stored in the tenant database.
+ * Job designation stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $name
  * @property string|null $slug
@@ -21,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|Designation search(?string $search)
+ * @method static Builder|Designation filterIsActive(array $statuses)
  */
 class Designation extends TenantModel
 {
@@ -40,17 +43,8 @@ class Designation extends TenantModel
         'is_active',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
-     * Related Department.
+     * Department this designation belongs to.
      */
     public function department(): BelongsTo
     {
@@ -58,15 +52,41 @@ class Designation extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by name or slug.
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
         $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('name', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-            );
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%");
+            });
         });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Pick list items stored in the tenant database.
+ *
  * @property int $id
  * @property string $pick_list_id
  * @property int $order_item_id
@@ -41,14 +42,6 @@ class PickListItem extends TenantModel
         'notes',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related PickList.
      */
@@ -63,5 +56,30 @@ class PickListItem extends TenantModel
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

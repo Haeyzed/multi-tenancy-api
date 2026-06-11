@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Enums\Central\UserRole;
 use App\Models\Central\Permission;
 use App\Models\Central\Role;
 use App\Models\Central\User;
-use App\Enums\Central\UserRole;
 use App\Services\Concerns\DeletesManyRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,6 +20,7 @@ use Spatie\Permission\PermissionRegistrar;
 class UserService
 {
     use DeletesManyRecords;
+
     /**
      * Relations eager loaded for list and detail responses.
      *
@@ -33,19 +34,9 @@ class UserService
     private const DEFAULT_GUARD = 'web';
 
     /**
-     * Base query with user detail relations.
-     *
-     * @return Builder<User>
-     */
-    private function queryWithDetails(): Builder
-    {
-        return User::query()->with(self::DETAIL_RELATIONS);
-    }
-
-    /**
      * Get all User records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, User>
      */
     public function getAll(?string $search = null): Collection
@@ -56,20 +47,32 @@ class UserService
     }
 
     /**
+     * Base query with user detail relations.
+     *
+     * @return Builder<User>
+     */
+    private function queryWithDetails(): Builder
+    {
+        return User::query()->with(self::DETAIL_RELATIONS);
+    }
+
+    /**
      * Get paginated User records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, User>
      */
+
     /**
-     * @param  list<string>  $isActive
+     * @param list<string> $isActive
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $isActive = [],
-    ): LengthAwarePaginator {
+        array   $isActive = [],
+    ): LengthAwarePaginator
+    {
         return $this->queryWithDetails()
             ->search($search)
             ->filterIsActive($isActive)
@@ -79,7 +82,7 @@ class UserService
     /**
      * Find User by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?User
     {
@@ -87,19 +90,9 @@ class UserService
     }
 
     /**
-     * Find User by ID or fail.
-     *
-     * @param  int  $id  Record identifier.
-     */
-    public function findOrFail(int $id): User
-    {
-        return $this->queryWithDetails()->findOrFail($id);
-    }
-
-    /**
      * Create a new User.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): User
     {
@@ -119,38 +112,31 @@ class UserService
     }
 
     /**
-     * Update User.
-     *
-     * @param  User  $user  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param array<string, mixed> $data
+     * @return array{0: list<int>|null, 1: list<int>|null, 2: array<string, mixed>}
      */
-    public function update(User $user, array $data): User
+    private function extractAccessPayload(array $data): array
     {
-        [$roleIds, $permissionIds, $attributes] = $this->extractAccessPayload($data);
+        $roleIds = null;
+        $permissionIds = null;
 
-        if (array_key_exists('password', $attributes) && blank($attributes['password'])) {
-            unset($attributes['password']);
+        if (array_key_exists('role_ids', $data)) {
+            $roleIds = $data['role_ids'];
+            unset($data['role_ids']);
         }
 
-        if ($attributes !== []) {
-            $user->update($attributes);
+        if (array_key_exists('permission_ids', $data)) {
+            $permissionIds = $data['permission_ids'];
+            unset($data['permission_ids']);
         }
 
-        if ($roleIds !== null) {
-            $this->syncRoles($user, $roleIds);
-        }
-
-        if ($permissionIds !== null) {
-            $this->syncPermissions($user, $permissionIds);
-        }
-
-        return $user->fresh(self::DETAIL_RELATIONS);
+        return [$roleIds, $permissionIds, $data];
     }
 
     /**
      * Replace all Spatie roles assigned to the user.
      *
-     * @param  list<int>  $roleIds
+     * @param list<int> $roleIds
      */
     public function syncRoles(User $user, array $roleIds): User
     {
@@ -167,9 +153,17 @@ class UserService
     }
 
     /**
+     * Clear Spatie permission cache after user access changes.
+     */
+    private function forgetPermissionCache(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /**
      * Replace all direct Spatie permissions assigned to the user.
      *
-     * @param  list<int>  $permissionIds
+     * @param list<int> $permissionIds
      */
     public function syncPermissions(User $user, array $permissionIds): User
     {
@@ -211,39 +205,9 @@ class UserService
     }
 
     /**
-     * @param  array<string, mixed>  $data
-     * @return array{0: list<int>|null, 1: list<int>|null, 2: array<string, mixed>}
-     */
-    private function extractAccessPayload(array $data): array
-    {
-        $roleIds = null;
-        $permissionIds = null;
-
-        if (array_key_exists('role_ids', $data)) {
-            $roleIds = $data['role_ids'];
-            unset($data['role_ids']);
-        }
-
-        if (array_key_exists('permission_ids', $data)) {
-            $permissionIds = $data['permission_ids'];
-            unset($data['permission_ids']);
-        }
-
-        return [$roleIds, $permissionIds, $data];
-    }
-
-    /**
-     * Clear Spatie permission cache after user access changes.
-     */
-    private function forgetPermissionCache(): void
-    {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-    }
-
-    /**
      * Delete User.
      *
-     * @param  User  $user  The model instance to delete.
+     * @param User $user The model instance to delete.
      */
     public function delete(User $user): bool
     {
@@ -253,7 +217,7 @@ class UserService
     /**
      * Delete multiple users by ID.
      *
-     * @param  list<int>  $ids
+     * @param list<int> $ids
      */
     public function deleteMany(array $ids): int
     {
@@ -269,7 +233,7 @@ class UserService
     /**
      * Restore soft-deleted User.
      *
-     * @param  int  $id  Trashed record identifier.
+     * @param int $id Trashed record identifier.
      */
     public function restore(int $id): User
     {
@@ -280,9 +244,19 @@ class UserService
     }
 
     /**
+     * Find User by ID or fail.
+     *
+     * @param int $id Record identifier.
+     */
+    public function findOrFail(int $id): User
+    {
+        return $this->queryWithDetails()->findOrFail($id);
+    }
+
+    /**
      * Force delete User.
      *
-     * @param  int  $id  Trashed record identifier.
+     * @param int $id Trashed record identifier.
      */
     public function forceDelete(int $id): bool
     {
@@ -304,7 +278,7 @@ class UserService
     /**
      * Update the user's last login timestamp.
      *
-     * @param  User  $user  The user who logged in.
+     * @param User $user The user who logged in.
      */
     public function recordLogin(User $user): User
     {
@@ -314,13 +288,42 @@ class UserService
     }
 
     /**
+     * Update User.
+     *
+     * @param User $user The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(User $user, array $data): User
+    {
+        [$roleIds, $permissionIds, $attributes] = $this->extractAccessPayload($data);
+
+        if (array_key_exists('password', $attributes) && blank($attributes['password'])) {
+            unset($attributes['password']);
+        }
+
+        if ($attributes !== []) {
+            $user->update($attributes);
+        }
+
+        if ($roleIds !== null) {
+            $this->syncRoles($user, $roleIds);
+        }
+
+        if ($permissionIds !== null) {
+            $this->syncPermissions($user, $permissionIds);
+        }
+
+        return $user->fresh(self::DETAIL_RELATIONS);
+    }
+
+    /**
      * Toggle the user's active flag.
      *
-     * @param  User  $user  The user whose status is toggled.
+     * @param User $user The user whose status is toggled.
      */
     public function toggleActive(User $user): User
     {
-        $user->update(['is_active' => ! $user->is_active]);
+        $user->update(['is_active' => !$user->is_active]);
 
         return $user->fresh();
     }

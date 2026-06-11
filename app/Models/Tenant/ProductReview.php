@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Product reviews stored in the tenant database.
+ *
  * @property int $id
  * @property string $product_id
  * @property string|null $user_id
@@ -48,17 +49,6 @@ class ProductReview extends TenantModel
         'images',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_verified_purchase' => 'boolean',
-            'is_approved' => 'boolean',
-            'images' => 'array',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related Product.
      */
@@ -90,8 +80,19 @@ class ProductReview extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-            );
+                $inner->where('title', 'like', "%{$search}%");
+            });
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_verified_purchase' => 'boolean',
+            'is_approved' => 'boolean',
+            'images' => 'array',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

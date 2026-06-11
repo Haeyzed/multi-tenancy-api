@@ -37,18 +37,6 @@ class TenantConfig extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'encrypted' => 'boolean',
-        ];
-    }
-
-    /**
      * Scope a query to search by key or value.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -71,5 +59,17 @@ class TenantConfig extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'encrypted' => 'boolean',
+        ];
     }
 }

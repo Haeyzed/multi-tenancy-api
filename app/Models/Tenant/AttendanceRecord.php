@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Attendance records stored in the tenant database.
+ * Employee attendance record stored in the tenant database.
+ *
  * @property string $id
  * @property string $employee_id
  * @property Carbon|null $date
@@ -39,15 +40,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property string|null $manual_entry_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|AttendanceRecord filterStatus(array $statuses)
  */
 class AttendanceRecord extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'attendance_records';
-
     public $incrementing = false;
-
+    protected $table = 'attendance_records';
     protected $keyType = 'string';
 
     /**
@@ -80,6 +80,37 @@ class AttendanceRecord extends TenantModel
         'manual_entry_reason',
     ];
 
+    /**
+     * Employee this attendance record belongs to.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Shift assigned for this attendance day.
+     */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -97,21 +128,5 @@ class AttendanceRecord extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
-    }
-
-    /**
-     * Related Shift.
-     */
-    public function shift(): BelongsTo
-    {
-        return $this->belongsTo(Shift::class);
     }
 }

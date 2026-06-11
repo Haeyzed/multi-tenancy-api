@@ -12,11 +12,13 @@ use App\Models\Tenant\User;
 final readonly class TenantOwnerProvisioningResult
 {
     public function __construct(
-        public User $user,
-        public bool $created,
-        public bool $requiresPasswordSetup,
+        public User    $user,
+        public bool    $created,
+        public bool    $requiresPasswordSetup,
         public ?string $passwordSetupUrl = null,
-    ) {}
+    )
+    {
+    }
 
     public static function alreadyProvisioned(User $user): self
     {

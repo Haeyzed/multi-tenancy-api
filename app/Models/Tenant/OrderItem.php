@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Order items stored in the tenant database.
+ *
  * @property int $id
  * @property string $order_id
  * @property string|null $product_id
@@ -66,24 +67,6 @@ class OrderItem extends TenantModel
         'metadata',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'product_snapshot' => 'array',
-            'variant_snapshot' => 'array',
-            'unit_price' => 'decimal:2',
-            'unit_compare_price' => 'decimal:2',
-            'line_total' => 'decimal:2',
-            'line_discount' => 'decimal:2',
-            'tax_amount' => 'decimal:2',
-            'tax_rate' => 'decimal:2',
-            'weight' => 'decimal:2',
-            'metadata' => 'array',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related Order.
      */
@@ -108,8 +91,26 @@ class OrderItem extends TenantModel
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
                 $inner->where('sku', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%")
-            );
+                    ->orWhere('name', 'like', "%{$search}%");
+            });
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'product_snapshot' => 'array',
+            'variant_snapshot' => 'array',
+            'unit_price' => 'decimal:2',
+            'unit_compare_price' => 'decimal:2',
+            'line_total' => 'decimal:2',
+            'line_discount' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
+            'weight' => 'decimal:2',
+            'metadata' => 'array',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

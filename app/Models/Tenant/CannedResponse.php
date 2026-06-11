@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Canned responses stored in the tenant database.
+ * Pre-written support response template stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $title
  * @property string|null $shortcut
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|CannedResponse search(?string $search)
+ * @method static Builder|CannedResponse filterIsActive(array $statuses)
  */
 class CannedResponse extends TenantModel
 {
@@ -40,6 +42,35 @@ class CannedResponse extends TenantModel
         'created_by',
     ];
 
+    /**
+     * Scope a query to search by title.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('title', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -47,17 +78,5 @@ class CannedResponse extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-            );
-        });
     }
 }

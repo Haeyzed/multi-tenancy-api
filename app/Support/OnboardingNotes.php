@@ -11,7 +11,7 @@ class OnboardingNotes
 {
     public static function compose(?string $existing, string $line): string
     {
-        $existing = trim((string) $existing);
+        $existing = trim((string)$existing);
         $line = trim($line);
 
         if ($existing === '') {
@@ -22,7 +22,7 @@ class OnboardingNotes
             return $existing;
         }
 
-        return $existing."\n\n".$line;
+        return $existing . "\n\n" . $line;
     }
 
     public static function signupStarted(string $planName, string $billingCycle, string $provider): string
@@ -73,9 +73,10 @@ class OnboardingNotes
     public static function trialVerificationPaid(
         string $provider,
         string $reference,
-        int $amountMinor,
+        int    $amountMinor,
         string $currency,
-    ): string {
+    ): string
+    {
         return sprintf(
             '[%s] Trial card verification charge via %s (%s %s). Reference: %s.',
             now()->toDateTimeString(),

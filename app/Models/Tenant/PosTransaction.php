@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Pos transactions stored in the tenant database.
+ *
  * @property string $id
  * @property string $session_id
  * @property string $type
@@ -27,10 +27,8 @@ class PosTransaction extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'pos_transactions';
-
     public $incrementing = false;
-
+    protected $table = 'pos_transactions';
     protected $keyType = 'string';
 
     /**
@@ -46,6 +44,14 @@ class PosTransaction extends TenantModel
         'notes',
     ];
 
+    /**
+     * Related Order.
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -53,13 +59,5 @@ class PosTransaction extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Order.
-     */
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
     }
 }

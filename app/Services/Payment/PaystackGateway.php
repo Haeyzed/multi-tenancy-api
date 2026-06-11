@@ -27,13 +27,14 @@ class PaystackGateway implements RecurringPaymentGatewayContract
      * {@inheritDoc}
      */
     public function createCheckout(
-        Invoice $invoice,
-        Tenant $tenant,
-        Plan $plan,
+        Invoice      $invoice,
+        Tenant       $tenant,
+        Plan         $plan,
         BillingCycle $billingCycle,
-        string $successUrl,
-        string $cancelUrl,
-    ): CheckoutResult {
+        string       $successUrl,
+        string       $cancelUrl,
+    ): CheckoutResult
+    {
         return $this->initializeTransaction(
             $invoice,
             $tenant,
@@ -49,19 +50,101 @@ class PaystackGateway implements RecurringPaymentGatewayContract
     }
 
     /**
+     * @param array<string, mixed> $extraMetadata
+     */
+    private function initializeTransaction(
+        ?Invoice      $invoice,
+        Tenant        $tenant,
+        int           $amount,
+        string        $successUrl,
+        string        $cancelUrl,
+        array         $extraMetadata = [],
+        ?Subscription $subscription = null,
+    ): CheckoutResult
+    {
+        $secretKey = (string)config('payments.paystack.secret_key');
+
+        if ($secretKey === '') {
+            throw new RuntimeException('Paystack is not configured. Set PAYSTACK_SECRET_KEY in your environment.');
+        }
+
+        $tenant->loadMissing('plan');
+        $currency = strtoupper($invoice?->currency ?? $tenant->plan?->currency ?? 'NGN');
+        $minAmount = (int)config('payments.paystack.min_amount', 10_000);
+
+        if ($currency === 'NGN' && $amount < $minAmount) {
+            throw new RuntimeException(sprintf(
+                'Paystack amount too low: %d kobo (minimum %d kobo / ₦%.2f).',
+                $amount,
+                $minAmount,
+                $minAmount / 100,
+            ));
+        }
+
+        $reference = sprintf(
+            'txn_%s_%s',
+            $invoice !== null ? str_replace('-', '', $invoice->id) : str_replace('-', '', $tenant->id),
+            Str::lower(Str::random(8)),
+        );
+
+        $metadata = array_merge([
+            'tenant_id' => $tenant->id,
+            'subscription_id' => (string)($invoice?->subscription_id ?? $subscription?->id),
+            'invoice_id' => $invoice?->id,
+            'cancel_url' => $cancelUrl,
+        ], $extraMetadata);
+
+        $payload = [
+            'email' => $tenant->owner_email,
+            'amount' => $amount,
+            'currency' => $currency,
+            'reference' => $reference,
+            'callback_url' => rtrim($successUrl, '/'),
+            'metadata' => $metadata,
+        ];
+
+        $channels = config('payments.paystack.channels', ['card']);
+
+        if (is_array($channels) && $channels !== []) {
+            $payload['channels'] = $channels;
+        }
+
+        $response = Http::withToken($secretKey)
+            ->acceptJson()
+            ->post(self::API_BASE . '/transaction/initialize', $payload);
+
+        if (!$response->successful() || !($response->json('status') === true)) {
+            $message = (string)($response->json('message') ?? $response->body());
+
+            if (str_contains(strtolower($message), 'no active channel')) {
+                $message .= ' Enable Card under Paystack Dashboard → Settings → Payment Channels, '
+                    . 'confirm your account is activated, and use test keys (sk_test_/pk_test_) in development.';
+            }
+
+            throw new RuntimeException('Paystack checkout failed: ' . $message);
+        }
+
+        return new CheckoutResult(
+            checkoutUrl: (string)$response->json('data.authorization_url'),
+            reference: (string)$response->json('data.reference', $reference),
+        );
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function createSetupCheckout(
-        Tenant $tenant,
+        Tenant       $tenant,
         Subscription $subscription,
-        string $successUrl,
-        string $cancelUrl,
-    ): CheckoutResult {
+        string       $successUrl,
+        string       $cancelUrl,
+    ): CheckoutResult
+    {
         $tenant->loadMissing('plan');
 
         $amount = max(
-            (int) config('payments.trial_setup_amount', 10_000),
-            (int) config('payments.paystack.min_amount', 10_000),
+            (int)config('payments.trial_setup_amount', 10_000),
+            (int)config('payments.paystack.min_amount', 10_000),
         );
 
         return $this->initializeTransaction(
@@ -82,10 +165,11 @@ class PaystackGateway implements RecurringPaymentGatewayContract
      * {@inheritDoc}
      */
     public function chargeSavedMethod(
-        Invoice $invoice,
-        Tenant $tenant,
+        Invoice      $invoice,
+        Tenant       $tenant,
         Subscription $subscription,
-    ): ChargeResult {
+    ): ChargeResult
+    {
         $tenant->loadMissing('paymentMethods');
 
         $method = $tenant->paymentMethods()->where('is_default', true)->first();
@@ -98,9 +182,9 @@ class PaystackGateway implements RecurringPaymentGatewayContract
 
         $reference = sprintf('renew_%s_%s', str_replace('-', '', $invoice->id), Str::lower(Str::random(8)));
 
-        $response = Http::withToken((string) config('payments.paystack.secret_key'))
+        $response = Http::withToken((string)config('payments.paystack.secret_key'))
             ->acceptJson()
-            ->post(self::API_BASE.'/transaction/charge_authorization', [
+            ->post(self::API_BASE . '/transaction/charge_authorization', [
                 'authorization_code' => $authorizationCode,
                 'email' => $tenant->owner_email,
                 'amount' => $invoice->amount_due,
@@ -114,7 +198,7 @@ class PaystackGateway implements RecurringPaymentGatewayContract
             ]);
 
         if ($response->successful() && $response->json('data.status') === 'success') {
-            return ChargeResult::succeeded((string) $response->json('data.reference', $reference));
+            return ChargeResult::succeeded((string)$response->json('data.reference', $reference));
         }
 
         return ChargeResult::failed($response->json('message') ?? $response->body());
@@ -129,7 +213,7 @@ class PaystackGateway implements RecurringPaymentGatewayContract
             return false;
         }
 
-        $secret = (string) config('payments.paystack.secret_key');
+        $secret = (string)config('payments.paystack.secret_key');
         $computed = hash_hmac('sha512', $payload, $secret);
 
         return hash_equals($computed, $signature);
@@ -142,7 +226,7 @@ class PaystackGateway implements RecurringPaymentGatewayContract
      */
     public function verifyTransaction(string $reference): array
     {
-        $secretKey = (string) config('payments.paystack.secret_key');
+        $secretKey = (string)config('payments.paystack.secret_key');
 
         if ($secretKey === '') {
             throw new RuntimeException('Paystack is not configured. Set PAYSTACK_SECRET_KEY in your environment.');
@@ -150,18 +234,18 @@ class PaystackGateway implements RecurringPaymentGatewayContract
 
         $response = Http::withToken($secretKey)
             ->acceptJson()
-            ->get(self::API_BASE.'/transaction/verify/'.urlencode($reference));
+            ->get(self::API_BASE . '/transaction/verify/' . urlencode($reference));
 
-        if (! $response->successful() || ! ($response->json('status') === true)) {
+        if (!$response->successful() || !($response->json('status') === true)) {
             throw new RuntimeException(
-                'Paystack verification failed: '.($response->json('message') ?? $response->body()),
+                'Paystack verification failed: ' . ($response->json('message') ?? $response->body()),
             );
         }
 
         $charge = $response->json('data');
 
-        if (! is_array($charge) || ($charge['status'] ?? null) !== 'success') {
-            $status = is_array($charge) ? (string) ($charge['status'] ?? 'unknown') : 'unknown';
+        if (!is_array($charge) || ($charge['status'] ?? null) !== 'success') {
+            $status = is_array($charge) ? (string)($charge['status'] ?? 'unknown') : 'unknown';
 
             throw new RuntimeException("Paystack transaction was not successful (status: {$status}).");
         }
@@ -214,16 +298,16 @@ class PaystackGateway implements RecurringPaymentGatewayContract
         }
 
         return [
-            'provider_customer_id' => (string) ($data['customer']['id'] ?? $data['customer']['customer_code'] ?? ''),
-            'provider_method_id' => (string) ($authorization['authorization_code'] ?? $data['reference']),
+            'provider_customer_id' => (string)($data['customer']['id'] ?? $data['customer']['customer_code'] ?? ''),
+            'provider_method_id' => (string)($authorization['authorization_code'] ?? $data['reference']),
             'purpose' => $data['metadata']['purpose'] ?? 'payment',
             'subscription_id' => $data['metadata']['subscription_id'] ?? null,
             'tenant_id' => $data['metadata']['tenant_id'] ?? null,
             'type' => 'card',
             'last4' => $authorization['last4'] ?? null,
             'brand' => $authorization['brand'] ?? $authorization['card_type'] ?? null,
-            'exp_month' => isset($authorization['exp_month']) ? (int) $authorization['exp_month'] : null,
-            'exp_year' => isset($authorization['exp_year']) ? (int) $authorization['exp_year'] : null,
+            'exp_month' => isset($authorization['exp_month']) ? (int)$authorization['exp_month'] : null,
+            'exp_year' => isset($authorization['exp_year']) ? (int)$authorization['exp_year'] : null,
             'billing_details' => [
                 'authorization_code' => $authorization['authorization_code'] ?? null,
                 'bin' => $authorization['bin'] ?? null,
@@ -235,7 +319,7 @@ class PaystackGateway implements RecurringPaymentGatewayContract
     /**
      * Whether the webhook is a trial setup charge.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public function isSetupWebhook(array $payload): bool
     {
@@ -244,85 +328,5 @@ class PaystackGateway implements RecurringPaymentGatewayContract
         }
 
         return ($payload['data']['metadata']['purpose'] ?? null) === 'trial_setup';
-    }
-
-    /**
-     * @param  array<string, mixed>  $extraMetadata
-     */
-    private function initializeTransaction(
-        ?Invoice $invoice,
-        Tenant $tenant,
-        int $amount,
-        string $successUrl,
-        string $cancelUrl,
-        array $extraMetadata = [],
-        ?Subscription $subscription = null,
-    ): CheckoutResult {
-        $secretKey = (string) config('payments.paystack.secret_key');
-
-        if ($secretKey === '') {
-            throw new RuntimeException('Paystack is not configured. Set PAYSTACK_SECRET_KEY in your environment.');
-        }
-
-        $tenant->loadMissing('plan');
-        $currency = strtoupper($invoice?->currency ?? $tenant->plan?->currency ?? 'NGN');
-        $minAmount = (int) config('payments.paystack.min_amount', 10_000);
-
-        if ($currency === 'NGN' && $amount < $minAmount) {
-            throw new RuntimeException(sprintf(
-                'Paystack amount too low: %d kobo (minimum %d kobo / ₦%.2f).',
-                $amount,
-                $minAmount,
-                $minAmount / 100,
-            ));
-        }
-
-        $reference = sprintf(
-            'txn_%s_%s',
-            $invoice !== null ? str_replace('-', '', $invoice->id) : str_replace('-', '', $tenant->id),
-            Str::lower(Str::random(8)),
-        );
-
-        $metadata = array_merge([
-            'tenant_id' => $tenant->id,
-            'subscription_id' => (string) ($invoice?->subscription_id ?? $subscription?->id),
-            'invoice_id' => $invoice?->id,
-            'cancel_url' => $cancelUrl,
-        ], $extraMetadata);
-
-        $payload = [
-            'email' => $tenant->owner_email,
-            'amount' => $amount,
-            'currency' => $currency,
-            'reference' => $reference,
-            'callback_url' => rtrim($successUrl, '/'),
-            'metadata' => $metadata,
-        ];
-
-        $channels = config('payments.paystack.channels', ['card']);
-
-        if (is_array($channels) && $channels !== []) {
-            $payload['channels'] = $channels;
-        }
-
-        $response = Http::withToken($secretKey)
-            ->acceptJson()
-            ->post(self::API_BASE.'/transaction/initialize', $payload);
-
-        if (! $response->successful() || ! ($response->json('status') === true)) {
-            $message = (string) ($response->json('message') ?? $response->body());
-
-            if (str_contains(strtolower($message), 'no active channel')) {
-                $message .= ' Enable Card under Paystack Dashboard → Settings → Payment Channels, '
-                    .'confirm your account is activated, and use test keys (sk_test_/pk_test_) in development.';
-            }
-
-            throw new RuntimeException('Paystack checkout failed: '.$message);
-        }
-
-        return new CheckoutResult(
-            checkoutUrl: (string) $response->json('data.authorization_url'),
-            reference: (string) $response->json('data.reference', $reference),
-        );
     }
 }

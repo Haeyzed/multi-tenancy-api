@@ -63,7 +63,7 @@ class TenantSupportMessageResource extends JsonResource
              *
              * @default false
              */
-            'is_internal' => (bool) $this->is_internal,
+            'is_internal' => (bool)$this->is_internal,
 
             /**
              * Whether the message has been read by the recipient.
@@ -72,7 +72,7 @@ class TenantSupportMessageResource extends JsonResource
              *
              * @default false
              */
-            'is_read' => (bool) $this->is_read,
+            'is_read' => (bool)$this->is_read,
 
             /**
              * Timestamp when the message was read.

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Inventory counts stored in the tenant database.
+ * Warehouse inventory count stored in the tenant database.
+ *
  * @property string $id
  * @property string $warehouse_id
  * @property string $status
@@ -22,15 +23,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|InventoryCount filterStatus(array $statuses)
  */
 class InventoryCount extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'inventory_counts';
-
     public $incrementing = false;
-
+    protected $table = 'inventory_counts';
     protected $keyType = 'string';
 
     /**
@@ -46,6 +46,29 @@ class InventoryCount extends TenantModel
         'notes',
     ];
 
+    /**
+     * Warehouse being counted.
+     */
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -54,13 +77,5 @@ class InventoryCount extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Warehouse.
-     */
-    public function warehouse(): BelongsTo
-    {
-        return $this->belongsTo(Warehouse::class);
     }
 }

@@ -19,12 +19,12 @@ interface PaymentGatewayContract
      * Create a hosted checkout session for an invoice.
      */
     public function createCheckout(
-        Invoice $invoice,
-        Tenant $tenant,
-        Plan $plan,
+        Invoice      $invoice,
+        Tenant       $tenant,
+        Plan         $plan,
         BillingCycle $billingCycle,
-        string $successUrl,
-        string $cancelUrl,
+        string       $successUrl,
+        string       $cancelUrl,
     ): CheckoutResult;
 
     /**
@@ -35,14 +35,14 @@ interface PaymentGatewayContract
     /**
      * Extract invoice ID from a verified webhook payload.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public function extractInvoiceIdFromWebhook(array $payload): ?string;
 
     /**
      * Extract provider payment reference from a verified webhook payload.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public function extractProviderPaymentIdFromWebhook(array $payload): ?string;
 }

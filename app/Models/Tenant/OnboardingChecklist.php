@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Onboarding checklists stored in the tenant database.
+ *
  * @property int $id
  * @property string $employee_id
  * @property int|null $template_id
@@ -35,6 +36,31 @@ class OnboardingChecklist extends TenantModel
         'completed_at',
     ];
 
+    /**
+     * Related Employee.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
     protected function casts(): array
     {
         return [
@@ -42,13 +68,5 @@ class OnboardingChecklist extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
     }
 }

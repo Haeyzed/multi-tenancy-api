@@ -14,5 +14,7 @@ class PaymentMethodSaved
 
     public function __construct(
         public Subscription $subscription,
-    ) {}
+    )
+    {
+    }
 }

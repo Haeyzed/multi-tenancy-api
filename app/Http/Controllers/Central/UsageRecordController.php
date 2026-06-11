@@ -21,12 +21,14 @@ class UsageRecordController extends Controller
 {
     public function __construct(
         private readonly UsageRecordService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated UsageRecord records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -42,7 +44,7 @@ class UsageRecordController extends Controller
     /**
      * Create a new UsageRecord.
      *
-     * @param  StoreUsageRecordRequest  $request  Validated request payload.
+     * @param StoreUsageRecordRequest $request Validated request payload.
      */
     public function store(StoreUsageRecordRequest $request): JsonResponse
     {
@@ -54,7 +56,7 @@ class UsageRecordController extends Controller
     /**
      * Find UsageRecord by route binding.
      *
-     * @param  UsageRecord  $usageRecord  UsageRecord instance.
+     * @param UsageRecord $usageRecord UsageRecord instance.
      */
     public function show(UsageRecord $usageRecord): JsonResponse
     {
@@ -69,8 +71,8 @@ class UsageRecordController extends Controller
     /**
      * Update UsageRecord.
      *
-     * @param  UpdateUsageRecordRequest  $request  Validated request payload.
-     * @param  UsageRecord  $usageRecord  UsageRecord instance.
+     * @param UpdateUsageRecordRequest $request Validated request payload.
+     * @param UsageRecord $usageRecord UsageRecord instance.
      */
     public function update(UpdateUsageRecordRequest $request, UsageRecord $usageRecord): JsonResponse
     {
@@ -82,7 +84,7 @@ class UsageRecordController extends Controller
     /**
      * Delete UsageRecord.
      *
-     * @param  UsageRecord  $usageRecord  UsageRecord instance.
+     * @param UsageRecord $usageRecord UsageRecord instance.
      */
     public function destroy(UsageRecord $usageRecord): JsonResponse
     {

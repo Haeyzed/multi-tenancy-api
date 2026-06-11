@@ -26,12 +26,14 @@ class UserController extends Controller
 {
     public function __construct(
         private readonly UserService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated User records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -58,7 +60,7 @@ class UserController extends Controller
     /**
      * Create a new User.
      *
-     * @param  StoreUserRequest  $request  Validated request payload.
+     * @param StoreUserRequest $request Validated request payload.
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
@@ -70,7 +72,7 @@ class UserController extends Controller
     /**
      * Find User by route binding.
      *
-     * @param  User  $user  User instance.
+     * @param User $user User instance.
      */
     public function show(User $user): JsonResponse
     {
@@ -82,8 +84,8 @@ class UserController extends Controller
     /**
      * Update User.
      *
-     * @param  UpdateUserRequest  $request  Validated request payload.
-     * @param  User  $user  User instance.
+     * @param UpdateUserRequest $request Validated request payload.
+     * @param User $user User instance.
      */
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
@@ -95,7 +97,7 @@ class UserController extends Controller
     /**
      * Delete User.
      *
-     * @param  User  $user  User instance.
+     * @param User $user User instance.
      */
     public function destroy(User $user): JsonResponse
     {
@@ -120,7 +122,7 @@ class UserController extends Controller
     /**
      * Update the user's last login timestamp.
      *
-     * @param  User  $user  User instance.
+     * @param User $user User instance.
      */
     public function recordLogin(User $user): JsonResponse
     {
@@ -132,7 +134,7 @@ class UserController extends Controller
     /**
      * Toggle the user's active flag.
      *
-     * @param  User  $user  User instance.
+     * @param User $user User instance.
      */
     public function toggleActive(User $user): JsonResponse
     {

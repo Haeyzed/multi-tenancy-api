@@ -20,14 +20,16 @@ use RuntimeException;
 class PaystackChargeHandlerService
 {
     public function __construct(
-        private readonly PaystackGateway $gateway,
+        private readonly PaystackGateway           $gateway,
         private readonly PaymentFulfillmentService $fulfillment,
         private readonly PaymentMethodSetupService $setup,
-        private readonly PaymentRecordingService $payments,
-    ) {}
+        private readonly PaymentRecordingService   $payments,
+    )
+    {
+    }
 
     /**
-     * @param  array<string, mixed>  $charge  Paystack charge object (transaction verify `data` or webhook `data`).
+     * @param array<string, mixed> $charge Paystack charge object (transaction verify `data` or webhook `data`).
      * @return array{
      *     purpose: string,
      *     reference: string,
@@ -41,7 +43,7 @@ class PaystackChargeHandlerService
      */
     public function handleSuccessfulCharge(array $charge): array
     {
-        $reference = (string) ($charge['reference'] ?? '');
+        $reference = (string)($charge['reference'] ?? '');
 
         if ($reference === '') {
             throw new RuntimeException('Paystack charge is missing a transaction reference.');
@@ -49,16 +51,16 @@ class PaystackChargeHandlerService
 
         $event = ['event' => 'charge.success', 'data' => $charge];
         $metadata = $charge['metadata'] ?? [];
-        $purpose = (string) ($metadata['purpose'] ?? 'payment');
-        $tenantId = isset($metadata['tenant_id']) ? (string) $metadata['tenant_id'] : null;
-        $subscriptionId = isset($metadata['subscription_id']) ? (string) $metadata['subscription_id'] : null;
+        $purpose = (string)($metadata['purpose'] ?? 'payment');
+        $tenantId = isset($metadata['tenant_id']) ? (string)$metadata['tenant_id'] : null;
+        $subscriptionId = isset($metadata['subscription_id']) ? (string)$metadata['subscription_id'] : null;
         $methodData = $this->gateway->extractPaymentMethodFromWebhook($event);
 
         if ($this->gateway->isSetupWebhook($event)) {
             $alreadySaved = $tenantId !== null
                 && PaymentMethod::query()->where('tenant_id', $tenantId)->exists();
 
-            if (! $alreadySaved) {
+            if (!$alreadySaved) {
                 $this->setup->handlePaystackSetup($event);
             }
 
@@ -72,8 +74,8 @@ class PaystackChargeHandlerService
                         $tenant,
                         PaymentProvider::Paystack,
                         $reference,
-                        (int) ($charge['amount'] ?? config('payments.trial_setup_amount', 10_000)),
-                        strtoupper((string) ($charge['currency'] ?? 'NGN')),
+                        (int)($charge['amount'] ?? config('payments.trial_setup_amount', 10_000)),
+                        strtoupper((string)($charge['currency'] ?? 'NGN')),
                         null,
                         $methodData,
                     );
@@ -84,8 +86,8 @@ class PaystackChargeHandlerService
                         OnboardingNotes::trialVerificationPaid(
                             PaymentProvider::Paystack->value,
                             $reference,
-                            (int) ($charge['amount'] ?? config('payments.trial_setup_amount', 10_000)),
-                            strtoupper((string) ($charge['currency'] ?? 'NGN')),
+                            (int)($charge['amount'] ?? config('payments.trial_setup_amount', 10_000)),
+                            strtoupper((string)($charge['currency'] ?? 'NGN')),
                         ),
                     );
                     $tenant->update(['meta' => $meta]);

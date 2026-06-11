@@ -6,11 +6,11 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Product option groups stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $name
  * @property int $sort_order
@@ -34,15 +34,6 @@ class ProductOptionGroup extends TenantModel
         'is_color',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_color' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Scope a query by common searchable columns.
      */
@@ -50,8 +41,17 @@ class ProductOptionGroup extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('name', 'like', "%{$search}%")
-            );
+                $inner->where('name', 'like', "%{$search}%");
+            });
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_color' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

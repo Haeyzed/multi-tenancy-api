@@ -21,12 +21,14 @@ class ApiKeyController extends Controller
 {
     public function __construct(
         private readonly ApiKeyService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated ApiKey records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,7 +55,7 @@ class ApiKeyController extends Controller
     /**
      * Create a new ApiKey.
      *
-     * @param  StoreApiKeyRequest  $request  Validated request payload.
+     * @param StoreApiKeyRequest $request Validated request payload.
      */
     public function store(StoreApiKeyRequest $request): JsonResponse
     {
@@ -65,7 +67,7 @@ class ApiKeyController extends Controller
     /**
      * Find ApiKey by route binding.
      *
-     * @param  ApiKey  $apiKey  ApiKey instance.
+     * @param ApiKey $apiKey ApiKey instance.
      */
     public function show(ApiKey $apiKey): JsonResponse
     {
@@ -75,8 +77,8 @@ class ApiKeyController extends Controller
     /**
      * Update ApiKey.
      *
-     * @param  UpdateApiKeyRequest  $request  Validated request payload.
-     * @param  ApiKey  $apiKey  ApiKey instance.
+     * @param UpdateApiKeyRequest $request Validated request payload.
+     * @param ApiKey $apiKey ApiKey instance.
      */
     public function update(UpdateApiKeyRequest $request, ApiKey $apiKey): JsonResponse
     {
@@ -88,7 +90,7 @@ class ApiKeyController extends Controller
     /**
      * Delete ApiKey.
      *
-     * @param  ApiKey  $apiKey  ApiKey instance.
+     * @param ApiKey $apiKey ApiKey instance.
      */
     public function destroy(ApiKey $apiKey): JsonResponse
     {
@@ -100,7 +102,7 @@ class ApiKeyController extends Controller
     /**
      * Record API key usage by updating last_used_at.
      *
-     * @param  ApiKey  $apiKey  ApiKey instance.
+     * @param ApiKey $apiKey ApiKey instance.
      */
     public function recordUsage(ApiKey $apiKey): JsonResponse
     {
@@ -112,7 +114,7 @@ class ApiKeyController extends Controller
     /**
      * Revoke an API key by deactivating it.
      *
-     * @param  ApiKey  $apiKey  ApiKey instance.
+     * @param ApiKey $apiKey ApiKey instance.
      */
     public function revoke(ApiKey $apiKey): JsonResponse
     {

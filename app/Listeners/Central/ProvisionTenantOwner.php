@@ -1,28 +1,1 @@
-<?php
-
-declare(strict_types=1);
-
-namespace App\Listeners\Central;
-
-use App\Events\Central\TenantOnboarded;
-use App\Services\Central\TenantOwnerProvisioningService;
-use Illuminate\Contracts\Queue\ShouldQueue;
-
-/**
- * Create the tenant owner account when onboarding completes.
- */
-class ProvisionTenantOwner implements ShouldQueue
-{
-    public int $tries = 10;
-
-    public int $backoff = 15;
-
-    public function __construct(
-        private readonly TenantOwnerProvisioningService $provisioning,
-    ) {}
-
-    public function handle(TenantOnboarded $event): void
-    {
-        $this->provisioning->provision($event->tenant, $event->ownerPassword);
-    }
-}
+<?phpdeclare(strict_types=1);namespace App\Listeners\Central;use App\Events\Central\TenantOnboarded;use App\Services\Central\TenantOwnerProvisioningService;use Illuminate\Contracts\Queue\ShouldQueue;/** * Create the tenant owner account when onboarding completes. */class ProvisionTenantOwner implements ShouldQueue{    public int $tries = 10;    public int $backoff = 15;    public function __construct(        private readonly TenantOwnerProvisioningService $provisioning,    )    {    }    public function handle(TenantOnboarded $event): void    {        $this->provisioning->provision($event->tenant, $event->ownerPassword);    }}

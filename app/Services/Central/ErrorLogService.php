@@ -26,7 +26,7 @@ class ErrorLogService
     /**
      * Get all ErrorLog records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, ErrorLog>
      */
     public function getAll(?string $search = null): Collection
@@ -38,15 +38,16 @@ class ErrorLogService
     }
 
     /**
-     * @param  list<string>  $severity
-     * @param  list<string>  $resolution
+     * @param list<string> $severity
+     * @param list<string> $resolution
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $severity = [],
-        array $resolution = [],
-    ): LengthAwarePaginator {
+        array   $severity = [],
+        array   $resolution = [],
+    ): LengthAwarePaginator
+    {
         return ErrorLog::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -60,7 +61,7 @@ class ErrorLogService
     /**
      * Find ErrorLog by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?ErrorLog
     {
@@ -70,7 +71,7 @@ class ErrorLogService
     /**
      * Find ErrorLog by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): ErrorLog
     {
@@ -80,7 +81,7 @@ class ErrorLogService
     /**
      * Create a new ErrorLog.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): ErrorLog
     {
@@ -88,32 +89,19 @@ class ErrorLogService
     }
 
     /**
-     * Update ErrorLog.
-     *
-     * @param  ErrorLog  $errorLog  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(ErrorLog $errorLog, array $data): ErrorLog
-    {
-        $errorLog->update($data);
-
-        return $errorLog->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete ErrorLog.
      *
-     * @param  ErrorLog  $errorLog  The model instance to delete.
+     * @param ErrorLog $errorLog The model instance to delete.
      */
     public function delete(ErrorLog $errorLog): bool
     {
-        return (bool) $errorLog->delete();
+        return (bool)$errorLog->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, ErrorLog>
      */
     public function getByTenant(string $tenantId): Collection
@@ -124,7 +112,7 @@ class ErrorLogService
     /**
      * Filter by severity.
      *
-     * @param  string  $severity  Error severity to filter by.
+     * @param string $severity Error severity to filter by.
      * @return Collection<int, ErrorLog>
      */
     public function getBySeverity(string $severity): Collection
@@ -135,11 +123,24 @@ class ErrorLogService
     /**
      * Mark an error log entry as resolved.
      *
-     * @param  ErrorLog  $errorLog  The error log to resolve.
+     * @param ErrorLog $errorLog The error log to resolve.
      */
     public function resolve(ErrorLog $errorLog): ErrorLog
     {
         $errorLog->update(['resolved_at' => now()]);
+
+        return $errorLog->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
+     * Update ErrorLog.
+     *
+     * @param ErrorLog $errorLog The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(ErrorLog $errorLog, array $data): ErrorLog
+    {
+        $errorLog->update($data);
 
         return $errorLog->fresh(self::LIST_RELATIONS);
     }
@@ -179,12 +180,12 @@ class ErrorLogService
             ->count();
 
         return [
-            ['key' => 'total', 'label' => 'Total Errors', 'value' => (int) $counts->sum()],
+            ['key' => 'total', 'label' => 'Total Errors', 'value' => (int)$counts->sum()],
             ['key' => 'unresolved', 'label' => 'Unresolved', 'value' => $unresolved],
             ['key' => 'unresolved_critical', 'label' => 'Unresolved Critical', 'value' => $unresolvedCritical],
-            ['key' => 'critical', 'label' => 'Critical', 'value' => (int) ($counts[ErrorLogSeverity::Critical->value] ?? 0)],
-            ['key' => 'error', 'label' => 'Error', 'value' => (int) ($counts[ErrorLogSeverity::Error->value] ?? 0)],
-            ['key' => 'warning', 'label' => 'Warning', 'value' => (int) ($counts[ErrorLogSeverity::Warning->value] ?? 0)],
+            ['key' => 'critical', 'label' => 'Critical', 'value' => (int)($counts[ErrorLogSeverity::Critical->value] ?? 0)],
+            ['key' => 'error', 'label' => 'Error', 'value' => (int)($counts[ErrorLogSeverity::Error->value] ?? 0)],
+            ['key' => 'warning', 'label' => 'Warning', 'value' => (int)($counts[ErrorLogSeverity::Warning->value] ?? 0)],
         ];
     }
 }

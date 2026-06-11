@@ -21,38 +21,6 @@ enum TenantUserRole: string implements HasLabel
     public const GUARD = 'tenant';
 
     /**
-     * {@inheritDoc}
-     */
-    public function label(): string
-    {
-        return match ($this) {
-            self::StoreOwner => 'Store Owner',
-            self::Manager => 'Manager',
-            self::Staff => 'Staff',
-        };
-    }
-
-    /**
-     * @return list<string>
-     */
-    public static function permissionNames(): array
-    {
-        return [
-            'dashboard.view',
-            'catalog.view',
-            'catalog.manage',
-            'orders.view',
-            'orders.manage',
-            'inventory.view',
-            'inventory.manage',
-            'settings.view',
-            'settings.manage',
-            'staff.view',
-            'staff.manage',
-        ];
-    }
-
-    /**
      * @return array<string, list<string>>
      */
     public static function rolePermissions(): array
@@ -78,5 +46,37 @@ enum TenantUserRole: string implements HasLabel
                 'orders.manage',
             ],
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function permissionNames(): array
+    {
+        return [
+            'dashboard.view',
+            'catalog.view',
+            'catalog.manage',
+            'orders.view',
+            'orders.manage',
+            'inventory.view',
+            'inventory.manage',
+            'settings.view',
+            'settings.manage',
+            'staff.view',
+            'staff.manage',
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::StoreOwner => 'Store Owner',
+            self::Manager => 'Manager',
+            self::Staff => 'Staff',
+        };
     }
 }

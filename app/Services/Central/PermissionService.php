@@ -16,20 +16,11 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class PermissionService
 {
     use DeletesManyRecords;
-    /**
-     * Base query for permission records.
-     *
-     * @return Builder<Permission>
-     */
-    private function query(): Builder
-    {
-        return Permission::query();
-    }
 
     /**
      * Get all Permission records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, Permission>
      */
     public function getAll(?string $search = null): Collection
@@ -41,10 +32,20 @@ class PermissionService
     }
 
     /**
+     * Base query for permission records.
+     *
+     * @return Builder<Permission>
+     */
+    private function query(): Builder
+    {
+        return Permission::query();
+    }
+
+    /**
      * Get paginated Permission records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, Permission>
      */
     public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
@@ -58,7 +59,7 @@ class PermissionService
     /**
      * Find Permission by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?Permission
     {
@@ -68,7 +69,7 @@ class PermissionService
     /**
      * Find Permission by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): Permission
     {
@@ -78,7 +79,7 @@ class PermissionService
     /**
      * Create a new Permission.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Permission
     {
@@ -88,8 +89,8 @@ class PermissionService
     /**
      * Update Permission.
      *
-     * @param  Permission  $permission  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param Permission $permission The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(Permission $permission, array $data): Permission
     {
@@ -101,7 +102,7 @@ class PermissionService
     /**
      * Delete Permission.
      *
-     * @param  Permission  $permission  The model instance to delete.
+     * @param Permission $permission The model instance to delete.
      */
     public function delete(Permission $permission): bool
     {
@@ -111,7 +112,7 @@ class PermissionService
     /**
      * Delete multiple permissions by ID.
      *
-     * @param  list<int>  $ids
+     * @param list<int> $ids
      */
     public function deleteMany(array $ids): int
     {

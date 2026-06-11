@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Leave requests stored in the tenant database.
+ * Employee leave request stored in the tenant database.
+ *
  * @property string $id
  * @property string $employee_id
  * @property int $leave_type_id
@@ -27,15 +28,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property string|null $rejection_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|LeaveRequest filterStatus(array $statuses)
  */
 class LeaveRequest extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'leave_requests';
-
     public $incrementing = false;
-
+    protected $table = 'leave_requests';
     protected $keyType = 'string';
 
     /**
@@ -56,6 +56,37 @@ class LeaveRequest extends TenantModel
         'rejection_reason',
     ];
 
+    /**
+     * Employee who submitted this leave request.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Leave type for this request.
+     */
+    public function leaveType(): BelongsTo
+    {
+        return $this->belongsTo(LeaveType::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -66,21 +97,5 @@ class LeaveRequest extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
-    }
-
-    /**
-     * Related LeaveType.
-     */
-    public function leaveType(): BelongsTo
-    {
-        return $this->belongsTo(LeaveType::class);
     }
 }

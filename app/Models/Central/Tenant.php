@@ -48,10 +48,26 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /** @use HasFactory<TenantFactory> */
     use HasDatabase, HasDomains, HasFactory, HasUuids, SoftDeletes;
 
-    protected static function newFactory(): TenantFactory
-    {
-        return TenantFactory::new();
-    }
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'database',
+        'domain',
+        'status',
+        'plan_id',
+        'billing_cycle',
+        'trial_ends_at',
+        'subscribed_at',
+        'expires_at',
+        'owner_email',
+        'owner_name',
+        'settings',
+        'meta',
+        'data',
+    ];
 
     /**
      * Real database columns (non-virtual) for Stancl's data column handling.
@@ -82,44 +98,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         ];
     }
 
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'slug',
-        'database',
-        'domain',
-        'status',
-        'plan_id',
-        'billing_cycle',
-        'trial_ends_at',
-        'subscribed_at',
-        'expires_at',
-        'owner_email',
-        'owner_name',
-        'settings',
-        'meta',
-        'data',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected static function newFactory(): TenantFactory
     {
-        return [
-            'status' => TenantStatus::class,
-            'billing_cycle' => BillingCycle::class,
-            'settings' => 'array',
-            'meta' => 'array',
-            'data' => 'array',
-            'trial_ends_at' => 'datetime',
-            'subscribed_at' => 'datetime',
-            'expires_at' => 'datetime',
-        ];
+        return TenantFactory::new();
     }
 
     /**
@@ -142,11 +123,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /**
      * Filter by tenant lifecycle status values.
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
     }
 
     /**
@@ -272,5 +253,24 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function errorLogs(): HasMany
     {
         return $this->hasMany(ErrorLog::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => TenantStatus::class,
+            'billing_cycle' => BillingCycle::class,
+            'settings' => 'array',
+            'meta' => 'array',
+            'data' => 'array',
+            'trial_ends_at' => 'datetime',
+            'subscribed_at' => 'datetime',
+            'expires_at' => 'datetime',
+        ];
     }
 }

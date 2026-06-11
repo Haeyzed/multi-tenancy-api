@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Goal milestones stored in the tenant database.
+ * Milestone within an employee goal stored in the tenant database.
+ *
  * @property int $id
  * @property int $goal_id
  * @property string|null $title
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|GoalMilestone search(?string $search)
+ * @method static Builder|GoalMilestone filterStatus(array $statuses)
  */
 class GoalMilestone extends TenantModel
 {
@@ -38,6 +40,41 @@ class GoalMilestone extends TenantModel
         'completion_date',
     ];
 
+    /**
+     * Goal this milestone belongs to.
+     */
+    public function goal(): BelongsTo
+    {
+        return $this->belongsTo(Goal::class);
+    }
+
+    /**
+     * Scope a query to search by title.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('title', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -46,25 +83,5 @@ class GoalMilestone extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Goal.
-     */
-    public function goal(): BelongsTo
-    {
-        return $this->belongsTo(Goal::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-            );
-        });
     }
 }

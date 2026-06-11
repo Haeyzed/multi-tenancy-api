@@ -49,19 +49,6 @@ class TenantMetric extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'metric_date' => 'date',
-            'total_revenue' => 'decimal:2',
-        ];
-    }
-
-    /**
      * Scope a query to search by metric date.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -83,7 +70,8 @@ class TenantMetric extends Model
         Builder $query,
         ?string $startDate,
         ?string $endDate,
-    ): void {
+    ): void
+    {
         if ($startDate !== null && $startDate !== '') {
             $query->whereDate('metric_date', '>=', Carbon::parse($startDate));
         }
@@ -99,5 +87,18 @@ class TenantMetric extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metric_date' => 'date',
+            'total_revenue' => 'decimal:2',
+        ];
     }
 }

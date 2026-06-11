@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Carbon;
 
 /**
- * Loyalty programs stored in the tenant database.
+ * Customer loyalty program stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $name
  * @property string|null $description
@@ -24,15 +25,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|LoyaltyProgram search(?string $search)
+ * @method static Builder|LoyaltyProgram filterIsActive(array $statuses)
  */
 class LoyaltyProgram extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'loyalty_programs';
-
     public $incrementing = false;
-
+    protected $table = 'loyalty_programs';
     protected $keyType = 'string';
 
     /**
@@ -49,6 +49,35 @@ class LoyaltyProgram extends TenantModel
         'end_date',
     ];
 
+    /**
+     * Scope a query to search by name.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -60,17 +89,5 @@ class LoyaltyProgram extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('name', 'like', "%{$search}%")
-            );
-        });
     }
 }

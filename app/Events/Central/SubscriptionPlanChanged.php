@@ -14,7 +14,9 @@ class SubscriptionPlanChanged
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public Subscription $subscription,
+        public Subscription          $subscription,
         public SubscriptionEventType $changeType,
-    ) {}
+    )
+    {
+    }
 }

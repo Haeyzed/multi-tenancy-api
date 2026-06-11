@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Carts stored in the tenant database.
+ * Shopping cart stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $user_id
  * @property string|null $session_id
@@ -39,10 +40,8 @@ class Cart extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'carts';
-
     public $incrementing = false;
-
+    protected $table = 'carts';
     protected $keyType = 'string';
 
     /**
@@ -69,6 +68,31 @@ class Cart extends TenantModel
         'converted_to_order_id',
     ];
 
+    /**
+     * Registered user who owns this cart, if any.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Scope a query to search by email.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('email', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -83,25 +107,5 @@ class Cart extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('email', 'like', "%{$search}%")
-            );
-        });
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Staff invitations stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $email
  * @property int $role_id
@@ -40,16 +41,6 @@ class StaffInvitation extends TenantModel
         'accepted_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'expires_at' => 'datetime',
-            'accepted_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related Role.
      */
@@ -65,8 +56,18 @@ class StaffInvitation extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('email', 'like', "%{$search}%")
-            );
+                $inner->where('email', 'like', "%{$search}%");
+            });
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+            'accepted_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

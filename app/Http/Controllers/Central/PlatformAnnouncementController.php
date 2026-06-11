@@ -22,12 +22,14 @@ class PlatformAnnouncementController extends Controller
 {
     public function __construct(
         private readonly PlatformAnnouncementService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated PlatformAnnouncement records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -55,7 +57,7 @@ class PlatformAnnouncementController extends Controller
     /**
      * Create a new PlatformAnnouncement.
      *
-     * @param  StorePlatformAnnouncementRequest  $request  Validated request payload.
+     * @param StorePlatformAnnouncementRequest $request Validated request payload.
      */
     public function store(StorePlatformAnnouncementRequest $request): JsonResponse
     {
@@ -67,7 +69,7 @@ class PlatformAnnouncementController extends Controller
     /**
      * Find PlatformAnnouncement by route binding.
      *
-     * @param  PlatformAnnouncement  $announcement  PlatformAnnouncement instance.
+     * @param PlatformAnnouncement $announcement PlatformAnnouncement instance.
      */
     public function show(PlatformAnnouncement $announcement): JsonResponse
     {
@@ -77,8 +79,8 @@ class PlatformAnnouncementController extends Controller
     /**
      * Update PlatformAnnouncement.
      *
-     * @param  UpdatePlatformAnnouncementRequest  $request  Validated request payload.
-     * @param  PlatformAnnouncement  $announcement  PlatformAnnouncement instance.
+     * @param UpdatePlatformAnnouncementRequest $request Validated request payload.
+     * @param PlatformAnnouncement $announcement PlatformAnnouncement instance.
      */
     public function update(UpdatePlatformAnnouncementRequest $request, PlatformAnnouncement $announcement): JsonResponse
     {
@@ -90,7 +92,7 @@ class PlatformAnnouncementController extends Controller
     /**
      * Delete PlatformAnnouncement.
      *
-     * @param  PlatformAnnouncement  $announcement  PlatformAnnouncement instance.
+     * @param PlatformAnnouncement $announcement PlatformAnnouncement instance.
      */
     public function destroy(PlatformAnnouncement $announcement): JsonResponse
     {

@@ -49,7 +49,7 @@ class DomainResource extends JsonResource
              *
              * @default false
              */
-            'is_primary' => (bool) $this->is_primary,
+            'is_primary' => (bool)$this->is_primary,
 
             /**
              * Whether this domain is used as a fallback.
@@ -58,7 +58,7 @@ class DomainResource extends JsonResource
              *
              * @default false
              */
-            'is_fallback' => (bool) $this->is_fallback,
+            'is_fallback' => (bool)$this->is_fallback,
 
             /**
              * Whether domain ownership has been verified.
@@ -67,7 +67,7 @@ class DomainResource extends JsonResource
              *
              * @default false
              */
-            'verified' => (bool) $this->verified,
+            'verified' => (bool)$this->verified,
 
             /**
              * Timestamp when the domain was created.

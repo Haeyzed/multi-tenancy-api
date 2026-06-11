@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Carbon;
 
 /**
  * Pos sessions stored in the tenant database.
+ *
  * @property string $id
  * @property string $register_id
  * @property string $cashier_id
@@ -30,10 +30,8 @@ class PosSession extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'pos_sessions';
-
     public $incrementing = false;
-
+    protected $table = 'pos_sessions';
     protected $keyType = 'string';
 
     /**
@@ -51,6 +49,23 @@ class PosSession extends TenantModel
         'closed_at',
         'status',
     ];
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
 
     protected function casts(): array
     {

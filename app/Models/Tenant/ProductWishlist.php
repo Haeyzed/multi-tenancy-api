@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Product wishlists stored in the tenant database.
+ *
  * @property string $id
  * @property string $user_id
  * @property string|null $name
@@ -25,10 +26,8 @@ class ProductWishlist extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'product_wishlists';
-
     public $incrementing = false;
-
+    protected $table = 'product_wishlists';
     protected $keyType = 'string';
 
     /**
@@ -40,15 +39,6 @@ class ProductWishlist extends TenantModel
         'is_default',
         'share_token',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
 
     /**
      * Related User.
@@ -65,8 +55,17 @@ class ProductWishlist extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('name', 'like', "%{$search}%")
-            );
+                $inner->where('name', 'like', "%{$search}%");
+            });
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

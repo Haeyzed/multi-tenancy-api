@@ -26,7 +26,7 @@ class SubscriptionItemService
     /**
      * Get paginated SubscriptionItem records.
      *
-     * @param  int  $perPage  Number of records per page.
+     * @param int $perPage Number of records per page.
      * @return LengthAwarePaginator<int, SubscriptionItem>
      */
     public function getPaginated(int $perPage = 15): LengthAwarePaginator
@@ -37,7 +37,7 @@ class SubscriptionItemService
     /**
      * Find SubscriptionItem by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?SubscriptionItem
     {
@@ -47,7 +47,7 @@ class SubscriptionItemService
     /**
      * Find SubscriptionItem by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): SubscriptionItem
     {
@@ -57,7 +57,7 @@ class SubscriptionItemService
     /**
      * Create a new SubscriptionItem.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): SubscriptionItem
     {
@@ -67,8 +67,8 @@ class SubscriptionItemService
     /**
      * Update SubscriptionItem.
      *
-     * @param  SubscriptionItem  $subscriptionItem  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param SubscriptionItem $subscriptionItem The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(SubscriptionItem $subscriptionItem, array $data): SubscriptionItem
     {
@@ -80,7 +80,7 @@ class SubscriptionItemService
     /**
      * Delete SubscriptionItem.
      *
-     * @param  SubscriptionItem  $subscriptionItem  The model instance to delete.
+     * @param SubscriptionItem $subscriptionItem The model instance to delete.
      */
     public function delete(SubscriptionItem $subscriptionItem): bool
     {
@@ -90,7 +90,7 @@ class SubscriptionItemService
     /**
      * Filter by plan.
      *
-     * @param  string  $planId  Plan UUID to filter by.
+     * @param string $planId Plan UUID to filter by.
      * @return Collection<int, SubscriptionItem>
      */
     public function getByPlan(string $planId): Collection
@@ -101,7 +101,7 @@ class SubscriptionItemService
     /**
      * Filter by subscription.
      *
-     * @param  string  $subscriptionId  Subscription UUID to filter by.
+     * @param string $subscriptionId Subscription UUID to filter by.
      * @return Collection<int, SubscriptionItem>
      */
     public function getBySubscription(string $subscriptionId): Collection

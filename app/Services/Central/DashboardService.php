@@ -34,10 +34,11 @@ class DashboardService
      * @return array<string, mixed>
      */
     public function getOverview(
-        User $user,
+        User    $user,
         ?string $startDate = null,
         ?string $endDate = null,
-    ): array {
+    ): array
+    {
         [$start, $end] = $this->resolveDateRange($startDate, $endDate);
 
         return [
@@ -94,13 +95,13 @@ class DashboardService
             $cards[] = [
                 'key' => 'tenants_total',
                 'label' => 'New Tenants',
-                'value' => (int) $tenantCounts->sum(),
+                'value' => (int)$tenantCounts->sum(),
                 'module' => 'tenants',
             ];
             $cards[] = [
                 'key' => 'tenants_active',
                 'label' => 'Active Tenants',
-                'value' => (int) ($tenantCounts[TenantStatus::Active->value] ?? 0),
+                'value' => (int)($tenantCounts[TenantStatus::Active->value] ?? 0),
                 'module' => 'tenants',
             ];
             $cards[] = [
@@ -119,7 +120,7 @@ class DashboardService
                 ->groupBy('status')
                 ->pluck('count', 'status');
 
-            $revenueCollected = (int) Payment::query()
+            $revenueCollected = (int)Payment::query()
                 ->where('status', PaymentStatus::Succeeded)
                 ->whereBetween('created_at', [$start, $end])
                 ->sum('amount');
@@ -127,13 +128,13 @@ class DashboardService
             $cards[] = [
                 'key' => 'subscriptions_active',
                 'label' => 'Active Subscriptions',
-                'value' => (int) ($subscriptionCounts[SubscriptionStatus::Active->value] ?? 0),
+                'value' => (int)($subscriptionCounts[SubscriptionStatus::Active->value] ?? 0),
                 'module' => 'billing',
             ];
             $cards[] = [
                 'key' => 'subscriptions_trialing',
                 'label' => 'Trialing Subscriptions',
-                'value' => (int) ($subscriptionCounts[SubscriptionStatus::Trialing->value] ?? 0),
+                'value' => (int)($subscriptionCounts[SubscriptionStatus::Trialing->value] ?? 0),
                 'module' => 'billing',
             ];
             $cards[] = [
@@ -211,6 +212,13 @@ class DashboardService
         return $cards;
     }
 
+    private function formatMoney(int $amountMinor, string $currency = 'NGN'): string
+    {
+        $major = $amountMinor / 100;
+
+        return sprintf('%s %.2f', strtoupper($currency), $major);
+    }
+
     /**
      * @return array<string, list<array<string, mixed>>>
      */
@@ -238,7 +246,7 @@ class DashboardService
                 ->pluck('count', 'status');
 
             $charts['tenant_status'] = $tenantStatus
-                ->map(fn (int $count, string $status): array => [
+                ->map(fn(int $count, string $status): array => [
                     'status' => $status,
                     'label' => ucfirst($status),
                     'count' => $count,
@@ -268,7 +276,7 @@ class DashboardService
                 ->pluck('count', 'status');
 
             $charts['subscription_status'] = $subscriptionStatus
-                ->map(fn (int $count, string $status): array => [
+                ->map(fn(int $count, string $status): array => [
                     'status' => $status,
                     'label' => str_replace('_', ' ', ucfirst($status)),
                     'count' => $count,
@@ -278,6 +286,33 @@ class DashboardService
         }
 
         return $charts;
+    }
+
+    /**
+     * @param Collection<int|string, int|string> $values
+     * @return list<array{date: string, count?: int, revenue?: int}>
+     */
+    private function fillDateSeries(
+        Collection $values,
+        string     $valueKey,
+        Carbon     $start,
+        Carbon     $end,
+    ): array
+    {
+        $series = [];
+        $cursor = $start->copy()->startOfDay();
+        $endDay = $end->copy()->startOfDay();
+
+        while ($cursor->lte($endDay)) {
+            $dateKey = $cursor->toDateString();
+            $series[] = [
+                'date' => $dateKey,
+                $valueKey => (int)($values[$dateKey] ?? 0),
+            ];
+            $cursor = $cursor->copy()->addDay();
+        }
+
+        return $series;
     }
 
     /**
@@ -294,7 +329,7 @@ class DashboardService
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
-                ->map(fn (Tenant $tenant): array => [
+                ->map(fn(Tenant $tenant): array => [
                     'id' => $tenant->id,
                     'name' => $tenant->name,
                     'status' => $tenant->status->value,
@@ -312,7 +347,7 @@ class DashboardService
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
-                ->map(fn (Subscription $subscription): array => [
+                ->map(fn(Subscription $subscription): array => [
                     'id' => $subscription->id,
                     'tenant' => $subscription->tenant?->name,
                     'plan' => $subscription->plan?->name,
@@ -328,10 +363,10 @@ class DashboardService
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
-                ->map(fn (Payment $payment): array => [
+                ->map(fn(Payment $payment): array => [
                     'id' => $payment->id,
                     'tenant' => $payment->tenant?->name,
-                    'amount' => $this->formatMoney((int) $payment->amount, $payment->currency),
+                    'amount' => $this->formatMoney((int)$payment->amount, $payment->currency),
                     'status' => $payment->status->value,
                     'provider' => $payment->payment_provider->value,
                     'created_at' => $payment->created_at?->toIso8601String(),
@@ -345,7 +380,7 @@ class DashboardService
                 ->latest('created_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
-                ->map(fn (Activity $activity): array => [
+                ->map(fn(Activity $activity): array => [
                     'id' => $activity->id,
                     'description' => $activity->description,
                     'event' => $activity->event,
@@ -369,7 +404,7 @@ class DashboardService
                 ->latest('updated_at')
                 ->limit(self::RECENT_LIMIT)
                 ->get()
-                ->map(fn (TenantSupportTicket $ticket): array => [
+                ->map(fn(TenantSupportTicket $ticket): array => [
                     'id' => $ticket->id,
                     'subject' => $ticket->subject,
                     'tenant' => $ticket->tenant?->name,
@@ -381,38 +416,5 @@ class DashboardService
         }
 
         return $recent;
-    }
-
-    /**
-     * @param  Collection<int|string, int|string>  $values
-     * @return list<array{date: string, count?: int, revenue?: int}>
-     */
-    private function fillDateSeries(
-        Collection $values,
-        string $valueKey,
-        Carbon $start,
-        Carbon $end,
-    ): array {
-        $series = [];
-        $cursor = $start->copy()->startOfDay();
-        $endDay = $end->copy()->startOfDay();
-
-        while ($cursor->lte($endDay)) {
-            $dateKey = $cursor->toDateString();
-            $series[] = [
-                'date' => $dateKey,
-                $valueKey => (int) ($values[$dateKey] ?? 0),
-            ];
-            $cursor = $cursor->copy()->addDay();
-        }
-
-        return $series;
-    }
-
-    private function formatMoney(int $amountMinor, string $currency = 'NGN'): string
-    {
-        $major = $amountMinor / 100;
-
-        return sprintf('%s %.2f', strtoupper($currency), $major);
     }
 }

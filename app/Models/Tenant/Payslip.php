@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Payslips stored in the tenant database.
+ *
  * @property int $id
  * @property string $payroll_entry_id
  * @property int|null $media_id
@@ -37,6 +37,14 @@ class Payslip extends TenantModel
         'viewed_at',
     ];
 
+    /**
+     * Related PayrollEntry.
+     */
+    public function payrollEntry(): BelongsTo
+    {
+        return $this->belongsTo(PayrollEntry::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -46,13 +54,5 @@ class Payslip extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related PayrollEntry.
-     */
-    public function payrollEntry(): BelongsTo
-    {
-        return $this->belongsTo(PayrollEntry::class);
     }
 }

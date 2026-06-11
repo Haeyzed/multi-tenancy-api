@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Timesheets stored in the tenant database.
+ *
  * @property int $id
  * @property string $employee_id
  * @property int|null $project_id
@@ -51,6 +51,14 @@ class Timesheet extends TenantModel
         'approved_at',
     ];
 
+    /**
+     * Related Employee.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -63,13 +71,5 @@ class Timesheet extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
     }
 }

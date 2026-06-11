@@ -26,7 +26,7 @@ class TenantMetricService
     /**
      * Get all TenantMetric records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, TenantMetric>
      */
     public function getAll(?string $search = null): Collection
@@ -40,16 +40,17 @@ class TenantMetricService
     /**
      * Get paginated TenantMetric records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, TenantMetric>
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
         ?string $startDate = null,
         ?string $endDate = null,
-    ): LengthAwarePaginator {
+    ): LengthAwarePaginator
+    {
         return TenantMetric::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -62,7 +63,7 @@ class TenantMetricService
     /**
      * Find TenantMetric by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?TenantMetric
     {
@@ -72,7 +73,7 @@ class TenantMetricService
     /**
      * Find TenantMetric by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): TenantMetric
     {
@@ -82,7 +83,7 @@ class TenantMetricService
     /**
      * Create a new TenantMetric.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): TenantMetric
     {
@@ -94,8 +95,8 @@ class TenantMetricService
     /**
      * Update TenantMetric.
      *
-     * @param  TenantMetric  $tenantMetric  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param TenantMetric $tenantMetric The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(TenantMetric $tenantMetric, array $data): TenantMetric
     {
@@ -107,7 +108,7 @@ class TenantMetricService
     /**
      * Delete TenantMetric.
      *
-     * @param  TenantMetric  $tenantMetric  The model instance to delete.
+     * @param TenantMetric $tenantMetric The model instance to delete.
      */
     public function delete(TenantMetric $tenantMetric): bool
     {
@@ -117,7 +118,7 @@ class TenantMetricService
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, TenantMetric>
      */
     public function getByTenant(string $tenantId): Collection
@@ -128,8 +129,8 @@ class TenantMetricService
     /**
      * Filter records.
      *
-     * @param  string  $start  Start date (inclusive).
-     * @param  string  $end  End date (inclusive).
+     * @param string $start Start date (inclusive).
+     * @param string $end End date (inclusive).
      * @return Collection<int, TenantMetric>
      */
     public function getByDateRange(string $start, string $end): Collection
@@ -167,13 +168,13 @@ class TenantMetricService
 
         return [
             ['key' => 'tenants_tracked', 'label' => 'Tenants Tracked', 'value' => $tenantsTracked],
-            ['key' => 'total_orders', 'label' => 'Total Orders', 'value' => (int) $aggregates->total_orders],
-            ['key' => 'total_revenue', 'label' => 'Total Revenue', 'value' => (string) $aggregates->total_revenue],
-            ['key' => 'total_products', 'label' => 'Total Products', 'value' => (int) $aggregates->total_products],
-            ['key' => 'total_customers', 'label' => 'Total Customers', 'value' => (int) $aggregates->total_customers],
-            ['key' => 'storage_used_mb', 'label' => 'Storage Used (MB)', 'value' => (int) $aggregates->storage_used_mb],
-            ['key' => 'bandwidth_used_mb', 'label' => 'Bandwidth Used (MB)', 'value' => (int) $aggregates->bandwidth_used_mb],
-            ['key' => 'api_calls', 'label' => 'API Calls', 'value' => (int) $aggregates->api_calls],
+            ['key' => 'total_orders', 'label' => 'Total Orders', 'value' => (int)$aggregates->total_orders],
+            ['key' => 'total_revenue', 'label' => 'Total Revenue', 'value' => (string)$aggregates->total_revenue],
+            ['key' => 'total_products', 'label' => 'Total Products', 'value' => (int)$aggregates->total_products],
+            ['key' => 'total_customers', 'label' => 'Total Customers', 'value' => (int)$aggregates->total_customers],
+            ['key' => 'storage_used_mb', 'label' => 'Storage Used (MB)', 'value' => (int)$aggregates->storage_used_mb],
+            ['key' => 'bandwidth_used_mb', 'label' => 'Bandwidth Used (MB)', 'value' => (int)$aggregates->bandwidth_used_mb],
+            ['key' => 'api_calls', 'label' => 'API Calls', 'value' => (int)$aggregates->api_calls],
         ];
     }
 }

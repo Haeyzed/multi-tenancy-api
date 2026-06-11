@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Audit logs stored in the tenant database.
+ * Audit log entry stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $auditable_type
  * @property string $auditable_id
@@ -30,10 +30,8 @@ class AuditLog extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'audit_logs';
-
     public $incrementing = false;
-
+    protected $table = 'audit_logs';
     protected $keyType = 'string';
 
     /**
@@ -52,6 +50,19 @@ class AuditLog extends TenantModel
         'description',
     ];
 
+    /**
+     * User who performed this action.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -60,13 +71,5 @@ class AuditLog extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

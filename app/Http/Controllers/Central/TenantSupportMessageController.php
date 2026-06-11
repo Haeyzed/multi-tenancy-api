@@ -21,12 +21,14 @@ class TenantSupportMessageController extends Controller
 {
     public function __construct(
         private readonly TenantSupportMessageService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated TenantSupportMessage records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -43,7 +45,7 @@ class TenantSupportMessageController extends Controller
     /**
      * Create a new TenantSupportMessage.
      *
-     * @param  StoreTenantSupportMessageRequest  $request  Validated request payload.
+     * @param StoreTenantSupportMessageRequest $request Validated request payload.
      */
     public function store(StoreTenantSupportMessageRequest $request): JsonResponse
     {
@@ -55,7 +57,7 @@ class TenantSupportMessageController extends Controller
     /**
      * Find TenantSupportMessage by route binding.
      *
-     * @param  TenantSupportMessage  $supportMessage  TenantSupportMessage instance.
+     * @param TenantSupportMessage $supportMessage TenantSupportMessage instance.
      */
     public function show(TenantSupportMessage $supportMessage): JsonResponse
     {
@@ -65,8 +67,8 @@ class TenantSupportMessageController extends Controller
     /**
      * Update TenantSupportMessage.
      *
-     * @param  UpdateTenantSupportMessageRequest  $request  Validated request payload.
-     * @param  TenantSupportMessage  $supportMessage  TenantSupportMessage instance.
+     * @param UpdateTenantSupportMessageRequest $request Validated request payload.
+     * @param TenantSupportMessage $supportMessage TenantSupportMessage instance.
      */
     public function update(UpdateTenantSupportMessageRequest $request, TenantSupportMessage $supportMessage): JsonResponse
     {
@@ -78,7 +80,7 @@ class TenantSupportMessageController extends Controller
     /**
      * Delete TenantSupportMessage.
      *
-     * @param  TenantSupportMessage  $supportMessage  TenantSupportMessage instance.
+     * @param TenantSupportMessage $supportMessage TenantSupportMessage instance.
      */
     public function destroy(TenantSupportMessage $supportMessage): JsonResponse
     {
@@ -90,7 +92,7 @@ class TenantSupportMessageController extends Controller
     /**
      * Mark a support message as read.
      *
-     * @param  TenantSupportMessage  $supportMessage  TenantSupportMessage instance.
+     * @param TenantSupportMessage $supportMessage TenantSupportMessage instance.
      */
     public function markAsRead(TenantSupportMessage $supportMessage): JsonResponse
     {

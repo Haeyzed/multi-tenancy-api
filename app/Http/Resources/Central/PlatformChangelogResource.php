@@ -63,7 +63,7 @@ class PlatformChangelogResource extends JsonResource
              *
              * @default false
              */
-            'is_published' => (bool) $this->is_published,
+            'is_published' => (bool)$this->is_published,
 
             /**
              * Timestamp when the entry was published.

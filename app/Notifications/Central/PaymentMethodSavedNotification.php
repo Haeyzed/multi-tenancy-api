@@ -16,7 +16,9 @@ class PaymentMethodSavedNotification extends Notification implements ShouldQueue
 
     public function __construct(
         private readonly Tenant $tenant,
-    ) {}
+    )
+    {
+    }
 
     /**
      * @return list<string>
@@ -30,8 +32,8 @@ class PaymentMethodSavedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('Payment method saved')
-            ->greeting('Hello '.$this->tenant->owner_name.',')
-            ->line('Your payment method for **'.$this->tenant->name.'** has been saved successfully.')
+            ->greeting('Hello ' . $this->tenant->owner_name . ',')
+            ->line('Your payment method for **' . $this->tenant->name . '** has been saved successfully.')
             ->line('We will use it when your trial ends or for future renewals.');
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Models\Concerns\FilterableByTenant;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,21 +45,6 @@ class ApiKey extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'permissions' => 'array',
-            'last_used_at' => 'datetime',
-            'expires_at' => 'datetime',
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Scope a query to search by name.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -77,13 +63,13 @@ class ApiKey extends Model
     /**
      * Filter by active/inactive tokens.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterIsActive(Builder $query, array $values): void
     {
-        $mapped = \App\Support\QueryFilter::booleanStatuses($values);
+        $mapped = QueryFilter::booleanStatuses($values);
 
-        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('is_active', $mapped));
+        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_active', $mapped));
     }
 
     /**
@@ -92,5 +78,20 @@ class ApiKey extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'permissions' => 'array',
+            'last_used_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'is_active' => 'boolean',
+        ];
     }
 }

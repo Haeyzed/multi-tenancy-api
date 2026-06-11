@@ -20,12 +20,14 @@ class TenantConfigController extends Controller
 {
     public function __construct(
         private readonly TenantConfigService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated TenantConfig records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -40,7 +42,7 @@ class TenantConfigController extends Controller
     /**
      * Create a new TenantConfig.
      *
-     * @param  StoreTenantConfigRequest  $request  Validated request payload.
+     * @param StoreTenantConfigRequest $request Validated request payload.
      */
     public function store(StoreTenantConfigRequest $request): JsonResponse
     {
@@ -52,7 +54,7 @@ class TenantConfigController extends Controller
     /**
      * Find TenantConfig by route binding.
      *
-     * @param  TenantConfig  $tenantConfig  TenantConfig instance.
+     * @param TenantConfig $tenantConfig TenantConfig instance.
      */
     public function show(TenantConfig $tenantConfig): JsonResponse
     {
@@ -62,8 +64,8 @@ class TenantConfigController extends Controller
     /**
      * Update TenantConfig.
      *
-     * @param  UpdateTenantConfigRequest  $request  Validated request payload.
-     * @param  TenantConfig  $tenantConfig  TenantConfig instance.
+     * @param UpdateTenantConfigRequest $request Validated request payload.
+     * @param TenantConfig $tenantConfig TenantConfig instance.
      */
     public function update(UpdateTenantConfigRequest $request, TenantConfig $tenantConfig): JsonResponse
     {
@@ -75,7 +77,7 @@ class TenantConfigController extends Controller
     /**
      * Delete TenantConfig.
      *
-     * @param  TenantConfig  $tenantConfig  TenantConfig instance.
+     * @param TenantConfig $tenantConfig TenantConfig instance.
      */
     public function destroy(TenantConfig $tenantConfig): JsonResponse
     {

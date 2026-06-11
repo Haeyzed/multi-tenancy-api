@@ -18,14 +18,15 @@ class PaymentMethodStorageService
     /**
      * Store or update a payment method and link it to the subscription.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function store(
-        Tenant $tenant,
-        Subscription $subscription,
+        Tenant          $tenant,
+        Subscription    $subscription,
         PaymentProvider $provider,
-        array $data,
-    ): PaymentMethod {
+        array           $data,
+    ): PaymentMethod
+    {
         PaymentMethod::query()
             ->where('tenant_id', $tenant->id)
             ->update(['is_default' => false]);
@@ -34,10 +35,10 @@ class PaymentMethodStorageService
             [
                 'tenant_id' => $tenant->id,
                 'provider' => $provider,
-                'provider_method_id' => (string) $data['provider_method_id'],
+                'provider_method_id' => (string)$data['provider_method_id'],
             ],
             [
-                'type' => PaymentMethodKind::from((string) ($data['type'] ?? 'card')),
+                'type' => PaymentMethodKind::from((string)($data['type'] ?? 'card')),
                 'last4' => $data['last4'] ?? null,
                 'brand' => $data['brand'] ?? null,
                 'exp_month' => $data['exp_month'] ?? null,
@@ -50,7 +51,7 @@ class PaymentMethodStorageService
         $subscription->update([
             'payment_provider' => $provider,
             'payment_provider_id' => $data['provider_customer_id'] ?? $subscription->payment_provider_id,
-            'payment_method_id' => (string) $data['provider_method_id'],
+            'payment_method_id' => (string)$data['provider_method_id'],
         ]);
 
         return $method;

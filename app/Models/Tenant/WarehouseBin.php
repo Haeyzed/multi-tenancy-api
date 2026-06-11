@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Warehouse bins stored in the tenant database.
+ *
  * @property int $id
  * @property int $zone_id
  * @property string|null $name
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|WarehouseBin search(?string $search)
+ * @method static Builder|WarehouseBin filterIsActive(array $statuses)
  */
 class WarehouseBin extends TenantModel
 {
@@ -38,15 +40,6 @@ class WarehouseBin extends TenantModel
         'is_active',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Scope a query by common searchable columns.
      */
@@ -55,8 +48,36 @@ class WarehouseBin extends TenantModel
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
                 $inner->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-            );
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
         });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

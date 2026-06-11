@@ -44,20 +44,6 @@ class TenantHealthCheck extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'check_type' => HealthCheckType::class,
-            'status' => HealthCheckStatus::class,
-            'checked_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by message, check type, or status.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -78,11 +64,11 @@ class TenantHealthCheck extends Model
     /**
      * Filter by health check status values.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterStatus(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('status', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('status', $values));
     }
 
     /**
@@ -91,5 +77,19 @@ class TenantHealthCheck extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'check_type' => HealthCheckType::class,
+            'status' => HealthCheckStatus::class,
+            'checked_at' => 'datetime',
+        ];
     }
 }

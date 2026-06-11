@@ -16,19 +16,6 @@ final class TenantUrl
         return self::format(config('tenancy.owner_login_url', 'https://{domain}/admin/login'), $tenant);
     }
 
-    public static function ownerPasswordSetup(Tenant $tenant, string $token, string $email): string
-    {
-        $base = self::format(
-            config('tenancy.owner_password_setup_url', 'https://{domain}/admin/set-password'),
-            $tenant,
-        );
-
-        return $base.'?'.http_build_query([
-            'token' => $token,
-            'email' => $email,
-        ]);
-    }
-
     private static function format(string $template, Tenant $tenant): string
     {
         $domain = $tenant->domain;
@@ -40,5 +27,18 @@ final class TenantUrl
         }
 
         return str_replace('{domain}', $domain, $template);
+    }
+
+    public static function ownerPasswordSetup(Tenant $tenant, string $token, string $email): string
+    {
+        $base = self::format(
+            config('tenancy.owner_password_setup_url', 'https://{domain}/admin/set-password'),
+            $tenant,
+        );
+
+        return $base . '?' . http_build_query([
+                'token' => $token,
+                'email' => $email,
+            ]);
     }
 }

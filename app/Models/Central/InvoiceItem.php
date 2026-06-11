@@ -41,19 +41,6 @@ class InvoiceItem extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'period_start' => 'datetime',
-            'period_end' => 'datetime',
-        ];
-    }
-
-    /**
      * Invoice this line item belongs to.
      */
     public function invoice(): BelongsTo
@@ -67,5 +54,18 @@ class InvoiceItem extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'period_start' => 'datetime',
+            'period_end' => 'datetime',
+        ];
     }
 }

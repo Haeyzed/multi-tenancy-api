@@ -20,10 +20,12 @@ use Symfony\Component\HttpFoundation\Response;
 class StripeWebhookController extends Controller
 {
     public function __construct(
-        private readonly StripeGateway $gateway,
+        private readonly StripeGateway             $gateway,
         private readonly PaymentFulfillmentService $fulfillment,
         private readonly PaymentMethodSetupService $setup,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Handle Stripe webhook events.
@@ -33,7 +35,7 @@ class StripeWebhookController extends Controller
         $payload = $request->getContent();
         $signature = $request->header('Stripe-Signature');
 
-        if (! $this->gateway->verifyWebhook($payload, $signature)) {
+        if (!$this->gateway->verifyWebhook($payload, $signature)) {
             return response()->json(['message' => 'Invalid signature.'], 403);
         }
 
@@ -62,7 +64,7 @@ class StripeWebhookController extends Controller
 
         $sessionId = $event['data']['object']['id'] ?? null;
         $cardMetadata = $sessionId !== null
-            ? $this->gateway->resolvePaymentDetails((string) $sessionId)
+            ? $this->gateway->resolvePaymentDetails((string)$sessionId)
             : null;
 
         $this->fulfillment->fulfill(

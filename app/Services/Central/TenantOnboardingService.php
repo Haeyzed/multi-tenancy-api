@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Events\Central\Broadcasting\CentralTenantRegisteredBroadcast;
-use App\Support\SafeBroadcast;
 use App\Enums\Central\BillingCycle;
 use App\Enums\Central\EventTriggeredBy;
 use App\Enums\Central\PaymentProvider;
 use App\Enums\Central\TenantStatus;
+use App\Events\Central\Broadcasting\CentralTenantRegisteredBroadcast;
 use App\Events\Central\TenantOnboarded;
 use App\Models\Central\Plan;
 use App\Models\Central\Tenant;
+use App\Support\SafeBroadcast;
 use Illuminate\Support\Str;
 
 /**
@@ -22,12 +22,14 @@ class TenantOnboardingService
 {
     public function __construct(
         private readonly SubscriptionLifecycleService $subscriptions,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Onboard a new tenant with domain and subscription.
      *
-     * @param  array<string, mixed>  $data  Validated onboarding payload.
+     * @param array<string, mixed> $data Validated onboarding payload.
      */
     public function onboard(array $data): Tenant
     {
@@ -39,7 +41,7 @@ class TenantOnboardingService
         $tenant = Tenant::query()->create([
             'name' => $data['name'],
             'slug' => $slug,
-            'database' => $data['database'] ?? 'tenant_'.$slug,
+            'database' => $data['database'] ?? 'tenant_' . $slug,
             'domain' => $domain,
             'status' => TenantStatus::Pending,
             'plan_id' => $plan->id,

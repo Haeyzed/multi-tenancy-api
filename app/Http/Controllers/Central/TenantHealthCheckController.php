@@ -21,12 +21,14 @@ class TenantHealthCheckController extends Controller
 {
     public function __construct(
         private readonly TenantHealthCheckService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated TenantHealthCheck records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,7 +55,7 @@ class TenantHealthCheckController extends Controller
     /**
      * Create a new TenantHealthCheck.
      *
-     * @param  StoreTenantHealthCheckRequest  $request  Validated request payload.
+     * @param StoreTenantHealthCheckRequest $request Validated request payload.
      */
     public function store(StoreTenantHealthCheckRequest $request): JsonResponse
     {
@@ -65,7 +67,7 @@ class TenantHealthCheckController extends Controller
     /**
      * Find TenantHealthCheck by route binding.
      *
-     * @param  TenantHealthCheck  $healthCheck  TenantHealthCheck instance.
+     * @param TenantHealthCheck $healthCheck TenantHealthCheck instance.
      */
     public function show(TenantHealthCheck $healthCheck): JsonResponse
     {
@@ -75,8 +77,8 @@ class TenantHealthCheckController extends Controller
     /**
      * Update TenantHealthCheck.
      *
-     * @param  UpdateTenantHealthCheckRequest  $request  Validated request payload.
-     * @param  TenantHealthCheck  $healthCheck  TenantHealthCheck instance.
+     * @param UpdateTenantHealthCheckRequest $request Validated request payload.
+     * @param TenantHealthCheck $healthCheck TenantHealthCheck instance.
      */
     public function update(UpdateTenantHealthCheckRequest $request, TenantHealthCheck $healthCheck): JsonResponse
     {
@@ -88,7 +90,7 @@ class TenantHealthCheckController extends Controller
     /**
      * Delete TenantHealthCheck.
      *
-     * @param  TenantHealthCheck  $healthCheck  TenantHealthCheck instance.
+     * @param TenantHealthCheck $healthCheck TenantHealthCheck instance.
      */
     public function destroy(TenantHealthCheck $healthCheck): JsonResponse
     {

@@ -21,12 +21,14 @@ class TenantSupportTicketController extends Controller
 {
     public function __construct(
         private readonly TenantSupportTicketService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated TenantSupportTicket records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -55,7 +57,7 @@ class TenantSupportTicketController extends Controller
     /**
      * Create a new TenantSupportTicket.
      *
-     * @param  StoreTenantSupportTicketRequest  $request  Validated request payload.
+     * @param StoreTenantSupportTicketRequest $request Validated request payload.
      */
     public function store(StoreTenantSupportTicketRequest $request): JsonResponse
     {
@@ -67,7 +69,7 @@ class TenantSupportTicketController extends Controller
     /**
      * Find TenantSupportTicket by route binding.
      *
-     * @param  TenantSupportTicket  $supportTicket  TenantSupportTicket instance.
+     * @param TenantSupportTicket $supportTicket TenantSupportTicket instance.
      */
     public function show(TenantSupportTicket $supportTicket): JsonResponse
     {
@@ -79,8 +81,8 @@ class TenantSupportTicketController extends Controller
     /**
      * Update TenantSupportTicket.
      *
-     * @param  UpdateTenantSupportTicketRequest  $request  Validated request payload.
-     * @param  TenantSupportTicket  $supportTicket  TenantSupportTicket instance.
+     * @param UpdateTenantSupportTicketRequest $request Validated request payload.
+     * @param TenantSupportTicket $supportTicket TenantSupportTicket instance.
      */
     public function update(UpdateTenantSupportTicketRequest $request, TenantSupportTicket $supportTicket): JsonResponse
     {
@@ -92,7 +94,7 @@ class TenantSupportTicketController extends Controller
     /**
      * Delete TenantSupportTicket.
      *
-     * @param  TenantSupportTicket  $supportTicket  TenantSupportTicket instance.
+     * @param TenantSupportTicket $supportTicket TenantSupportTicket instance.
      */
     public function destroy(TenantSupportTicket $supportTicket): JsonResponse
     {
@@ -104,8 +106,8 @@ class TenantSupportTicketController extends Controller
     /**
      * Assign a support ticket to a platform administrator.
      *
-     * @param  Request  $request  Must include `admin_id` of the assignee.
-     * @param  TenantSupportTicket  $supportTicket  TenantSupportTicket instance.
+     * @param Request $request Must include `admin_id` of the assignee.
+     * @param TenantSupportTicket $supportTicket TenantSupportTicket instance.
      */
     public function assign(Request $request, TenantSupportTicket $supportTicket): JsonResponse
     {
@@ -113,7 +115,7 @@ class TenantSupportTicketController extends Controller
             'admin_id' => 'required|integer|exists:users,id',
         ]);
 
-        $item = $this->service->assign($supportTicket, (int) $validated['admin_id']);
+        $item = $this->service->assign($supportTicket, (int)$validated['admin_id']);
 
         return $this->success(new TenantSupportTicketResource($item), 'Support ticket assigned.');
     }
@@ -121,7 +123,7 @@ class TenantSupportTicketController extends Controller
     /**
      * Mark a support ticket as resolved.
      *
-     * @param  TenantSupportTicket  $supportTicket  TenantSupportTicket instance.
+     * @param TenantSupportTicket $supportTicket TenantSupportTicket instance.
      */
     public function resolve(TenantSupportTicket $supportTicket): JsonResponse
     {

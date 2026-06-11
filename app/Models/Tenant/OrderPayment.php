@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Order payments stored in the tenant database.
+ *
  * @property int $id
  * @property string $order_id
  * @property string $amount
@@ -51,6 +52,31 @@ class OrderPayment extends TenantModel
         'refunded_amount',
     ];
 
+    /**
+     * Related Order.
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
     protected function casts(): array
     {
         return [
@@ -60,13 +86,5 @@ class OrderPayment extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Order.
-     */
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
     }
 }

@@ -17,26 +17,28 @@ readonly class AuthService
 {
     public function __construct(
         private OtpService $otpService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Authenticate a user and issue an API token.
      *
-     * @param  string  $email  User email address.
-     * @param  string  $password  Plain-text password.
+     * @param string $email User email address.
+     * @param string $password Plain-text password.
      * @return array{user: User, token: string}
      */
     public function login(string $email, string $password): array
     {
         $user = User::query()->where('email', $email)->first();
 
-        if (! $user || ! Hash::check($password, $user->password)) {
+        if (!$user || !Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        if (! $user->is_active) {
+        if (!$user->is_active) {
             throw ValidationException::withMessages([
                 'email' => ['This account is inactive.'],
             ]);
@@ -48,6 +50,14 @@ readonly class AuthService
             'user' => $this->loadAuthorizationRelations($user->fresh()),
             'token' => $user->createToken('central-api')->plainTextToken,
         ];
+    }
+
+    /**
+     * Eager-load roles and direct permissions for authorization payloads.
+     */
+    private function loadAuthorizationRelations(User $user): User
+    {
+        return $user->load(['roles.permissions', 'permissions']);
     }
 
     /**
@@ -64,14 +74,6 @@ readonly class AuthService
     public function me(User $user): User
     {
         return $this->loadAuthorizationRelations($user);
-    }
-
-    /**
-     * Eager-load roles and direct permissions for authorization payloads.
-     */
-    private function loadAuthorizationRelations(User $user): User
-    {
-        return $user->load(['roles.permissions', 'permissions']);
     }
 
     /**
@@ -128,7 +130,8 @@ readonly class AuthService
         string $email,
         string $verificationToken,
         string $password,
-    ): void {
+    ): void
+    {
         $record = $this->otpService->consumeVerificationToken(
             $email,
             $verificationToken,
@@ -137,7 +140,7 @@ readonly class AuthService
 
         $user = User::query()->where('email', $email)->first();
 
-        if ($user === null || ! $user->is_active) {
+        if ($user === null || !$user->is_active) {
             throw ValidationException::withMessages([
                 'email' => ['Unable to reset password for this account.'],
             ]);
@@ -164,11 +167,12 @@ readonly class AuthService
      * Provide either the current password or a verification token from OTP verification.
      */
     public function changePassword(
-        User $user,
-        string $password,
+        User    $user,
+        string  $password,
         ?string $currentPassword = null,
         ?string $verificationToken = null,
-    ): void {
+    ): void
+    {
         if ($verificationToken !== null) {
             $record = $this->otpService->consumeVerificationToken(
                 $user->email,
@@ -182,7 +186,7 @@ readonly class AuthService
             return;
         }
 
-        if ($currentPassword === null || ! Hash::check($currentPassword, $user->password)) {
+        if ($currentPassword === null || !Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['The current password is incorrect.'],
             ]);

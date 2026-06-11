@@ -17,9 +17,11 @@ use Symfony\Component\HttpFoundation\Response;
 class PaystackWebhookController extends Controller
 {
     public function __construct(
-        private readonly PaystackGateway $gateway,
+        private readonly PaystackGateway              $gateway,
         private readonly PaystackChargeHandlerService $handler,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Handle Paystack webhook events.
@@ -29,7 +31,7 @@ class PaystackWebhookController extends Controller
         $payload = $request->getContent();
         $signature = $request->header('x-paystack-signature');
 
-        if (! $this->gateway->verifyWebhook($payload, $signature)) {
+        if (!$this->gateway->verifyWebhook($payload, $signature)) {
             return response()->json(['message' => 'Invalid signature.'], 403);
         }
 

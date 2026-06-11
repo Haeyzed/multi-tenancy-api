@@ -35,13 +35,14 @@ class StripeGateway implements RecurringPaymentGatewayContract
      * {@inheritDoc}
      */
     public function createCheckout(
-        Invoice $invoice,
-        Tenant $tenant,
-        Plan $plan,
+        Invoice      $invoice,
+        Tenant       $tenant,
+        Plan         $plan,
         BillingCycle $billingCycle,
-        string $successUrl,
-        string $cancelUrl,
-    ): CheckoutResult {
+        string       $successUrl,
+        string       $cancelUrl,
+    ): CheckoutResult
+    {
         $session = Session::create([
             'mode' => 'payment',
             'customer_creation' => 'always',
@@ -60,19 +61,19 @@ class StripeGateway implements RecurringPaymentGatewayContract
                 ],
                 'quantity' => 1,
             ]],
-            'success_url' => rtrim($successUrl, '/').'?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => rtrim($successUrl, '/') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $cancelUrl,
             'metadata' => [
                 'tenant_id' => $tenant->id,
-                'subscription_id' => (string) $invoice->subscription_id,
+                'subscription_id' => (string)$invoice->subscription_id,
                 'invoice_id' => $invoice->id,
                 'purpose' => 'payment',
             ],
         ]);
 
         return new CheckoutResult(
-            checkoutUrl: (string) $session->url,
-            reference: (string) $session->id,
+            checkoutUrl: (string)$session->url,
+            reference: (string)$session->id,
         );
     }
 
@@ -80,16 +81,17 @@ class StripeGateway implements RecurringPaymentGatewayContract
      * {@inheritDoc}
      */
     public function createSetupCheckout(
-        Tenant $tenant,
+        Tenant       $tenant,
         Subscription $subscription,
-        string $successUrl,
-        string $cancelUrl,
-    ): CheckoutResult {
+        string       $successUrl,
+        string       $cancelUrl,
+    ): CheckoutResult
+    {
         $session = Session::create([
             'mode' => 'setup',
             'customer_creation' => 'always',
             'customer_email' => $tenant->owner_email,
-            'success_url' => rtrim($successUrl, '/').'?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => rtrim($successUrl, '/') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $cancelUrl,
             'metadata' => [
                 'tenant_id' => $tenant->id,
@@ -99,8 +101,8 @@ class StripeGateway implements RecurringPaymentGatewayContract
         ]);
 
         return new CheckoutResult(
-            checkoutUrl: (string) $session->url,
-            reference: (string) $session->id,
+            checkoutUrl: (string)$session->url,
+            reference: (string)$session->id,
         );
     }
 
@@ -108,10 +110,11 @@ class StripeGateway implements RecurringPaymentGatewayContract
      * {@inheritDoc}
      */
     public function chargeSavedMethod(
-        Invoice $invoice,
-        Tenant $tenant,
+        Invoice      $invoice,
+        Tenant       $tenant,
         Subscription $subscription,
-    ): ChargeResult {
+    ): ChargeResult
+    {
         if ($subscription->payment_provider_id === null || $subscription->payment_method_id === null) {
             return ChargeResult::failed('No saved Stripe payment method on file.');
         }
@@ -132,10 +135,10 @@ class StripeGateway implements RecurringPaymentGatewayContract
             ]);
 
             if ($intent->status === 'succeeded') {
-                return ChargeResult::succeeded((string) $intent->id);
+                return ChargeResult::succeeded((string)$intent->id);
             }
 
-            return ChargeResult::failed('Payment intent status: '.$intent->status);
+            return ChargeResult::failed('Payment intent status: ' . $intent->status);
         } catch (ApiErrorException $exception) {
             return ChargeResult::failed($exception->getMessage());
         }
@@ -154,7 +157,7 @@ class StripeGateway implements RecurringPaymentGatewayContract
             Webhook::constructEvent(
                 $payload,
                 $signature,
-                (string) config('payments.stripe.webhook_secret'),
+                (string)config('payments.stripe.webhook_secret'),
             );
 
             return true;
@@ -227,7 +230,7 @@ class StripeGateway implements RecurringPaymentGatewayContract
     /**
      * Whether the webhook is a trial setup session completion.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public function isSetupWebhook(array $payload): bool
     {
@@ -257,7 +260,7 @@ class StripeGateway implements RecurringPaymentGatewayContract
 
         return $this->enrichCardDetails([
             'provider_customer_id' => $session->customer,
-            'provider_method_id' => (string) $paymentMethodId,
+            'provider_method_id' => (string)$paymentMethodId,
             'purpose' => 'trial_setup',
             'subscription_id' => $session->metadata['subscription_id'] ?? null,
             'tenant_id' => $session->metadata['tenant_id'] ?? null,
@@ -266,42 +269,14 @@ class StripeGateway implements RecurringPaymentGatewayContract
     }
 
     /**
-     * Resolve saved payment method details from a completed payment session.
-     *
-     * @return array<string, mixed>|null
-     */
-    public function resolvePaymentDetails(string $sessionId): ?array
-    {
-        $session = Session::retrieve($sessionId, ['expand' => ['payment_intent']]);
-        $paymentIntent = $session->payment_intent;
-        $paymentMethodId = is_object($paymentIntent)
-            ? ($paymentIntent->payment_method ?? null)
-            : null;
-
-        if ($paymentMethodId === null) {
-            return null;
-        }
-
-        return $this->enrichCardDetails([
-            'provider_customer_id' => $session->customer,
-            'provider_method_id' => (string) $paymentMethodId,
-            'purpose' => $session->metadata['purpose'] ?? 'payment',
-            'subscription_id' => $session->metadata['subscription_id'] ?? null,
-            'tenant_id' => $session->metadata['tenant_id'] ?? null,
-            'invoice_id' => $session->metadata['invoice_id'] ?? null,
-            'type' => 'card',
-        ]);
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
     private function enrichCardDetails(array $data): array
     {
         $paymentMethodId = $data['provider_method_id'] ?? null;
 
-        if (! is_string($paymentMethodId) || ! str_starts_with($paymentMethodId, 'pm_')) {
+        if (!is_string($paymentMethodId) || !str_starts_with($paymentMethodId, 'pm_')) {
             return $data;
         }
 
@@ -325,5 +300,33 @@ class StripeGateway implements RecurringPaymentGatewayContract
         ]);
 
         return $data;
+    }
+
+    /**
+     * Resolve saved payment method details from a completed payment session.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function resolvePaymentDetails(string $sessionId): ?array
+    {
+        $session = Session::retrieve($sessionId, ['expand' => ['payment_intent']]);
+        $paymentIntent = $session->payment_intent;
+        $paymentMethodId = is_object($paymentIntent)
+            ? ($paymentIntent->payment_method ?? null)
+            : null;
+
+        if ($paymentMethodId === null) {
+            return null;
+        }
+
+        return $this->enrichCardDetails([
+            'provider_customer_id' => $session->customer,
+            'provider_method_id' => (string)$paymentMethodId,
+            'purpose' => $session->metadata['purpose'] ?? 'payment',
+            'subscription_id' => $session->metadata['subscription_id'] ?? null,
+            'tenant_id' => $session->metadata['tenant_id'] ?? null,
+            'invoice_id' => $session->metadata['invoice_id'] ?? null,
+            'type' => 'card',
+        ]);
     }
 }

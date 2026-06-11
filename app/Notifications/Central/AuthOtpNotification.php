@@ -15,10 +15,12 @@ class AuthOtpNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        private readonly string $otp,
+        private readonly string     $otp,
         private readonly OtpPurpose $purpose,
-        private readonly int $expiresInMinutes,
-    ) {}
+        private readonly int        $expiresInMinutes,
+    )
+    {
+    }
 
     /**
      * @return list<string>
@@ -34,8 +36,8 @@ class AuthOtpNotification extends Notification implements ShouldQueue
             ->subject($this->subject())
             ->greeting('Hello,')
             ->line($this->introLine())
-            ->line('Your verification code is: **'.$this->otp.'**')
-            ->line('This code expires in '.$this->expiresInMinutes.' minutes.')
+            ->line('Your verification code is: **' . $this->otp . '**')
+            ->line('This code expires in ' . $this->expiresInMinutes . ' minutes.')
             ->line('If you did not request this code, you can safely ignore this email.');
     }
 

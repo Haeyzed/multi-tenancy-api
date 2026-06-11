@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\ChangelogType;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,20 +46,6 @@ class PlatformChangelog extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'type' => ChangelogType::class,
-            'is_published' => 'boolean',
-            'published_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by version, title, or description.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -73,20 +60,34 @@ class PlatformChangelog extends Model
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterType(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('type', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('type', $values));
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterIsPublished(Builder $query, array $values): void
     {
-        $mapped = \App\Support\QueryFilter::booleanPublished($values);
+        $mapped = QueryFilter::booleanPublished($values);
 
-        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('is_published', $mapped));
+        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_published', $mapped));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => ChangelogType::class,
+            'is_published' => 'boolean',
+            'published_at' => 'datetime',
+        ];
     }
 }

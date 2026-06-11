@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * Orders stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $order_number
  * @property string|null $user_id
@@ -47,15 +48,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|Order search(?string $search)
+ * @method static Builder|Order filterStatus(array $statuses)
  */
 class Order extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'orders';
-
     public $incrementing = false;
-
+    protected $table = 'orders';
     protected $keyType = 'string';
 
     /**
@@ -93,6 +93,43 @@ class Order extends TenantModel
         'cancelled_at',
     ];
 
+    /**
+     * Related User.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Scope a query by common searchable columns.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('order_number', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
     protected function casts(): array
     {
         return [
@@ -116,25 +153,5 @@ class Order extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('order_number', 'like', "%{$search}%")
-            );
-        });
     }
 }

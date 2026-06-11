@@ -20,12 +20,14 @@ class TenantMetricController extends Controller
 {
     public function __construct(
         private readonly TenantMetricService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated TenantMetric records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,7 +55,7 @@ class TenantMetricController extends Controller
     /**
      * Create a new TenantMetric.
      *
-     * @param  StoreTenantMetricRequest  $request  Validated request payload.
+     * @param StoreTenantMetricRequest $request Validated request payload.
      */
     public function store(StoreTenantMetricRequest $request): JsonResponse
     {
@@ -65,7 +67,7 @@ class TenantMetricController extends Controller
     /**
      * Find TenantMetric by route binding.
      *
-     * @param  TenantMetric  $metric  TenantMetric instance.
+     * @param TenantMetric $metric TenantMetric instance.
      */
     public function show(TenantMetric $metric): JsonResponse
     {
@@ -78,8 +80,8 @@ class TenantMetricController extends Controller
     /**
      * Update TenantMetric.
      *
-     * @param  UpdateTenantMetricRequest  $request  Validated request payload.
-     * @param  TenantMetric  $metric  TenantMetric instance.
+     * @param UpdateTenantMetricRequest $request Validated request payload.
+     * @param TenantMetric $metric TenantMetric instance.
      */
     public function update(UpdateTenantMetricRequest $request, TenantMetric $metric): JsonResponse
     {
@@ -91,7 +93,7 @@ class TenantMetricController extends Controller
     /**
      * Delete TenantMetric.
      *
-     * @param  TenantMetric  $metric  TenantMetric instance.
+     * @param TenantMetric $metric TenantMetric instance.
      */
     public function destroy(TenantMetric $metric): JsonResponse
     {

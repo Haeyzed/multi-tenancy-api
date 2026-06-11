@@ -68,7 +68,7 @@ class UserResource extends JsonResource
              *
              * @default true
              */
-            'is_active' => (bool) $this->is_active,
+            'is_active' => (bool)$this->is_active,
 
             /**
              * Timestamp when the user was created.
@@ -137,7 +137,7 @@ class UserResource extends JsonResource
              */
             'role_names' => $this->when(
                 $this->relationLoaded('roles'),
-                fn (): array => $this->getRoleNames()->values()->all(),
+                fn(): array => $this->getRoleNames()->values()->all(),
             ),
 
             /**
@@ -149,7 +149,7 @@ class UserResource extends JsonResource
              */
             'permission_names' => $this->when(
                 $this->relationLoaded('roles') || $this->relationLoaded('permissions'),
-                fn (): array => $this->getAllPermissions()->pluck('name')->values()->all(),
+                fn(): array => $this->getAllPermissions()->pluck('name')->values()->all(),
             ),
 
             /**
@@ -159,7 +159,7 @@ class UserResource extends JsonResource
              */
             'is_super_admin' => $this->when(
                 $this->relationLoaded('roles'),
-                fn (): bool => $this->hasRole(UserRole::SuperAdmin->value),
+                fn(): bool => $this->hasRole(UserRole::SuperAdmin->value),
             ),
         ];
     }

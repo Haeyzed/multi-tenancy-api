@@ -44,7 +44,7 @@ class VerifyOtpRequest extends BaseRequest
              *
              * @example "123456"
              */
-            'otp' => 'required|string|digits:'.config('otp.length'),
+            'otp' => 'required|string|digits:' . config('otp.length'),
 
             /**
              * OTP flow being verified.

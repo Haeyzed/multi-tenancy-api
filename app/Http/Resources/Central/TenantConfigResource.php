@@ -56,7 +56,7 @@ class TenantConfigResource extends JsonResource
              *
              * @default false
              */
-            'encrypted' => (bool) $this->encrypted,
+            'encrypted' => (bool)$this->encrypted,
 
             /**
              * Timestamp when the configuration was created.

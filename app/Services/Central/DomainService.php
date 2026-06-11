@@ -25,7 +25,7 @@ class DomainService
     /**
      * Get all Domain records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, Domain>
      */
     public function getAll(?string $search = null): Collection
@@ -39,18 +39,19 @@ class DomainService
     /**
      * Get paginated Domain records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, Domain>
      */
     /**
-     * @param  list<string>  $verified
+     * @param list<string> $verified
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $verified = [],
-    ): LengthAwarePaginator {
+        array   $verified = [],
+    ): LengthAwarePaginator
+    {
         return Domain::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -63,7 +64,7 @@ class DomainService
     /**
      * Find Domain by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?Domain
     {
@@ -73,7 +74,7 @@ class DomainService
     /**
      * Find Domain by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): Domain
     {
@@ -83,7 +84,7 @@ class DomainService
     /**
      * Create a new Domain.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Domain
     {
@@ -91,32 +92,19 @@ class DomainService
     }
 
     /**
-     * Update Domain.
-     *
-     * @param  Domain  $domain  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(Domain $domain, array $data): Domain
-    {
-        $domain->update($data);
-
-        return $domain->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete Domain.
      *
-     * @param  Domain  $domain  The model instance to delete.
+     * @param Domain $domain The model instance to delete.
      */
     public function delete(Domain $domain): bool
     {
-        return (bool) $domain->delete();
+        return (bool)$domain->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, Domain>
      */
     public function getByTenant(string $tenantId): Collection
@@ -127,7 +115,7 @@ class DomainService
     /**
      * Set the domain as the tenant's primary domain.
      *
-     * @param  Domain  $domain  The domain to promote.
+     * @param Domain $domain The domain to promote.
      */
     public function setPrimary(Domain $domain): Domain
     {
@@ -140,9 +128,22 @@ class DomainService
     }
 
     /**
+     * Update Domain.
+     *
+     * @param Domain $domain The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(Domain $domain, array $data): Domain
+    {
+        $domain->update($data);
+
+        return $domain->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
      * Mark the domain as verified.
      *
-     * @param  Domain  $domain  The domain to verify.
+     * @param Domain $domain The domain to verify.
      */
     public function verify(Domain $domain): Domain
     {

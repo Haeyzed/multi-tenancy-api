@@ -39,7 +39,7 @@ class TenantSupportTicketService
     /**
      * Get all TenantSupportTicket records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, TenantSupportTicket>
      */
     public function getAll(?string $search = null): Collection
@@ -51,17 +51,18 @@ class TenantSupportTicketService
     }
 
     /**
-     * @param  list<string>  $status
-     * @param  list<string>  $priority
-     * @param  list<string>  $category
+     * @param list<string> $status
+     * @param list<string> $priority
+     * @param list<string> $category
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $status = [],
-        array $priority = [],
-        array $category = [],
-    ): LengthAwarePaginator {
+        array   $status = [],
+        array   $priority = [],
+        array   $category = [],
+    ): LengthAwarePaginator
+    {
         return TenantSupportTicket::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -76,7 +77,7 @@ class TenantSupportTicketService
     /**
      * Find TenantSupportTicket by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?TenantSupportTicket
     {
@@ -86,7 +87,7 @@ class TenantSupportTicketService
     /**
      * Find TenantSupportTicket by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): TenantSupportTicket
     {
@@ -98,7 +99,7 @@ class TenantSupportTicketService
     /**
      * Create a new TenantSupportTicket.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): TenantSupportTicket
     {
@@ -110,32 +111,19 @@ class TenantSupportTicketService
     }
 
     /**
-     * Update TenantSupportTicket.
-     *
-     * @param  TenantSupportTicket  $tenantSupportTicket  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(TenantSupportTicket $tenantSupportTicket, array $data): TenantSupportTicket
-    {
-        $tenantSupportTicket->update($data);
-
-        return $tenantSupportTicket->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete TenantSupportTicket.
      *
-     * @param  TenantSupportTicket  $tenantSupportTicket  The model instance to delete.
+     * @param TenantSupportTicket $tenantSupportTicket The model instance to delete.
      */
     public function delete(TenantSupportTicket $tenantSupportTicket): bool
     {
-        return (bool) $tenantSupportTicket->delete();
+        return (bool)$tenantSupportTicket->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, TenantSupportTicket>
      */
     public function getByTenant(string $tenantId): Collection
@@ -146,7 +134,7 @@ class TenantSupportTicketService
     /**
      * Filter by status.
      *
-     * @param  string  $status  Status value to filter by.
+     * @param string $status Status value to filter by.
      * @return Collection<int, TenantSupportTicket>
      */
     public function getByStatus(string $status): Collection
@@ -157,7 +145,7 @@ class TenantSupportTicketService
     /**
      * Filter by category.
      *
-     * @param  string  $category  Ticket category to filter by.
+     * @param string $category Ticket category to filter by.
      * @return Collection<int, TenantSupportTicket>
      */
     public function getByCategory(string $category): Collection
@@ -168,7 +156,7 @@ class TenantSupportTicketService
     /**
      * Filter by priority.
      *
-     * @param  string  $priority  Ticket priority to filter by.
+     * @param string $priority Ticket priority to filter by.
      * @return Collection<int, TenantSupportTicket>
      */
     public function getByPriority(string $priority): Collection
@@ -179,8 +167,8 @@ class TenantSupportTicketService
     /**
      * Assign a support ticket to a platform administrator.
      *
-     * @param  TenantSupportTicket  $supportTicket  The ticket to assign.
-     * @param  int  $adminId  ID of the administrator assignee.
+     * @param TenantSupportTicket $supportTicket The ticket to assign.
+     * @param int $adminId ID of the administrator assignee.
      */
     public function assign(TenantSupportTicket $supportTicket, int $adminId): TenantSupportTicket
     {
@@ -195,9 +183,22 @@ class TenantSupportTicketService
     }
 
     /**
+     * Update TenantSupportTicket.
+     *
+     * @param TenantSupportTicket $tenantSupportTicket The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(TenantSupportTicket $tenantSupportTicket, array $data): TenantSupportTicket
+    {
+        $tenantSupportTicket->update($data);
+
+        return $tenantSupportTicket->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
      * Mark a support ticket as resolved.
      *
-     * @param  TenantSupportTicket  $supportTicket  The ticket to resolve.
+     * @param TenantSupportTicket $supportTicket The ticket to resolve.
      */
     public function resolve(TenantSupportTicket $supportTicket): TenantSupportTicket
     {
@@ -249,10 +250,10 @@ class TenantSupportTicketService
             ->count();
 
         return [
-            ['key' => 'total', 'label' => 'Total Tickets', 'value' => (int) $counts->sum()],
+            ['key' => 'total', 'label' => 'Total Tickets', 'value' => (int)$counts->sum()],
             ['key' => 'open', 'label' => 'Open', 'value' => $openCount],
-            ['key' => 'resolved', 'label' => 'Resolved', 'value' => (int) ($counts[SupportTicketStatus::Resolved->value] ?? 0)],
-            ['key' => 'closed', 'label' => 'Closed', 'value' => (int) ($counts[SupportTicketStatus::Closed->value] ?? 0)],
+            ['key' => 'resolved', 'label' => 'Resolved', 'value' => (int)($counts[SupportTicketStatus::Resolved->value] ?? 0)],
+            ['key' => 'closed', 'label' => 'Closed', 'value' => (int)($counts[SupportTicketStatus::Closed->value] ?? 0)],
             ['key' => 'urgent_open', 'label' => 'Urgent Open', 'value' => $urgentOpen],
         ];
     }

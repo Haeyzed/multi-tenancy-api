@@ -152,9 +152,10 @@ class TenantOwnerProvisioningService
     }
 
     private function persistCentralMetadata(
-        Tenant $tenant,
+        Tenant                        $tenant,
         TenantOwnerProvisioningResult $result,
-    ): void {
+    ): void
+    {
         $meta = $tenant->meta ?? [];
 
         unset($meta['pending_owner_password']);

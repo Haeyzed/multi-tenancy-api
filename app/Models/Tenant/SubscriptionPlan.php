@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * Subscription plans stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $name
  * @property string|null $description
@@ -27,15 +28,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|SubscriptionPlan search(?string $search)
+ * @method static Builder|SubscriptionPlan filterIsActive(array $statuses)
  */
 class SubscriptionPlan extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'subscription_plans';
-
     public $incrementing = false;
-
+    protected $table = 'subscription_plans';
     protected $keyType = 'string';
 
     /**
@@ -53,6 +53,37 @@ class SubscriptionPlan extends TenantModel
         'is_active',
     ];
 
+    /**
+     * Scope a query by common searchable columns.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('name', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
     protected function casts(): array
     {
         return [
@@ -63,17 +94,5 @@ class SubscriptionPlan extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('name', 'like', "%{$search}%")
-            );
-        });
     }
 }

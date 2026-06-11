@@ -16,17 +16,18 @@ use App\Models\Central\Tenant;
 class PaymentRecordingService
 {
     /**
-     * @param  array<string, mixed>|null  $card
+     * @param array<string, mixed>|null $card
      */
     public function recordSucceeded(
-        Tenant $tenant,
+        Tenant          $tenant,
         PaymentProvider $provider,
-        string $providerPaymentId,
-        int $amount,
-        string $currency,
-        ?Invoice $invoice = null,
-        ?array $card = null,
-    ): Payment {
+        string          $providerPaymentId,
+        int             $amount,
+        string          $currency,
+        ?Invoice        $invoice = null,
+        ?array          $card = null,
+    ): Payment
+    {
         return Payment::query()->updateOrCreate(
             [
                 'provider_payment_id' => $providerPaymentId,
@@ -44,7 +45,7 @@ class PaymentRecordingService
     }
 
     /**
-     * @param  array<string, mixed>|null  $card
+     * @param array<string, mixed>|null $card
      * @return array<string, string|null>
      */
     public function cardColumns(?array $card): array
@@ -58,9 +59,9 @@ class PaymentRecordingService
         }
 
         return [
-            'payment_method_type' => isset($card['type']) ? (string) $card['type'] : 'card',
-            'payment_method_last4' => isset($card['last4']) ? (string) $card['last4'] : null,
-            'payment_method_brand' => isset($card['brand']) ? (string) $card['brand'] : null,
+            'payment_method_type' => isset($card['type']) ? (string)$card['type'] : 'card',
+            'payment_method_last4' => isset($card['last4']) ? (string)$card['last4'] : null,
+            'payment_method_brand' => isset($card['brand']) ? (string)$card['brand'] : null,
         ];
     }
 }

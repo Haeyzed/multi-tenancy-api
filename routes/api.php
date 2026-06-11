@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Central\BroadcastingConfigController;
 use App\Http\Controllers\Central\ActivityController;
 use App\Http\Controllers\Central\ApiKeyController;
 use App\Http\Controllers\Central\AuthController;
+use App\Http\Controllers\Central\BroadcastingConfigController;
 use App\Http\Controllers\Central\DashboardController;
 use App\Http\Controllers\Central\DomainController;
 use App\Http\Controllers\Central\ErrorLogController;

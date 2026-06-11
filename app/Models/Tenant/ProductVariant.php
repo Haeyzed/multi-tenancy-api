@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Product variants stored in the tenant database.
+ *
  * @property string $id
  * @property string $product_id
  * @property string|null $sku
@@ -27,15 +29,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|ProductVariant search(?string $search)
+ * @method static Builder|ProductVariant filterIsActive(array $statuses)
  */
 class ProductVariant extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'product_variants';
-
     public $incrementing = false;
-
+    protected $table = 'product_variants';
     protected $keyType = 'string';
 
     /**
@@ -55,19 +56,6 @@ class ProductVariant extends TenantModel
         'option_values',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'price_adjustment' => 'decimal:2',
-            'weight_adjustment' => 'decimal:2',
-            'is_default' => 'boolean',
-            'is_active' => 'boolean',
-            'option_values' => 'array',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related Product.
      */
@@ -83,8 +71,40 @@ class ProductVariant extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('sku', 'like', "%{$search}%")
-            );
+                $inner->where('sku', 'like', "%{$search}%");
+            });
         });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
+    protected function casts(): array
+    {
+        return [
+            'price_adjustment' => 'decimal:2',
+            'weight_adjustment' => 'decimal:2',
+            'is_default' => 'boolean',
+            'is_active' => 'boolean',
+            'option_values' => 'array',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

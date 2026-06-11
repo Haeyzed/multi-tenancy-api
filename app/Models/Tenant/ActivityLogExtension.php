@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Activity log extensions stored in the tenant database.
+ * Extended metadata for activity log entries stored in the tenant database.
+ *
  * @property int $id
  * @property int $activity_log_id
  * @property string $event_category
@@ -35,6 +34,11 @@ class ActivityLogExtension extends TenantModel
         'notified_users',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

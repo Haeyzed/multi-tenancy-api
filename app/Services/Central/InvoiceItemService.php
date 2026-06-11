@@ -26,7 +26,7 @@ class InvoiceItemService
     /**
      * Get paginated InvoiceItem records.
      *
-     * @param  int  $perPage  Number of records per page.
+     * @param int $perPage Number of records per page.
      * @return LengthAwarePaginator<int, InvoiceItem>
      */
     public function getPaginated(int $perPage = 15): LengthAwarePaginator
@@ -37,7 +37,7 @@ class InvoiceItemService
     /**
      * Find InvoiceItem by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?InvoiceItem
     {
@@ -47,7 +47,7 @@ class InvoiceItemService
     /**
      * Find InvoiceItem by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): InvoiceItem
     {
@@ -57,7 +57,7 @@ class InvoiceItemService
     /**
      * Create a new InvoiceItem.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): InvoiceItem
     {
@@ -67,8 +67,8 @@ class InvoiceItemService
     /**
      * Update InvoiceItem.
      *
-     * @param  InvoiceItem  $invoiceItem  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param InvoiceItem $invoiceItem The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(InvoiceItem $invoiceItem, array $data): InvoiceItem
     {
@@ -80,7 +80,7 @@ class InvoiceItemService
     /**
      * Delete InvoiceItem.
      *
-     * @param  InvoiceItem  $invoiceItem  The model instance to delete.
+     * @param InvoiceItem $invoiceItem The model instance to delete.
      */
     public function delete(InvoiceItem $invoiceItem): bool
     {
@@ -90,7 +90,7 @@ class InvoiceItemService
     /**
      * Filter by plan.
      *
-     * @param  string  $planId  Plan UUID to filter by.
+     * @param string $planId Plan UUID to filter by.
      * @return Collection<int, InvoiceItem>
      */
     public function getByPlan(string $planId): Collection
@@ -101,7 +101,7 @@ class InvoiceItemService
     /**
      * Filter by invoice.
      *
-     * @param  string  $invoiceId  Invoice UUID to filter by.
+     * @param string $invoiceId Invoice UUID to filter by.
      * @return Collection<int, InvoiceItem>
      */
     public function getByInvoice(string $invoiceId): Collection

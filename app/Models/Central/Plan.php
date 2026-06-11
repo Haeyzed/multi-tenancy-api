@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
+use App\Support\QueryFilter;
 use Database\Factories\Central\PlanFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -36,11 +37,6 @@ class Plan extends Model
     /** @use HasFactory<PlanFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected static function newFactory(): PlanFactory
-    {
-        return PlanFactory::new();
-    }
-
     /**
      * @var list<string>
      */
@@ -59,18 +55,9 @@ class Plan extends Model
         'features',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected static function newFactory(): PlanFactory
     {
-        return [
-            'features' => 'array',
-            'is_active' => 'boolean',
-            'is_public' => 'boolean',
-        ];
+        return PlanFactory::new();
     }
 
     /**
@@ -90,25 +77,25 @@ class Plan extends Model
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = \App\Support\QueryFilter::booleanStatuses($statuses);
+        $values = QueryFilter::booleanStatuses($statuses);
 
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
     }
 
     /**
      * Filter by public/private visibility tokens (public, private).
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterIsPublic(Builder $query, array $values): void
     {
-        $mapped = \App\Support\QueryFilter::booleanVisibility($values);
+        $mapped = QueryFilter::booleanVisibility($values);
 
-        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('is_public', $mapped));
+        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_public', $mapped));
     }
 
     /**
@@ -165,5 +152,19 @@ class Plan extends Model
     public function subscriptionEventsToPlan(): HasMany
     {
         return $this->hasMany(SubscriptionEvent::class, 'to_plan_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'features' => 'array',
+            'is_active' => 'boolean',
+            'is_public' => 'boolean',
+        ];
     }
 }

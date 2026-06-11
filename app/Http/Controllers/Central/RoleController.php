@@ -25,12 +25,14 @@ class RoleController extends Controller
 {
     public function __construct(
         private readonly RoleService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Role records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -81,7 +83,7 @@ class RoleController extends Controller
     /**
      * Create a new Role.
      *
-     * @param  StoreRoleRequest  $request  Validated request payload.
+     * @param StoreRoleRequest $request Validated request payload.
      */
     public function store(StoreRoleRequest $request): JsonResponse
     {
@@ -93,7 +95,7 @@ class RoleController extends Controller
     /**
      * Find Role by route binding.
      *
-     * @param  Role  $role  Role instance.
+     * @param Role $role Role instance.
      */
     public function show(Role $role): JsonResponse
     {
@@ -105,8 +107,8 @@ class RoleController extends Controller
     /**
      * Update Role.
      *
-     * @param  UpdateRoleRequest  $request  Validated request payload.
-     * @param  Role  $role  Role instance.
+     * @param UpdateRoleRequest $request Validated request payload.
+     * @param Role $role Role instance.
      */
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
@@ -118,7 +120,7 @@ class RoleController extends Controller
     /**
      * Delete Role.
      *
-     * @param  Role  $role  Role instance.
+     * @param Role $role Role instance.
      */
     public function destroy(Role $role): JsonResponse
     {

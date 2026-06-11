@@ -20,12 +20,14 @@ class PlanFeatureController extends Controller
 {
     public function __construct(
         private readonly PlanFeatureService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated PlanFeature records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -39,7 +41,7 @@ class PlanFeatureController extends Controller
     /**
      * Create a new PlanFeature.
      *
-     * @param  StorePlanFeatureRequest  $request  Validated request payload.
+     * @param StorePlanFeatureRequest $request Validated request payload.
      */
     public function store(StorePlanFeatureRequest $request): JsonResponse
     {
@@ -51,7 +53,7 @@ class PlanFeatureController extends Controller
     /**
      * Find PlanFeature by route binding.
      *
-     * @param  PlanFeature  $planFeature  PlanFeature instance.
+     * @param PlanFeature $planFeature PlanFeature instance.
      */
     public function show(PlanFeature $planFeature): JsonResponse
     {
@@ -61,8 +63,8 @@ class PlanFeatureController extends Controller
     /**
      * Update PlanFeature.
      *
-     * @param  UpdatePlanFeatureRequest  $request  Validated request payload.
-     * @param  PlanFeature  $planFeature  PlanFeature instance.
+     * @param UpdatePlanFeatureRequest $request Validated request payload.
+     * @param PlanFeature $planFeature PlanFeature instance.
      */
     public function update(UpdatePlanFeatureRequest $request, PlanFeature $planFeature): JsonResponse
     {
@@ -74,7 +76,7 @@ class PlanFeatureController extends Controller
     /**
      * Delete PlanFeature.
      *
-     * @param  PlanFeature  $planFeature  PlanFeature instance.
+     * @param PlanFeature $planFeature PlanFeature instance.
      */
     public function destroy(PlanFeature $planFeature): JsonResponse
     {

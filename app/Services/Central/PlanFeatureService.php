@@ -26,13 +26,13 @@ class PlanFeatureService
     /**
      * Get paginated PlanFeature records.
      *
-     * @param  int  $perPage  Number of records per page.
+     * @param int $perPage Number of records per page.
      * @return LengthAwarePaginator<int, PlanFeature>
      */
     public function getPaginated(int $perPage = 15, ?string $planId = null): LengthAwarePaginator
     {
         return PlanFeature::query()
-            ->when($planId, fn ($query) => $query->where('plan_id', $planId))
+            ->when($planId, fn($query) => $query->where('plan_id', $planId))
             ->orderBy('feature_key')
             ->paginate($perPage);
     }
@@ -40,7 +40,7 @@ class PlanFeatureService
     /**
      * Find PlanFeature by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?PlanFeature
     {
@@ -50,7 +50,7 @@ class PlanFeatureService
     /**
      * Find PlanFeature by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): PlanFeature
     {
@@ -60,7 +60,7 @@ class PlanFeatureService
     /**
      * Create a new PlanFeature.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): PlanFeature
     {
@@ -70,8 +70,8 @@ class PlanFeatureService
     /**
      * Update PlanFeature.
      *
-     * @param  PlanFeature  $planFeature  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param PlanFeature $planFeature The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(PlanFeature $planFeature, array $data): PlanFeature
     {
@@ -83,7 +83,7 @@ class PlanFeatureService
     /**
      * Delete PlanFeature.
      *
-     * @param  PlanFeature  $planFeature  The model instance to delete.
+     * @param PlanFeature $planFeature The model instance to delete.
      */
     public function delete(PlanFeature $planFeature): bool
     {
@@ -93,7 +93,7 @@ class PlanFeatureService
     /**
      * Filter by plan.
      *
-     * @param  string  $planId  Plan UUID to filter by.
+     * @param string $planId Plan UUID to filter by.
      * @return Collection<int, PlanFeature>
      */
     public function getByPlan(string $planId): Collection

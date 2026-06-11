@@ -37,15 +37,16 @@ class ActivityService
     }
 
     /**
-     * @param  list<string>  $logName
-     * @param  list<string>  $event
+     * @param list<string> $logName
+     * @param list<string> $event
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $logName = [],
-        array $event = [],
-    ): LengthAwarePaginator {
+        array   $logName = [],
+        array   $event = [],
+    ): LengthAwarePaginator
+    {
         return Activity::query()
             ->with(self::LIST_RELATIONS)
             ->search($search)
@@ -58,7 +59,7 @@ class ActivityService
     /**
      * Find Activity by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?Activity
     {
@@ -68,7 +69,7 @@ class ActivityService
     /**
      * Find Activity by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): Activity
     {
@@ -80,7 +81,7 @@ class ActivityService
     /**
      * Create a new Activity.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Activity
     {
@@ -90,8 +91,8 @@ class ActivityService
     /**
      * Update Activity.
      *
-     * @param  Activity  $activity  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param Activity $activity The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(Activity $activity, array $data): Activity
     {
@@ -103,10 +104,10 @@ class ActivityService
     /**
      * Delete Activity.
      *
-     * @param  Activity  $activity  The model instance to delete.
+     * @param Activity $activity The model instance to delete.
      */
     public function delete(Activity $activity): bool
     {
-        return (bool) $activity->delete();
+        return (bool)$activity->delete();
     }
 }

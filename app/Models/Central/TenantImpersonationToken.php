@@ -41,19 +41,6 @@ class TenantImpersonationToken extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'expires_at' => 'datetime',
-            'used_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by token.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -75,7 +62,7 @@ class TenantImpersonationToken extends Model
     /**
      * Scope a query to filter by token lifecycle status.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterStatus(Builder $query, array $values): void
     {
@@ -115,5 +102,18 @@ class TenantImpersonationToken extends Model
     public function administrator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'admin_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+            'used_at' => 'datetime',
+        ];
     }
 }

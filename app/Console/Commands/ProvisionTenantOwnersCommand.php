@@ -21,7 +21,7 @@ class ProvisionTenantOwnersCommand extends Command
         $query = Tenant::query();
 
         if ($this->argument('tenant')) {
-            $identifier = (string) $this->argument('tenant');
+            $identifier = (string)$this->argument('tenant');
             $query->where('id', $identifier)->orWhere('slug', $identifier);
         } elseif ($this->option('missing')) {
             $query->where(function ($builder) {

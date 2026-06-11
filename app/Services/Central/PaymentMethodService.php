@@ -16,7 +16,7 @@ class PaymentMethodService
     /**
      * Get all PaymentMethod records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, PaymentMethod>
      */
     public function getAll(?string $search = null): Collection
@@ -31,8 +31,8 @@ class PaymentMethodService
     /**
      * Get paginated PaymentMethod records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, PaymentMethod>
      */
     public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
@@ -47,7 +47,7 @@ class PaymentMethodService
     /**
      * Find PaymentMethod by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?PaymentMethod
     {
@@ -57,7 +57,7 @@ class PaymentMethodService
     /**
      * Find PaymentMethod by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): PaymentMethod
     {
@@ -67,7 +67,7 @@ class PaymentMethodService
     /**
      * Create a new PaymentMethod.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): PaymentMethod
     {
@@ -75,22 +75,9 @@ class PaymentMethodService
     }
 
     /**
-     * Update PaymentMethod.
-     *
-     * @param  PaymentMethod  $paymentMethod  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(PaymentMethod $paymentMethod, array $data): PaymentMethod
-    {
-        $paymentMethod->query()->update($data);
-
-        return $paymentMethod->fresh();
-    }
-
-    /**
      * Delete PaymentMethod.
      *
-     * @param  PaymentMethod  $paymentMethod  The model instance to delete.
+     * @param PaymentMethod $paymentMethod The model instance to delete.
      */
     public function delete(PaymentMethod $paymentMethod): bool
     {
@@ -100,7 +87,7 @@ class PaymentMethodService
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, PaymentMethod>
      */
     public function getByTenant(string $tenantId): Collection
@@ -111,7 +98,7 @@ class PaymentMethodService
     /**
      * Set the payment method as the tenant default.
      *
-     * @param  PaymentMethod  $paymentMethod  The payment method to set as default.
+     * @param PaymentMethod $paymentMethod The payment method to set as default.
      */
     public function setDefault(PaymentMethod $paymentMethod): PaymentMethod
     {
@@ -119,6 +106,19 @@ class PaymentMethodService
             ->where('id', '!=', $paymentMethod->id)
             ->update(['is_default' => false]);
         $paymentMethod->query()->update(['is_default' => true]);
+
+        return $paymentMethod->fresh();
+    }
+
+    /**
+     * Update PaymentMethod.
+     *
+     * @param PaymentMethod $paymentMethod The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(PaymentMethod $paymentMethod, array $data): PaymentMethod
+    {
+        $paymentMethod->query()->update($data);
 
         return $paymentMethod->fresh();
     }

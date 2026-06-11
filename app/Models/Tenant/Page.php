@@ -6,12 +6,12 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * Pages stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $title
  * @property string|null $slug
@@ -50,6 +50,19 @@ class Page extends TenantModel
         'created_by',
     ];
 
+    /**
+     * Scope a query by common searchable columns.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('title', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%");
+            });
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -60,18 +73,5 @@ class Page extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('title', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-            );
-        });
     }
 }

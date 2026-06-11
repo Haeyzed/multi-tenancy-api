@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Chat messages stored in the tenant database.
+ * Live chat message stored in the tenant database.
+ *
  * @property int $id
  * @property string $session_id
  * @property string $sender_type
@@ -37,6 +36,11 @@ class ChatMessage extends TenantModel
         'attachment_media_id',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

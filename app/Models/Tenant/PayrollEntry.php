@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Payroll entries stored in the tenant database.
+ *
  * @property string $id
  * @property string $payroll_period_id
  * @property string $employee_id
@@ -40,10 +40,8 @@ class PayrollEntry extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'payroll_entries';
-
     public $incrementing = false;
-
+    protected $table = 'payroll_entries';
     protected $keyType = 'string';
 
     /**
@@ -72,6 +70,22 @@ class PayrollEntry extends TenantModel
         'transaction_reference',
     ];
 
+    /**
+     * Related PayrollPeriod.
+     */
+    public function payrollPeriod(): BelongsTo
+    {
+        return $this->belongsTo(PayrollPeriod::class);
+    }
+
+    /**
+     * Related Employee.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -89,21 +103,5 @@ class PayrollEntry extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related PayrollPeriod.
-     */
-    public function payrollPeriod(): BelongsTo
-    {
-        return $this->belongsTo(PayrollPeriod::class);
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
     }
 }

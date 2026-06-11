@@ -20,12 +20,14 @@ class SubscriptionItemController extends Controller
 {
     public function __construct(
         private readonly SubscriptionItemService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated SubscriptionItem records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -38,7 +40,7 @@ class SubscriptionItemController extends Controller
     /**
      * Create a new SubscriptionItem.
      *
-     * @param  StoreSubscriptionItemRequest  $request  Validated request payload.
+     * @param StoreSubscriptionItemRequest $request Validated request payload.
      */
     public function store(StoreSubscriptionItemRequest $request): JsonResponse
     {
@@ -50,7 +52,7 @@ class SubscriptionItemController extends Controller
     /**
      * Find SubscriptionItem by route binding.
      *
-     * @param  SubscriptionItem  $subscriptionItem  SubscriptionItem instance.
+     * @param SubscriptionItem $subscriptionItem SubscriptionItem instance.
      */
     public function show(SubscriptionItem $subscriptionItem): JsonResponse
     {
@@ -60,8 +62,8 @@ class SubscriptionItemController extends Controller
     /**
      * Update SubscriptionItem.
      *
-     * @param  UpdateSubscriptionItemRequest  $request  Validated request payload.
-     * @param  SubscriptionItem  $subscriptionItem  SubscriptionItem instance.
+     * @param UpdateSubscriptionItemRequest $request Validated request payload.
+     * @param SubscriptionItem $subscriptionItem SubscriptionItem instance.
      */
     public function update(UpdateSubscriptionItemRequest $request, SubscriptionItem $subscriptionItem): JsonResponse
     {
@@ -73,7 +75,7 @@ class SubscriptionItemController extends Controller
     /**
      * Delete SubscriptionItem.
      *
-     * @param  SubscriptionItem  $subscriptionItem  SubscriptionItem instance.
+     * @param SubscriptionItem $subscriptionItem SubscriptionItem instance.
      */
     public function destroy(SubscriptionItem $subscriptionItem): JsonResponse
     {

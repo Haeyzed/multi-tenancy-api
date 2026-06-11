@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Product views stored in the tenant database.
+ *
  * @property int $id
  * @property string $product_id
  * @property Carbon|null $date
@@ -41,6 +41,14 @@ class ProductView extends TenantModel
         'revenue',
     ];
 
+    /**
+     * Related Product.
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -49,13 +57,5 @@ class ProductView extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Product.
-     */
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class);
     }
 }

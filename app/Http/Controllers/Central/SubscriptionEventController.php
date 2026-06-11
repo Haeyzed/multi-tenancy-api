@@ -20,12 +20,14 @@ class SubscriptionEventController extends Controller
 {
     public function __construct(
         private readonly SubscriptionEventService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated SubscriptionEvent records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -38,7 +40,7 @@ class SubscriptionEventController extends Controller
     /**
      * Create a new SubscriptionEvent.
      *
-     * @param  StoreSubscriptionEventRequest  $request  Validated request payload.
+     * @param StoreSubscriptionEventRequest $request Validated request payload.
      */
     public function store(StoreSubscriptionEventRequest $request): JsonResponse
     {
@@ -50,7 +52,7 @@ class SubscriptionEventController extends Controller
     /**
      * Find SubscriptionEvent by route binding.
      *
-     * @param  SubscriptionEvent  $subscriptionEvent  SubscriptionEvent instance.
+     * @param SubscriptionEvent $subscriptionEvent SubscriptionEvent instance.
      */
     public function show(SubscriptionEvent $subscriptionEvent): JsonResponse
     {
@@ -60,8 +62,8 @@ class SubscriptionEventController extends Controller
     /**
      * Update SubscriptionEvent.
      *
-     * @param  UpdateSubscriptionEventRequest  $request  Validated request payload.
-     * @param  SubscriptionEvent  $subscriptionEvent  SubscriptionEvent instance.
+     * @param UpdateSubscriptionEventRequest $request Validated request payload.
+     * @param SubscriptionEvent $subscriptionEvent SubscriptionEvent instance.
      */
     public function update(UpdateSubscriptionEventRequest $request, SubscriptionEvent $subscriptionEvent): JsonResponse
     {
@@ -73,7 +75,7 @@ class SubscriptionEventController extends Controller
     /**
      * Delete SubscriptionEvent.
      *
-     * @param  SubscriptionEvent  $subscriptionEvent  SubscriptionEvent instance.
+     * @param SubscriptionEvent $subscriptionEvent SubscriptionEvent instance.
      */
     public function destroy(SubscriptionEvent $subscriptionEvent): JsonResponse
     {

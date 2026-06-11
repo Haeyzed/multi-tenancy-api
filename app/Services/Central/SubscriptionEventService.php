@@ -26,7 +26,7 @@ class SubscriptionEventService
     /**
      * Get paginated SubscriptionEvent records.
      *
-     * @param  int  $perPage  Number of records per page.
+     * @param int $perPage Number of records per page.
      * @return LengthAwarePaginator<int, SubscriptionEvent>
      */
     public function getPaginated(int $perPage = 15): LengthAwarePaginator
@@ -37,7 +37,7 @@ class SubscriptionEventService
     /**
      * Find SubscriptionEvent by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?SubscriptionEvent
     {
@@ -47,7 +47,7 @@ class SubscriptionEventService
     /**
      * Find SubscriptionEvent by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): SubscriptionEvent
     {
@@ -57,7 +57,7 @@ class SubscriptionEventService
     /**
      * Create a new SubscriptionEvent.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): SubscriptionEvent
     {
@@ -67,8 +67,8 @@ class SubscriptionEventService
     /**
      * Update SubscriptionEvent.
      *
-     * @param  SubscriptionEvent  $subscriptionEvent  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param SubscriptionEvent $subscriptionEvent The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(SubscriptionEvent $subscriptionEvent, array $data): SubscriptionEvent
     {
@@ -80,7 +80,7 @@ class SubscriptionEventService
     /**
      * Delete SubscriptionEvent.
      *
-     * @param  SubscriptionEvent  $subscriptionEvent  The model instance to delete.
+     * @param SubscriptionEvent $subscriptionEvent The model instance to delete.
      */
     public function delete(SubscriptionEvent $subscriptionEvent): bool
     {
@@ -90,7 +90,7 @@ class SubscriptionEventService
     /**
      * Filter by subscription.
      *
-     * @param  string  $subscriptionId  Subscription UUID to filter by.
+     * @param string $subscriptionId Subscription UUID to filter by.
      * @return Collection<int, SubscriptionEvent>
      */
     public function getBySubscription(string $subscriptionId): Collection
@@ -101,7 +101,7 @@ class SubscriptionEventService
     /**
      * Filter by event type.
      *
-     * @param  string  $eventType  Subscription event type to filter by.
+     * @param string $eventType Subscription event type to filter by.
      * @return Collection<int, SubscriptionEvent>
      */
     public function getByEventType(string $eventType): Collection

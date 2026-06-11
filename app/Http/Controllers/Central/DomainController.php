@@ -21,12 +21,14 @@ class DomainController extends Controller
 {
     public function __construct(
         private readonly DomainService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Domain records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -42,7 +44,7 @@ class DomainController extends Controller
     /**
      * Create a new Domain.
      *
-     * @param  StoreDomainRequest  $request  Validated request payload.
+     * @param StoreDomainRequest $request Validated request payload.
      */
     public function store(StoreDomainRequest $request): JsonResponse
     {
@@ -54,7 +56,7 @@ class DomainController extends Controller
     /**
      * Find Domain by route binding.
      *
-     * @param  Domain  $domain  Domain instance.
+     * @param Domain $domain Domain instance.
      */
     public function show(Domain $domain): JsonResponse
     {
@@ -64,8 +66,8 @@ class DomainController extends Controller
     /**
      * Update Domain.
      *
-     * @param  UpdateDomainRequest  $request  Validated request payload.
-     * @param  Domain  $domain  Domain instance.
+     * @param UpdateDomainRequest $request Validated request payload.
+     * @param Domain $domain Domain instance.
      */
     public function update(UpdateDomainRequest $request, Domain $domain): JsonResponse
     {
@@ -77,7 +79,7 @@ class DomainController extends Controller
     /**
      * Delete Domain.
      *
-     * @param  Domain  $domain  Domain instance.
+     * @param Domain $domain Domain instance.
      */
     public function destroy(Domain $domain): JsonResponse
     {
@@ -89,7 +91,7 @@ class DomainController extends Controller
     /**
      * Set the domain as the tenant's primary domain.
      *
-     * @param  Domain  $domain  Domain instance.
+     * @param Domain $domain Domain instance.
      */
     public function setPrimary(Domain $domain): JsonResponse
     {
@@ -101,7 +103,7 @@ class DomainController extends Controller
     /**
      * Mark the domain as verified.
      *
-     * @param  Domain  $domain  Domain instance.
+     * @param Domain $domain Domain instance.
      */
     public function verify(Domain $domain): JsonResponse
     {

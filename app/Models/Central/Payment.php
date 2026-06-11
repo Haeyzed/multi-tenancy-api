@@ -57,20 +57,6 @@ class Payment extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'status' => PaymentStatus::class,
-            'payment_provider' => PaymentProvider::class,
-            'payment_method_type' => PaymentMethodType::class,
-        ];
-    }
-
-    /**
      * Scope a query to search by provider payment ID, failure message, or currency.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -94,11 +80,11 @@ class Payment extends Model
     /**
      * Filter by payment status values.
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
     }
 
     /**
@@ -115,5 +101,19 @@ class Payment extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => PaymentStatus::class,
+            'payment_provider' => PaymentProvider::class,
+            'payment_method_type' => PaymentMethodType::class,
+        ];
     }
 }

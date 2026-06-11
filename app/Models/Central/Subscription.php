@@ -61,24 +61,6 @@ class Subscription extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'status' => SubscriptionStatus::class,
-            'billing_cycle' => BillingCycle::class,
-            'payment_provider' => PaymentProvider::class,
-            'current_period_start' => 'datetime',
-            'current_period_end' => 'datetime',
-            'trial_ends_at' => 'datetime',
-            'cancelled_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by cancellation reason or payment provider ID.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -104,11 +86,11 @@ class Subscription extends Model
     /**
      * Filter by subscription status values.
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
     }
 
     /**
@@ -165,5 +147,23 @@ class Subscription extends Model
     public function lifecycleEvents(): HasMany
     {
         return $this->hasMany(SubscriptionEvent::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => SubscriptionStatus::class,
+            'billing_cycle' => BillingCycle::class,
+            'payment_provider' => PaymentProvider::class,
+            'current_period_start' => 'datetime',
+            'current_period_end' => 'datetime',
+            'trial_ends_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
     }
 }

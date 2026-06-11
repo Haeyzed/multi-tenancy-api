@@ -15,14 +15,16 @@ class SpatiePermissionsBootstrapper implements TenancyBootstrapper
 {
     public function __construct(
         protected PermissionRegistrar $registrar,
-    ) {}
+    )
+    {
+    }
 
     public function bootstrap(Tenant $tenant): void
     {
         $this->registrar->clearPermissionsCollection();
         $this->registrar->setPermissionClass(config('permission.tenant_models.permission'));
         $this->registrar->setRoleClass(config('permission.tenant_models.role'));
-        $this->registrar->cacheKey = 'spatie.permission.cache.tenant.'.$tenant->getTenantKey();
+        $this->registrar->cacheKey = 'spatie.permission.cache.tenant.' . $tenant->getTenantKey();
     }
 
     public function revert(): void

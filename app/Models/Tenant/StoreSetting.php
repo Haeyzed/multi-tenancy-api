@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Store settings stored in the tenant database.
+ *
  * @property int $id
  * @property string|null $store_name
  * @property string|null $store_slug

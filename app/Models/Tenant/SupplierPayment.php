@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Supplier payments stored in the tenant database.
+ *
  * @property int $id
  * @property string $supplier_invoice_id
  * @property string $amount
@@ -39,6 +39,14 @@ class SupplierPayment extends TenantModel
         'notes',
     ];
 
+    /**
+     * Related SupplierInvoice.
+     */
+    public function supplierInvoice(): BelongsTo
+    {
+        return $this->belongsTo(SupplierInvoice::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -47,13 +55,5 @@ class SupplierPayment extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related SupplierInvoice.
-     */
-    public function supplierInvoice(): BelongsTo
-    {
-        return $this->belongsTo(SupplierInvoice::class);
     }
 }

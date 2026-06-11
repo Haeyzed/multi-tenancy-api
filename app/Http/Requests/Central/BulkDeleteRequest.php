@@ -15,11 +15,6 @@ abstract class BulkDeleteRequest extends BaseRequest
     }
 
     /**
-     * Validation rule applied to each entry in {@see ids}.
-     */
-    abstract protected function idRule(): string;
-
-    /**
      * @return array<string, string|array<int, string>>
      */
     public function rules(): array
@@ -44,4 +39,9 @@ abstract class BulkDeleteRequest extends BaseRequest
             'ids.*' => $this->idRule(),
         ];
     }
+
+    /**
+     * Validation rule applied to each entry in {@see ids}.
+     */
+    abstract protected function idRule(): string;
 }

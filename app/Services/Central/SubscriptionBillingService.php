@@ -17,6 +17,7 @@ use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Automated renewal, trial expiration, and off-session billing.
@@ -25,10 +26,12 @@ class SubscriptionBillingService
 {
     public function __construct(
         private readonly SubscriptionLifecycleService $lifecycle,
-        private readonly PaymentFulfillmentService $fulfillment,
-        private readonly PaymentGatewayManager $gateways,
-        private readonly SelfOnboardingService $selfOnboarding,
-    ) {}
+        private readonly PaymentFulfillmentService    $fulfillment,
+        private readonly PaymentGatewayManager        $gateways,
+        private readonly SelfOnboardingService        $selfOnboarding,
+    )
+    {
+    }
 
     /**
      * Process all subscriptions due for renewal.
@@ -41,7 +44,7 @@ class SubscriptionBillingService
             try {
                 $this->processRenewal($subscription);
                 $count++;
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 Log::error('Renewal processing failed', [
                     'subscription_id' => $subscription->id,
                     'error' => $exception->getMessage(),
@@ -53,48 +56,15 @@ class SubscriptionBillingService
     }
 
     /**
-     * Process trialing subscriptions whose trial has ended.
+     * @return Collection<int, Subscription>
      */
-    public function processExpiredTrials(): int
+    private function renewalsDue(): Collection
     {
-        $count = 0;
-
-        foreach ($this->expiredTrials() as $subscription) {
-            try {
-                $this->processTrialExpiration($subscription);
-                $count++;
-            } catch (\Throwable $exception) {
-                Log::error('Trial expiration processing failed', [
-                    'subscription_id' => $subscription->id,
-                    'error' => $exception->getMessage(),
-                ]);
-            }
-        }
-
-        return $count;
-    }
-
-    /**
-     * Send reminders for trials ending soon.
-     */
-    public function sendTrialEndingReminders(): int
-    {
-        $count = 0;
-        $days = (int) config('payments.trial_reminder_days', 3);
-        $targetDate = now()->addDays($days)->toDateString();
-
-        $subscriptions = Subscription::query()
+        return Subscription::query()
             ->with(['tenant', 'plan'])
-            ->where('status', SubscriptionStatus::Trialing)
-            ->whereDate('trial_ends_at', $targetDate)
+            ->where('status', SubscriptionStatus::Active)
+            ->where('current_period_end', '<=', now())
             ->get();
-
-        foreach ($subscriptions as $subscription) {
-            event(new TrialEndingSoon($subscription, $days));
-            $count++;
-        }
-
-        return $count;
     }
 
     /**
@@ -115,57 +85,15 @@ class SubscriptionBillingService
         $this->attemptCollection($subscription, $invoice, isRenewal: true, periodStart: $now, periodEnd: $periodEnd);
     }
 
-    /**
-     * Bill a subscription when its trial period ends.
-     */
-    public function processTrialExpiration(Subscription $subscription): void
-    {
-        $subscription->loadMissing(['tenant', 'plan']);
-
-        if ($subscription->tenant === null || $subscription->plan === null) {
-            return;
-        }
-
-        $now = now();
-        $periodEnd = $this->lifecycle->calculatePeriodEnd($now, $subscription->billing_cycle);
-        $invoice = $this->lifecycle->issueBillingInvoice($subscription, $now, $periodEnd);
-
-        $this->attemptCollection($subscription, $invoice, isRenewal: false, periodStart: $now, periodEnd: $periodEnd, trialConversion: true);
-    }
-
-    /**
-     * @return Collection<int, Subscription>
-     */
-    private function renewalsDue(): Collection
-    {
-        return Subscription::query()
-            ->with(['tenant', 'plan'])
-            ->where('status', SubscriptionStatus::Active)
-            ->where('current_period_end', '<=', now())
-            ->get();
-    }
-
-    /**
-     * @return Collection<int, Subscription>
-     */
-    private function expiredTrials(): Collection
-    {
-        return Subscription::query()
-            ->with(['tenant', 'plan'])
-            ->where('status', SubscriptionStatus::Trialing)
-            ->whereNotNull('trial_ends_at')
-            ->where('trial_ends_at', '<=', now())
-            ->get();
-    }
-
     private function attemptCollection(
         Subscription $subscription,
-        Invoice $invoice,
-        bool $isRenewal,
-        Carbon $periodStart,
-        Carbon $periodEnd,
-        bool $trialConversion = false,
-    ): void {
+        Invoice      $invoice,
+        bool         $isRenewal,
+        Carbon       $periodStart,
+        Carbon       $periodEnd,
+        bool         $trialConversion = false,
+    ): void
+    {
         $tenant = $subscription->tenant;
         $provider = $subscription->payment_provider;
 
@@ -189,7 +117,7 @@ class SubscriptionBillingService
                 }
 
                 $this->handleCollectionFailure($subscription, $invoice, $charge->failureMessage ?? 'Charge failed.');
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 $this->handleCollectionFailure($subscription, $invoice, $exception->getMessage());
             }
 
@@ -201,9 +129,10 @@ class SubscriptionBillingService
 
     private function handleCollectionFailure(
         Subscription $subscription,
-        Invoice $invoice,
-        string $reason,
-    ): void {
+        Invoice      $invoice,
+        string       $reason,
+    ): void
+    {
         $subscription->update(['status' => SubscriptionStatus::PastDue]);
         $subscription->tenant?->update(['status' => TenantStatus::Suspended]);
 
@@ -227,10 +156,86 @@ class SubscriptionBillingService
                 $subscription->payment_provider,
             );
             $checkoutUrl = $checkout['checkout_url'];
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Checkout retry unavailable; notification will omit URL.
         }
 
         event(new SubscriptionPaymentFailed($subscription->fresh(['tenant', 'plan']), $invoice, $reason, $checkoutUrl));
+    }
+
+    /**
+     * Process trialing subscriptions whose trial has ended.
+     */
+    public function processExpiredTrials(): int
+    {
+        $count = 0;
+
+        foreach ($this->expiredTrials() as $subscription) {
+            try {
+                $this->processTrialExpiration($subscription);
+                $count++;
+            } catch (Throwable $exception) {
+                Log::error('Trial expiration processing failed', [
+                    'subscription_id' => $subscription->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * @return Collection<int, Subscription>
+     */
+    private function expiredTrials(): Collection
+    {
+        return Subscription::query()
+            ->with(['tenant', 'plan'])
+            ->where('status', SubscriptionStatus::Trialing)
+            ->whereNotNull('trial_ends_at')
+            ->where('trial_ends_at', '<=', now())
+            ->get();
+    }
+
+    /**
+     * Bill a subscription when its trial period ends.
+     */
+    public function processTrialExpiration(Subscription $subscription): void
+    {
+        $subscription->loadMissing(['tenant', 'plan']);
+
+        if ($subscription->tenant === null || $subscription->plan === null) {
+            return;
+        }
+
+        $now = now();
+        $periodEnd = $this->lifecycle->calculatePeriodEnd($now, $subscription->billing_cycle);
+        $invoice = $this->lifecycle->issueBillingInvoice($subscription, $now, $periodEnd);
+
+        $this->attemptCollection($subscription, $invoice, isRenewal: false, periodStart: $now, periodEnd: $periodEnd, trialConversion: true);
+    }
+
+    /**
+     * Send reminders for trials ending soon.
+     */
+    public function sendTrialEndingReminders(): int
+    {
+        $count = 0;
+        $days = (int)config('payments.trial_reminder_days', 3);
+        $targetDate = now()->addDays($days)->toDateString();
+
+        $subscriptions = Subscription::query()
+            ->with(['tenant', 'plan'])
+            ->where('status', SubscriptionStatus::Trialing)
+            ->whereDate('trial_ends_at', $targetDate)
+            ->get();
+
+        foreach ($subscriptions as $subscription) {
+            event(new TrialEndingSoon($subscription, $days));
+            $count++;
+        }
+
+        return $count;
     }
 }

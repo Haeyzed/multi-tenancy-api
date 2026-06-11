@@ -27,7 +27,7 @@ class TenantImpersonationTokenService
     /**
      * Get all TenantImpersonationToken records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, TenantImpersonationToken>
      */
     public function getAll(?string $search = null): Collection
@@ -41,18 +41,19 @@ class TenantImpersonationTokenService
     /**
      * Get paginated TenantImpersonationToken records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, TenantImpersonationToken>
      */
     /**
-     * @param  list<string>  $status
+     * @param list<string> $status
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $status = [],
-    ): LengthAwarePaginator {
+        array   $status = [],
+    ): LengthAwarePaginator
+    {
         return TenantImpersonationToken::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -65,7 +66,7 @@ class TenantImpersonationTokenService
     /**
      * Find TenantImpersonationToken by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?TenantImpersonationToken
     {
@@ -75,7 +76,7 @@ class TenantImpersonationTokenService
     /**
      * Find TenantImpersonationToken by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): TenantImpersonationToken
     {
@@ -85,7 +86,7 @@ class TenantImpersonationTokenService
     /**
      * Create a new TenantImpersonationToken.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): TenantImpersonationToken
     {
@@ -106,22 +107,9 @@ class TenantImpersonationTokenService
     }
 
     /**
-     * Update TenantImpersonationToken.
-     *
-     * @param  TenantImpersonationToken  $tenantImpersonationToken  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
-     */
-    public function update(TenantImpersonationToken $tenantImpersonationToken, array $data): TenantImpersonationToken
-    {
-        $tenantImpersonationToken->update($data);
-
-        return $tenantImpersonationToken->fresh(self::LIST_RELATIONS);
-    }
-
-    /**
      * Delete TenantImpersonationToken.
      *
-     * @param  TenantImpersonationToken  $tenantImpersonationToken  The model instance to delete.
+     * @param TenantImpersonationToken $tenantImpersonationToken The model instance to delete.
      */
     public function delete(TenantImpersonationToken $tenantImpersonationToken): bool
     {
@@ -131,7 +119,7 @@ class TenantImpersonationTokenService
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, TenantImpersonationToken>
      */
     public function getByTenant(string $tenantId): Collection
@@ -142,13 +130,26 @@ class TenantImpersonationTokenService
     /**
      * Mark an impersonation token as used.
      *
-     * @param  TenantImpersonationToken  $impersonationToken  The token to consume.
+     * @param TenantImpersonationToken $impersonationToken The token to consume.
      */
     public function markAsUsed(TenantImpersonationToken $impersonationToken): TenantImpersonationToken
     {
         $impersonationToken->update(['used_at' => now()]);
 
         return $impersonationToken->fresh(self::LIST_RELATIONS);
+    }
+
+    /**
+     * Update TenantImpersonationToken.
+     *
+     * @param TenantImpersonationToken $tenantImpersonationToken The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
+     */
+    public function update(TenantImpersonationToken $tenantImpersonationToken, array $data): TenantImpersonationToken
+    {
+        $tenantImpersonationToken->update($data);
+
+        return $tenantImpersonationToken->fresh(self::LIST_RELATIONS);
     }
 
     /**

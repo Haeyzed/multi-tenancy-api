@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureSubscriptionIsActive
 {
     /**
-     * @param  Closure(Request): Response  $next
+     * @param Closure(Request): Response $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -33,7 +33,7 @@ class EnsureSubscriptionIsActive
             return response()->json(['message' => 'No active subscription found.'], 403);
         }
 
-        if (! in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::Trialing], true)) {
+        if (!in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::Trialing], true)) {
             return response()->json([
                 'message' => 'Subscription is not active.',
                 'status' => $subscription->status->value,

@@ -42,20 +42,6 @@ class UsageRecord extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'metric' => UsageMetric::class,
-            'quantity' => 'decimal:2',
-            'recorded_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by metric or subscription ID.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -74,7 +60,7 @@ class UsageRecord extends Model
     /**
      * Scope a query to filter by usage metric.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterMetric(Builder $query, array $values): void
     {
@@ -99,5 +85,19 @@ class UsageRecord extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metric' => UsageMetric::class,
+            'quantity' => 'decimal:2',
+            'recorded_at' => 'datetime',
+        ];
     }
 }

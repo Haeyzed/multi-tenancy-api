@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Models\Concerns\FilterableByTenant;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,20 +29,6 @@ class Domain extends BaseDomain
     use FilterableByTenant, HasFactory;
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-            'is_fallback' => 'boolean',
-            'verified' => 'boolean',
-        ];
-    }
-
-    /**
      * Scope a query to search by domain hostname.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -60,13 +47,13 @@ class Domain extends BaseDomain
     /**
      * Filter by verified/unverified tokens.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterVerified(Builder $query, array $values): void
     {
-        $mapped = \App\Support\QueryFilter::booleanVerified($values);
+        $mapped = QueryFilter::booleanVerified($values);
 
-        $query->when($mapped !== [], fn (Builder $q) => $q->whereIn('verified', $mapped));
+        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('verified', $mapped));
     }
 
     /**
@@ -75,5 +62,19 @@ class Domain extends BaseDomain
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+            'is_fallback' => 'boolean',
+            'verified' => 'boolean',
+        ];
     }
 }

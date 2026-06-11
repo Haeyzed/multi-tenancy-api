@@ -6,6 +6,7 @@ namespace App\Models\Central;
 
 use App\Enums\Central\AnnouncementTargetAudience;
 use App\Enums\Central\AnnouncementType;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,23 +44,6 @@ class PlatformAnnouncement extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'type' => AnnouncementType::class,
-            'target_audience' => AnnouncementTargetAudience::class,
-            'target_plans' => 'array',
-            'is_active' => 'boolean',
-            'starts_at' => 'datetime',
-            'ends_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by title or body.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -75,33 +59,33 @@ class PlatformAnnouncement extends Model
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = \App\Support\QueryFilter::booleanStatuses($statuses);
+        $values = QueryFilter::booleanStatuses($statuses);
 
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
     }
 
     /**
      * Filter by announcement type values.
      *
-     * @param  list<string>  $types
+     * @param list<string> $types
      */
     public function scopeFilterType(Builder $query, array $types): void
     {
-        $query->when($types !== [], fn (Builder $q) => $q->whereIn('type', $types));
+        $query->when($types !== [], fn(Builder $q) => $q->whereIn('type', $types));
     }
 
     /**
      * Filter by target audience values.
      *
-     * @param  list<string>  $audiences
+     * @param list<string> $audiences
      */
     public function scopeFilterTargetAudience(Builder $query, array $audiences): void
     {
-        $query->when($audiences !== [], fn (Builder $q) => $q->whereIn('target_audience', $audiences));
+        $query->when($audiences !== [], fn(Builder $q) => $q->whereIn('target_audience', $audiences));
     }
 
     /**
@@ -116,5 +100,22 @@ class PlatformAnnouncement extends Model
             ->where(function (Builder $q): void {
                 $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
             });
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => AnnouncementType::class,
+            'target_audience' => AnnouncementTargetAudience::class,
+            'target_plans' => 'array',
+            'is_active' => 'boolean',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+        ];
     }
 }

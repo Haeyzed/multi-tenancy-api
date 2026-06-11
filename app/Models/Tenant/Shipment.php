@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Shipments stored in the tenant database.
+ *
  * @property int $id
  * @property string $order_id
  * @property string|null $carrier
@@ -51,6 +52,31 @@ class Shipment extends TenantModel
         'notes',
     ];
 
+    /**
+     * Related Order.
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
     protected function casts(): array
     {
         return [
@@ -62,13 +88,5 @@ class Shipment extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Order.
-     */
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
     }
 }

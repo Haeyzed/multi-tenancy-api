@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Carbon;
 
 /**
  * Supplier returns stored in the tenant database.
+ *
  * @property string $id
  * @property string $po_id
  * @property string $grn_id
@@ -27,10 +27,8 @@ class SupplierReturn extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'supplier_returns';
-
     public $incrementing = false;
-
+    protected $table = 'supplier_returns';
     protected $keyType = 'string';
 
     /**
@@ -45,6 +43,23 @@ class SupplierReturn extends TenantModel
         'reason',
         'total_amount',
     ];
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
 
     protected function casts(): array
     {

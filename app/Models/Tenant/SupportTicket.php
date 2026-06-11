@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * Support tickets stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $ticket_number
  * @property string|null $user_id
@@ -32,15 +33,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|SupportTicket search(?string $search)
+ * @method static Builder|SupportTicket filterStatus(array $statuses)
  */
 class SupportTicket extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'support_tickets';
-
     public $incrementing = false;
-
+    protected $table = 'support_tickets';
     protected $keyType = 'string';
 
     /**
@@ -62,17 +62,6 @@ class SupportTicket extends TenantModel
         'resolved_at',
         'closed_at',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'resolved_at' => 'datetime',
-            'closed_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
-        ];
-    }
 
     /**
      * Related User.
@@ -105,8 +94,36 @@ class SupportTicket extends TenantModel
     {
         $query->when($search, function (Builder $q, string $search) {
             $q->where(function (Builder $inner) use ($search) {
-                $inner->where('email', 'like', "%{$search}%")
-            );
+                $inner->where('email', 'like', "%{$search}%");
+            });
         });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
+    protected function casts(): array
+    {
+        return [
+            'resolved_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
     }
 }

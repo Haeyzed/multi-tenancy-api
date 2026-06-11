@@ -16,7 +16,9 @@ class DashboardController extends Controller
 {
     public function __construct(
         private readonly DashboardService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Aggregated KPI cards, charts, and recent records for the dashboard.

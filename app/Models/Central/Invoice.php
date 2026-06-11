@@ -66,23 +66,6 @@ class Invoice extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'status' => InvoiceStatus::class,
-            'line_items' => 'array',
-            'billing_period_start' => 'datetime',
-            'billing_period_end' => 'datetime',
-            'due_date' => 'datetime',
-            'paid_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by invoice number, notes, or payment intent ID.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -103,11 +86,11 @@ class Invoice extends Model
     /**
      * Filter by invoice status values.
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
     }
 
     /**
@@ -148,5 +131,22 @@ class Invoice extends Model
     public function subscriptionAsLatestInvoice(): HasOne
     {
         return $this->hasOne(Subscription::class, 'latest_invoice_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => InvoiceStatus::class,
+            'line_items' => 'array',
+            'billing_period_start' => 'datetime',
+            'billing_period_end' => 'datetime',
+            'due_date' => 'datetime',
+            'paid_at' => 'datetime',
+        ];
     }
 }

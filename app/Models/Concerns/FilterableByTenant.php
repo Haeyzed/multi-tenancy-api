@@ -11,7 +11,7 @@ trait FilterableByTenant
     /**
      * Scope a query to filter by tenant_id.
      *
-     * @param  Builder<static>  $query
+     * @param Builder<static> $query
      * @return Builder<static>
      */
     public function scopeForTenant(Builder $query, mixed $tenantId = null): Builder

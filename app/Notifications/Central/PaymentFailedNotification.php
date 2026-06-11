@@ -16,11 +16,13 @@ class PaymentFailedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        private readonly Tenant $tenant,
+        private readonly Tenant  $tenant,
         private readonly Invoice $invoice,
-        private readonly string $reason,
+        private readonly string  $reason,
         private readonly ?string $checkoutUrl = null,
-    ) {}
+    )
+    {
+    }
 
     /**
      * @return list<string>
@@ -36,9 +38,9 @@ class PaymentFailedNotification extends Notification implements ShouldQueue
 
         $message = (new MailMessage)
             ->subject('Action required: payment failed')
-            ->greeting('Hello '.$this->tenant->owner_name.',')
-            ->line('We could not collect **'.$amount.' '.$this->invoice->currency.'** for **'.$this->tenant->name.'**.')
-            ->line('Reason: '.$this->reason)
+            ->greeting('Hello ' . $this->tenant->owner_name . ',')
+            ->line('We could not collect **' . $amount . ' ' . $this->invoice->currency . '** for **' . $this->tenant->name . '**.')
+            ->line('Reason: ' . $this->reason)
             ->line('Your account has been suspended until payment is resolved.');
 
         if ($this->checkoutUrl !== null) {

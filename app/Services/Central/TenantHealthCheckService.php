@@ -26,7 +26,7 @@ class TenantHealthCheckService
     /**
      * Get all TenantHealthCheck records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, TenantHealthCheck>
      */
     public function getAll(?string $search = null): Collection
@@ -38,13 +38,14 @@ class TenantHealthCheckService
     }
 
     /**
-     * @param  list<string>  $status
+     * @param list<string> $status
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $status = [],
-    ): LengthAwarePaginator {
+        array   $status = [],
+    ): LengthAwarePaginator
+    {
         return TenantHealthCheck::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -57,7 +58,7 @@ class TenantHealthCheckService
     /**
      * Find TenantHealthCheck by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?TenantHealthCheck
     {
@@ -67,7 +68,7 @@ class TenantHealthCheckService
     /**
      * Find TenantHealthCheck by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): TenantHealthCheck
     {
@@ -77,7 +78,7 @@ class TenantHealthCheckService
     /**
      * Create a new TenantHealthCheck.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): TenantHealthCheck
     {
@@ -87,8 +88,8 @@ class TenantHealthCheckService
     /**
      * Update TenantHealthCheck.
      *
-     * @param  TenantHealthCheck  $tenantHealthCheck  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param TenantHealthCheck $tenantHealthCheck The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(TenantHealthCheck $tenantHealthCheck, array $data): TenantHealthCheck
     {
@@ -100,17 +101,17 @@ class TenantHealthCheckService
     /**
      * Delete TenantHealthCheck.
      *
-     * @param  TenantHealthCheck  $tenantHealthCheck  The model instance to delete.
+     * @param TenantHealthCheck $tenantHealthCheck The model instance to delete.
      */
     public function delete(TenantHealthCheck $tenantHealthCheck): bool
     {
-        return (bool) $tenantHealthCheck->delete();
+        return (bool)$tenantHealthCheck->delete();
     }
 
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, TenantHealthCheck>
      */
     public function getByTenant(string $tenantId): Collection
@@ -121,7 +122,7 @@ class TenantHealthCheckService
     /**
      * Filter by status.
      *
-     * @param  string  $status  Status value to filter by.
+     * @param string $status Status value to filter by.
      * @return Collection<int, TenantHealthCheck>
      */
     public function getByStatus(string $status): Collection
@@ -132,7 +133,7 @@ class TenantHealthCheckService
     /**
      * Filter by check type.
      *
-     * @param  string  $checkType  Health check type to filter by.
+     * @param string $checkType Health check type to filter by.
      * @return Collection<int, TenantHealthCheck>
      */
     public function getByCheckType(string $checkType): Collection
@@ -143,7 +144,7 @@ class TenantHealthCheckService
     /**
      * Get the latest health check per check type for a tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, TenantHealthCheck>
      */
     public function getLatestForTenant(string $tenantId): Collection
@@ -187,12 +188,12 @@ class TenantHealthCheckService
             ->avg('response_time_ms');
 
         return [
-            ['key' => 'total', 'label' => 'Total Checks', 'value' => (int) $counts->sum()],
-            ['key' => 'healthy', 'label' => 'Healthy', 'value' => (int) ($counts[HealthCheckStatus::Healthy->value] ?? 0)],
-            ['key' => 'warning', 'label' => 'Warning', 'value' => (int) ($counts[HealthCheckStatus::Warning->value] ?? 0)],
-            ['key' => 'critical', 'label' => 'Critical', 'value' => (int) ($counts[HealthCheckStatus::Critical->value] ?? 0)],
-            ['key' => 'unknown', 'label' => 'Unknown', 'value' => (int) ($counts[HealthCheckStatus::Unknown->value] ?? 0)],
-            ['key' => 'avg_response_time_ms', 'label' => 'Avg Response Time (ms)', 'value' => round((float) $avgResponseTime, 2)],
+            ['key' => 'total', 'label' => 'Total Checks', 'value' => (int)$counts->sum()],
+            ['key' => 'healthy', 'label' => 'Healthy', 'value' => (int)($counts[HealthCheckStatus::Healthy->value] ?? 0)],
+            ['key' => 'warning', 'label' => 'Warning', 'value' => (int)($counts[HealthCheckStatus::Warning->value] ?? 0)],
+            ['key' => 'critical', 'label' => 'Critical', 'value' => (int)($counts[HealthCheckStatus::Critical->value] ?? 0)],
+            ['key' => 'unknown', 'label' => 'Unknown', 'value' => (int)($counts[HealthCheckStatus::Unknown->value] ?? 0)],
+            ['key' => 'avg_response_time_ms', 'label' => 'Avg Response Time (ms)', 'value' => round((float)$avgResponseTime, 2)],
         ];
     }
 }

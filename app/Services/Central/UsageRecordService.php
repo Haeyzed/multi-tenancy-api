@@ -26,7 +26,7 @@ class UsageRecordService
     /**
      * Get all UsageRecord records.
      *
-     * @param  string|null  $search  Optional search term.
+     * @param string|null $search Optional search term.
      * @return Collection<int, UsageRecord>
      */
     public function getAll(?string $search = null): Collection
@@ -40,18 +40,19 @@ class UsageRecordService
     /**
      * Get paginated UsageRecord records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
      * @return LengthAwarePaginator<int, UsageRecord>
      */
     /**
-     * @param  list<string>  $metrics
+     * @param list<string> $metrics
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $metrics = [],
-    ): LengthAwarePaginator {
+        array   $metrics = [],
+    ): LengthAwarePaginator
+    {
         return UsageRecord::query()
             ->with(self::LIST_RELATIONS)
             ->forTenant()
@@ -64,7 +65,7 @@ class UsageRecordService
     /**
      * Find UsageRecord by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?UsageRecord
     {
@@ -74,7 +75,7 @@ class UsageRecordService
     /**
      * Find UsageRecord by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): UsageRecord
     {
@@ -84,7 +85,7 @@ class UsageRecordService
     /**
      * Create a new UsageRecord.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): UsageRecord
     {
@@ -96,8 +97,8 @@ class UsageRecordService
     /**
      * Update UsageRecord.
      *
-     * @param  UsageRecord  $usageRecord  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param UsageRecord $usageRecord The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(UsageRecord $usageRecord, array $data): UsageRecord
     {
@@ -109,7 +110,7 @@ class UsageRecordService
     /**
      * Delete UsageRecord.
      *
-     * @param  UsageRecord  $usageRecord  The model instance to delete.
+     * @param UsageRecord $usageRecord The model instance to delete.
      */
     public function delete(UsageRecord $usageRecord): bool
     {
@@ -119,7 +120,7 @@ class UsageRecordService
     /**
      * Filter by tenant.
      *
-     * @param  string  $tenantId  Tenant UUID.
+     * @param string $tenantId Tenant UUID.
      * @return Collection<int, UsageRecord>
      */
     public function getByTenant(string $tenantId): Collection
@@ -130,7 +131,7 @@ class UsageRecordService
     /**
      * Filter by subscription.
      *
-     * @param  string  $subscriptionId  Subscription UUID to filter by.
+     * @param string $subscriptionId Subscription UUID to filter by.
      * @return Collection<int, UsageRecord>
      */
     public function getBySubscription(string $subscriptionId): Collection
@@ -141,7 +142,7 @@ class UsageRecordService
     /**
      * Filter by metric.
      *
-     * @param  string  $metric  Usage metric name to filter by.
+     * @param string $metric Usage metric name to filter by.
      * @return Collection<int, UsageRecord>
      */
     public function getByMetric(string $metric): Collection

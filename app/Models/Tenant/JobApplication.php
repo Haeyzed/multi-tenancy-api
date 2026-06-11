@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Job applications stored in the tenant database.
+ * Job application stored in the tenant database.
+ *
  * @property string $id
  * @property string $job_posting_id
  * @property string|null $first_name
@@ -35,15 +36,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|JobApplication search(?string $search)
+ * @method static Builder|JobApplication filterStatus(array $statuses)
  */
 class JobApplication extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'job_applications';
-
     public $incrementing = false;
-
+    protected $table = 'job_applications';
     protected $keyType = 'string';
 
     /**
@@ -71,6 +71,41 @@ class JobApplication extends TenantModel
         'assigned_to',
     ];
 
+    /**
+     * Job posting this application is for.
+     */
+    public function jobPosting(): BelongsTo
+    {
+        return $this->belongsTo(JobPosting::class);
+    }
+
+    /**
+     * Scope a query to search by email.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('email', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -81,25 +116,5 @@ class JobApplication extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related JobPosting.
-     */
-    public function jobPosting(): BelongsTo
-    {
-        return $this->belongsTo(JobPosting::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('email', 'like', "%{$search}%")
-            );
-        });
     }
 }

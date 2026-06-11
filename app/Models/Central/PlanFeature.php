@@ -35,6 +35,14 @@ class PlanFeature extends Model
     ];
 
     /**
+     * Plan this feature definition belongs to.
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -44,13 +52,5 @@ class PlanFeature extends Model
         return [
             'feature_type' => FeatureType::class,
         ];
-    }
-
-    /**
-     * Plan this feature definition belongs to.
-     */
-    public function plan(): BelongsTo
-    {
-        return $this->belongsTo(Plan::class);
     }
 }

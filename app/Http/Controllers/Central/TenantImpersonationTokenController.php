@@ -21,12 +21,14 @@ class TenantImpersonationTokenController extends Controller
 {
     public function __construct(
         private readonly TenantImpersonationTokenService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated TenantImpersonationToken records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -42,7 +44,7 @@ class TenantImpersonationTokenController extends Controller
     /**
      * Create a new TenantImpersonationToken.
      *
-     * @param  StoreTenantImpersonationTokenRequest  $request  Validated request payload.
+     * @param StoreTenantImpersonationTokenRequest $request Validated request payload.
      */
     public function store(StoreTenantImpersonationTokenRequest $request): JsonResponse
     {
@@ -54,7 +56,7 @@ class TenantImpersonationTokenController extends Controller
     /**
      * Find TenantImpersonationToken by route binding.
      *
-     * @param  TenantImpersonationToken  $impersonationToken  TenantImpersonationToken instance.
+     * @param TenantImpersonationToken $impersonationToken TenantImpersonationToken instance.
      */
     public function show(TenantImpersonationToken $impersonationToken): JsonResponse
     {
@@ -69,8 +71,8 @@ class TenantImpersonationTokenController extends Controller
     /**
      * Update TenantImpersonationToken.
      *
-     * @param  UpdateTenantImpersonationTokenRequest  $request  Validated request payload.
-     * @param  TenantImpersonationToken  $impersonationToken  TenantImpersonationToken instance.
+     * @param UpdateTenantImpersonationTokenRequest $request Validated request payload.
+     * @param TenantImpersonationToken $impersonationToken TenantImpersonationToken instance.
      */
     public function update(UpdateTenantImpersonationTokenRequest $request, TenantImpersonationToken $impersonationToken): JsonResponse
     {
@@ -82,7 +84,7 @@ class TenantImpersonationTokenController extends Controller
     /**
      * Delete TenantImpersonationToken.
      *
-     * @param  TenantImpersonationToken  $impersonationToken  TenantImpersonationToken instance.
+     * @param TenantImpersonationToken $impersonationToken TenantImpersonationToken instance.
      */
     public function destroy(TenantImpersonationToken $impersonationToken): JsonResponse
     {
@@ -94,7 +96,7 @@ class TenantImpersonationTokenController extends Controller
     /**
      * Mark an impersonation token as used.
      *
-     * @param  TenantImpersonationToken  $impersonationToken  TenantImpersonationToken instance.
+     * @param TenantImpersonationToken $impersonationToken TenantImpersonationToken instance.
      */
     public function markAsUsed(TenantImpersonationToken $impersonationToken): JsonResponse
     {

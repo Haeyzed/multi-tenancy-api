@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
- * Categories stored in the tenant database.
+ * Product category stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $parent_id
- * @property string|null $name
- * @property string|null $slug
+ * @property string $name
+ * @property string $slug
  * @property string|null $description
  * @property string|null $meta_title
  * @property string|null $meta_description
@@ -32,16 +35,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|Category search(?string $search)
+ * @method static Builder|Category filterIsActive(array $statuses)
+ * @method static Builder|Category filterIsFeatured(array $values)
+ * @method static Builder|Category filterShowInMenu(array $values)
  */
 class Category extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'categories';
-
     public $incrementing = false;
-
+    protected $table = 'categories';
     protected $keyType = 'string';
 
     /**
@@ -65,6 +70,93 @@ class Category extends TenantModel
         'path',
     ];
 
+    /**
+     * Parent category in the tree.
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /**
+     * Direct child categories.
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Banner image for this category.
+     */
+    public function bannerMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'banner_media_id');
+    }
+
+    /**
+     * Icon image for this category.
+     */
+    public function iconMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'icon_media_id');
+    }
+
+    /**
+     * Scope a query to search by name, slug, or description.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Filter by featured/unfeatured tokens.
+     *
+     * @param list<string> $values
+     */
+    public function scopeFilterIsFeatured(Builder $query, array $values): void
+    {
+        $mapped = QueryFilter::booleanFeatured($values);
+
+        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_featured', $mapped));
+    }
+
+    /**
+     * Filter by menu visibility tokens (in_menu, hidden).
+     *
+     * @param list<string> $values
+     */
+    public function scopeFilterShowInMenu(Builder $query, array $values): void
+    {
+        $mapped = QueryFilter::booleanShowInMenu($values);
+
+        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('show_in_menu', $mapped));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -75,18 +167,5 @@ class Category extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('name', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-            );
-        });
     }
 }

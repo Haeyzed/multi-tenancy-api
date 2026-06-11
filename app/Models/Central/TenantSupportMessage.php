@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\MessageSenderType;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,21 +42,6 @@ class TenantSupportMessage extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'sender_type' => MessageSenderType::class,
-            'is_internal' => 'boolean',
-            'is_read' => 'boolean',
-            'read_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope messages to tickets belonging to the selected tenant.
      */
     public function scopeForTenant(Builder $query, ?string $tenantId = null): void
@@ -63,7 +49,7 @@ class TenantSupportMessage extends Model
         $tenantId ??= request()->header('X-Tenant-Id');
 
         $query->when($tenantId, function (Builder $q, string $tenantId) {
-            $q->whereHas('ticket', fn (Builder $q) => $q->where('tenant_id', $tenantId));
+            $q->whereHas('ticket', fn(Builder $q) => $q->where('tenant_id', $tenantId));
         });
     }
 
@@ -72,7 +58,7 @@ class TenantSupportMessage extends Model
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, fn (Builder $q, string $search) => $q->where('body', 'like', "%{$search}%"));
+        $query->when($search, fn(Builder $q, string $search) => $q->where('body', 'like', "%{$search}%"));
     }
 
     /**
@@ -80,17 +66,17 @@ class TenantSupportMessage extends Model
      */
     public function scopeFilterTicket(Builder $query, ?int $ticketId): void
     {
-        $query->when($ticketId, fn (Builder $q) => $q->where('ticket_id', $ticketId));
+        $query->when($ticketId, fn(Builder $q) => $q->where('ticket_id', $ticketId));
     }
 
     /**
      * Filter by read/unread tokens.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterIsRead(Builder $query, array $values): void
     {
-        $mapped = \App\Support\QueryFilter::booleanRead($values);
+        $mapped = QueryFilter::booleanRead($values);
 
         if ($mapped === []) {
             return;
@@ -117,5 +103,20 @@ class TenantSupportMessage extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sender_type' => MessageSenderType::class,
+            'is_internal' => 'boolean',
+            'is_read' => 'boolean',
+            'read_at' => 'datetime',
+        ];
     }
 }

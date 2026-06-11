@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
- * Gdpr requests stored in the tenant database.
+ * GDPR data subject request stored in the tenant database.
+ *
  * @property string $id
  * @property string $user_id
  * @property string $type
@@ -23,15 +24,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property string|null $rejection_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|GdprRequest filterStatus(array $statuses)
  */
 class GdprRequest extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'gdpr_requests';
-
     public $incrementing = false;
-
+    protected $table = 'gdpr_requests';
     protected $keyType = 'string';
 
     /**
@@ -48,6 +48,29 @@ class GdprRequest extends TenantModel
         'rejection_reason',
     ];
 
+    /**
+     * User who submitted this request.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -57,13 +80,5 @@ class GdprRequest extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

@@ -21,9 +21,11 @@ use Throwable;
 class PaystackCallbackController extends Controller
 {
     public function __construct(
-        private readonly PaystackGateway $gateway,
+        private readonly PaystackGateway              $gateway,
         private readonly PaystackChargeHandlerService $handler,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Verify a Paystack transaction and fulfill signup billing.
@@ -35,7 +37,7 @@ class PaystackCallbackController extends Controller
     {
         $reference = $request->query('reference') ?? $request->query('trxref');
 
-        if (! is_string($reference) || $reference === '') {
+        if (!is_string($reference) || $reference === '') {
             return $this->respond($request, null, 'Missing payment reference.', 422);
         }
 
@@ -61,15 +63,16 @@ class PaystackCallbackController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>|null  $data
+     * @param array<string, mixed>|null $data
      */
     private function respond(
         Request $request,
-        ?array $data,
-        string $message,
-        int $errorStatus = 200,
+        ?array  $data,
+        string  $message,
+        int     $errorStatus = 200,
         ?string $reference = null,
-    ): JsonResponse|RedirectResponse {
+    ): JsonResponse|RedirectResponse
+    {
         if ($request->expectsJson()) {
             if ($data === null) {
                 return response()->json(['message' => $message], $errorStatus);
@@ -78,7 +81,7 @@ class PaystackCallbackController extends Controller
             return $this->success($data, $message);
         }
 
-        $frontendUrl = (string) config('payments.checkout.frontend_success_url');
+        $frontendUrl = (string)config('payments.checkout.frontend_success_url');
 
         if ($frontendUrl === '') {
             if ($data === null) {
@@ -99,8 +102,8 @@ class PaystackCallbackController extends Controller
             'reference' => $reference,
             'tenant_id' => is_string($tenantId) ? $tenantId : null,
             'purpose' => is_string($verification['purpose'] ?? null) ? $verification['purpose'] : null,
-        ], fn ($value) => $value !== null && $value !== '');
+        ], fn($value) => $value !== null && $value !== '');
 
-        return redirect()->away($frontendUrl.'?'.http_build_query($query));
+        return redirect()->away($frontendUrl . '?' . http_build_query($query));
     }
 }

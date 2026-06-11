@@ -21,7 +21,9 @@ class CentralTenantOnboardedBroadcast implements ShouldBroadcastNow
 
     public function __construct(
         public Tenant $tenant,
-    ) {}
+    )
+    {
+    }
 
     /**
      * @return array<int, PrivateChannel>

@@ -22,12 +22,14 @@ class PlanController extends Controller
 {
     public function __construct(
         private readonly PlanService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Plan records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -63,7 +65,7 @@ class PlanController extends Controller
     /**
      * Create a new Plan.
      *
-     * @param  StorePlanRequest  $request  Validated request payload.
+     * @param StorePlanRequest $request Validated request payload.
      */
     public function store(StorePlanRequest $request): JsonResponse
     {
@@ -75,7 +77,7 @@ class PlanController extends Controller
     /**
      * Find Plan by route binding.
      *
-     * @param  Plan  $plan  Plan instance.
+     * @param Plan $plan Plan instance.
      */
     public function show(Plan $plan): JsonResponse
     {
@@ -87,8 +89,8 @@ class PlanController extends Controller
     /**
      * Update Plan.
      *
-     * @param  UpdatePlanRequest  $request  Validated request payload.
-     * @param  Plan  $plan  Plan instance.
+     * @param UpdatePlanRequest $request Validated request payload.
+     * @param Plan $plan Plan instance.
      */
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
@@ -100,7 +102,7 @@ class PlanController extends Controller
     /**
      * Delete Plan.
      *
-     * @param  Plan  $plan  Plan instance.
+     * @param Plan $plan Plan instance.
      */
     public function destroy(Plan $plan): JsonResponse
     {

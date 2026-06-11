@@ -51,21 +51,6 @@ class PaymentMethod extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'provider' => PaymentProvider::class,
-            'type' => PaymentMethodKind::class,
-            'billing_details' => 'array',
-            'is_default' => 'boolean',
-        ];
-    }
-
-    /**
      * Scope a query to search by brand, last4, or provider method ID.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -85,5 +70,20 @@ class PaymentMethod extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'provider' => PaymentProvider::class,
+            'type' => PaymentMethodKind::class,
+            'billing_details' => 'array',
+            'is_default' => 'boolean',
+        ];
     }
 }

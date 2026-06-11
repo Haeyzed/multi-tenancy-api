@@ -21,12 +21,14 @@ class InvoiceController extends Controller
 {
     public function __construct(
         private readonly InvoiceService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Invoice records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,7 +55,7 @@ class InvoiceController extends Controller
     /**
      * Create a new Invoice.
      *
-     * @param  StoreInvoiceRequest  $request  Validated request payload.
+     * @param StoreInvoiceRequest $request Validated request payload.
      */
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
@@ -65,7 +67,7 @@ class InvoiceController extends Controller
     /**
      * Find Invoice by route binding.
      *
-     * @param  Invoice  $invoice  Invoice instance.
+     * @param Invoice $invoice Invoice instance.
      */
     public function show(string $invoice): JsonResponse
     {
@@ -77,8 +79,8 @@ class InvoiceController extends Controller
     /**
      * Update Invoice.
      *
-     * @param  UpdateInvoiceRequest  $request  Validated request payload.
-     * @param  Invoice  $invoice  Invoice instance.
+     * @param UpdateInvoiceRequest $request Validated request payload.
+     * @param Invoice $invoice Invoice instance.
      */
     public function update(UpdateInvoiceRequest $request, Invoice $invoice): JsonResponse
     {
@@ -90,7 +92,7 @@ class InvoiceController extends Controller
     /**
      * Delete Invoice.
      *
-     * @param  Invoice  $invoice  Invoice instance.
+     * @param Invoice $invoice Invoice instance.
      */
     public function destroy(Invoice $invoice): JsonResponse
     {
@@ -112,8 +114,8 @@ class InvoiceController extends Controller
     /**
      * Mark an invoice as paid.
      *
-     * @param  Request  $request  May include optional `payment_intent_id`.
-     * @param  Invoice  $invoice  Invoice instance.
+     * @param Request $request May include optional `payment_intent_id`.
+     * @param Invoice $invoice Invoice instance.
      */
     public function markAsPaid(Request $request, Invoice $invoice): JsonResponse
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
+use App\Models\Central\Permission;
 use Illuminate\Validation\Rule;
 
 /**
@@ -26,7 +27,7 @@ class UpdatePermissionRequest extends BaseRequest
      */
     public function rules(): array
     {
-        /** @var \App\Models\Central\Permission|null $permission */
+        /** @var Permission|null $permission */
         $permission = $this->route('permission');
 
         return [

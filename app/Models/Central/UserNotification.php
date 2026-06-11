@@ -45,20 +45,6 @@ class UserNotification extends Model
         'sent_at',
     ];
 
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'data' => 'array',
-            'channel' => UserNotificationChannel::class,
-            'is_read' => 'boolean',
-            'read_at' => 'datetime',
-            'sent_at' => 'datetime',
-        ];
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -74,5 +60,19 @@ class UserNotification extends Model
             'is_read' => true,
             'read_at' => now(),
         ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+            'channel' => UserNotificationChannel::class,
+            'is_read' => 'boolean',
+            'read_at' => 'datetime',
+            'sent_at' => 'datetime',
+        ];
     }
 }

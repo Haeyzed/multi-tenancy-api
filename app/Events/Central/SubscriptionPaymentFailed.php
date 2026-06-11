@@ -15,8 +15,10 @@ class SubscriptionPaymentFailed
 
     public function __construct(
         public Subscription $subscription,
-        public Invoice $invoice,
-        public string $reason,
-        public ?string $checkoutUrl = null,
-    ) {}
+        public Invoice      $invoice,
+        public string       $reason,
+        public ?string      $checkoutUrl = null,
+    )
+    {
+    }
 }

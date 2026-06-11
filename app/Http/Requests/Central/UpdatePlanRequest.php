@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
+use App\Models\Central\Plan;
 use Illuminate\Validation\Rule;
 
 /**
@@ -26,7 +27,7 @@ class UpdatePlanRequest extends BaseRequest
      */
     public function rules(): array
     {
-        /** @var \App\Models\Central\Plan|null $plan */
+        /** @var Plan|null $plan */
         $plan = $this->route('plan');
 
         return [

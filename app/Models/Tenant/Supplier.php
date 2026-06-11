@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * Suppliers stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $name
  * @property string|null $slug
@@ -34,15 +35,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|Supplier search(?string $search)
+ * @method static Builder|Supplier filterIsActive(array $statuses)
  */
 class Supplier extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'suppliers';
-
     public $incrementing = false;
-
+    protected $table = 'suppliers';
     protected $keyType = 'string';
 
     /**
@@ -67,18 +67,6 @@ class Supplier extends TenantModel
         'created_by',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'address' => 'array',
-            'rating' => 'decimal:2',
-            'is_active' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
-        ];
-    }
-
     /**
      * Scope a query by common searchable columns.
      */
@@ -89,8 +77,39 @@ class Supplier extends TenantModel
                 $inner->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-            );
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
         });
+    }
+
+    /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
+    protected function casts(): array
+    {
+        return [
+            'address' => 'array',
+            'rating' => 'decimal:2',
+            'is_active' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
     }
 }

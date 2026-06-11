@@ -13,7 +13,9 @@ class TenantOnboarded
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public Tenant $tenant,
+        public Tenant  $tenant,
         public ?string $ownerPassword = null,
-    ) {}
+    )
+    {
+    }
 }

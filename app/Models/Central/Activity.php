@@ -30,18 +30,18 @@ class Activity extends SpatieActivity
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterLogName(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('log_name', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('log_name', $values));
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterEvent(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('event', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('event', $values));
     }
 }

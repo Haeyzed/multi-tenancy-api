@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Purchase orders stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $po_number
  * @property string $supplier_id
@@ -34,10 +35,8 @@ class PurchaseOrder extends TenantModel
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'purchase_orders';
-
     public $incrementing = false;
-
+    protected $table = 'purchase_orders';
     protected $keyType = 'string';
 
     /**
@@ -60,6 +59,31 @@ class PurchaseOrder extends TenantModel
         'created_by',
     ];
 
+    /**
+     * Related Supplier.
+     */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+
+
     protected function casts(): array
     {
         return [
@@ -73,13 +97,5 @@ class PurchaseOrder extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Supplier.
-     */
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class);
     }
 }

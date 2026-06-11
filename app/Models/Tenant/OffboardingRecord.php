@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Offboarding records stored in the tenant database.
+ *
  * @property int $id
  * @property string $employee_id
  * @property Carbon|null $resignation_date
@@ -41,6 +41,14 @@ class OffboardingRecord extends TenantModel
         'clearance_status',
     ];
 
+    /**
+     * Related Employee.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -49,13 +57,5 @@ class OffboardingRecord extends TenantModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related Employee.
-     */
-    public function employee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class);
     }
 }

@@ -21,12 +21,14 @@ class ErrorLogController extends Controller
 {
     public function __construct(
         private readonly ErrorLogService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated ErrorLog records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -54,7 +56,7 @@ class ErrorLogController extends Controller
     /**
      * Create a new ErrorLog.
      *
-     * @param  StoreErrorLogRequest  $request  Validated request payload.
+     * @param StoreErrorLogRequest $request Validated request payload.
      */
     public function store(StoreErrorLogRequest $request): JsonResponse
     {
@@ -66,7 +68,7 @@ class ErrorLogController extends Controller
     /**
      * Find ErrorLog by route binding.
      *
-     * @param  ErrorLog  $errorLog  ErrorLog instance.
+     * @param ErrorLog $errorLog ErrorLog instance.
      */
     public function show(ErrorLog $errorLog): JsonResponse
     {
@@ -76,8 +78,8 @@ class ErrorLogController extends Controller
     /**
      * Update ErrorLog.
      *
-     * @param  UpdateErrorLogRequest  $request  Validated request payload.
-     * @param  ErrorLog  $errorLog  ErrorLog instance.
+     * @param UpdateErrorLogRequest $request Validated request payload.
+     * @param ErrorLog $errorLog ErrorLog instance.
      */
     public function update(UpdateErrorLogRequest $request, ErrorLog $errorLog): JsonResponse
     {
@@ -89,7 +91,7 @@ class ErrorLogController extends Controller
     /**
      * Delete ErrorLog.
      *
-     * @param  ErrorLog  $errorLog  ErrorLog instance.
+     * @param ErrorLog $errorLog ErrorLog instance.
      */
     public function destroy(ErrorLog $errorLog): JsonResponse
     {
@@ -101,7 +103,7 @@ class ErrorLogController extends Controller
     /**
      * Mark an error log entry as resolved.
      *
-     * @param  ErrorLog  $errorLog  ErrorLog instance.
+     * @param ErrorLog $errorLog ErrorLog instance.
      */
     public function resolve(ErrorLog $errorLog): JsonResponse
     {

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * Purchase order items stored in the tenant database.
+ *
  * @property int $id
  * @property string $po_id
  * @property int|null $supplier_product_id
@@ -43,16 +43,6 @@ class PurchaseOrderItem extends TenantModel
         'notes',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'unit_cost' => 'decimal:2',
-            'line_total' => 'decimal:2',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
      * Related SupplierProduct.
      */
@@ -67,5 +57,15 @@ class PurchaseOrderItem extends TenantModel
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'unit_cost' => 'decimal:2',
+            'line_total' => 'decimal:2',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

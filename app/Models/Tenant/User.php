@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Database\Factories\Tenant\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,18 +40,15 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
- *
  * @method static Builder|User search(?string $search)
  */
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\Tenant\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable, SoftDeletes;
 
-    protected $guard_name = 'tenant';
-
     public $incrementing = false;
-
+    protected $guard_name = 'tenant';
     protected $keyType = 'string';
 
     /**
@@ -84,25 +82,9 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'phone_verified_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'birth_date' => 'date',
-            'is_active' => 'boolean',
-            'is_marketing_opt_in' => 'boolean',
-            'password' => 'hashed',
-        ];
-    }
-
     public function getNameAttribute(): string
     {
-        return trim($this->first_name.' '.$this->last_name);
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 
     /**
@@ -125,5 +107,21 @@ class User extends Authenticatable
                     ->orWhere('last_name', 'like', "%{$search}%");
             });
         });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'birth_date' => 'date',
+            'is_active' => 'boolean',
+            'is_marketing_opt_in' => 'boolean',
+            'password' => 'hashed',
+        ];
     }
 }

@@ -6,11 +6,11 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Interviews stored in the tenant database.
+ * Job interview stored in the tenant database.
+ *
  * @property int $id
  * @property string $application_id
  * @property int $stage_id
@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $rating
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|Interview filterStatus(array $statuses)
  */
 class Interview extends TenantModel
 {
@@ -47,6 +48,21 @@ class Interview extends TenantModel
         'rating',
     ];
 
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
+use App\Models\Central\Role;
 use Illuminate\Validation\Rule;
 
 /**
@@ -26,7 +27,7 @@ class UpdateRoleRequest extends BaseRequest
      */
     public function rules(): array
     {
-        /** @var \App\Models\Central\Role|null $role */
+        /** @var Role|null $role */
         $role = $this->route('role');
 
         return [

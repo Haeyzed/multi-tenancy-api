@@ -17,12 +17,14 @@ class TenantOnboardingController extends Controller
 {
     public function __construct(
         private readonly TenantOnboardingService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Onboard a new tenant with domain and subscription.
      *
-     * @param  OnboardTenantRequest  $request  Validated onboarding payload.
+     * @param OnboardTenantRequest $request Validated onboarding payload.
      */
     public function store(OnboardTenantRequest $request): JsonResponse
     {

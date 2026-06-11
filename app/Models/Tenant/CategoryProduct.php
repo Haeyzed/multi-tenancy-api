@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Category product stored in the tenant database.
+ * Category-to-product pivot stored in the tenant database.
+ *
  * @property int $id
  * @property string $category_id
  * @property string $product_id
@@ -35,17 +35,8 @@ class CategoryProduct extends TenantModel
         'sort_order',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     /**
-     * Related Category.
+     * Category in this assignment.
      */
     public function category(): BelongsTo
     {
@@ -53,10 +44,24 @@ class CategoryProduct extends TenantModel
     }
 
     /**
-     * Related Product.
+     * Product in this assignment.
      */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

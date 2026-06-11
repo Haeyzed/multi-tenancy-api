@@ -32,6 +32,11 @@ class PushNotificationToken extends Model
         'last_used_at',
     ];
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -42,10 +47,5 @@ class PushNotificationToken extends Model
             'is_active' => 'boolean',
             'last_used_at' => 'datetime',
         ];
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
- * Employees stored in the tenant database.
+ * Employee record stored in the tenant database.
+ *
  * @property string $id
  * @property string|null $employee_code
  * @property string|null $user_id
@@ -56,15 +57,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|Employee search(?string $search)
+ * @method static Builder|Employee filterStatus(array $statuses)
  */
 class Employee extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'employees';
-
     public $incrementing = false;
-
+    protected $table = 'employees';
     protected $keyType = 'string';
 
     /**
@@ -111,6 +111,81 @@ class Employee extends TenantModel
         'created_by',
     ];
 
+    /**
+     * Linked user account for this employee.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Department this employee belongs to.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Job designation for this employee.
+     */
+    public function designation(): BelongsTo
+    {
+        return $this->belongsTo(Designation::class);
+    }
+
+    /**
+     * Primary work location for this employee.
+     */
+    public function workLocation(): BelongsTo
+    {
+        return $this->belongsTo(WorkLocation::class);
+    }
+
+    /**
+     * Default shift assigned to this employee.
+     */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    /**
+     * Pay grade for this employee's compensation.
+     */
+    public function payGrade(): BelongsTo
+    {
+        return $this->belongsTo(PayGrade::class);
+    }
+
+    /**
+     * Scope a query to search by email.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('email', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -122,65 +197,5 @@ class Employee extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Related User.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Related Department.
-     */
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class);
-    }
-
-    /**
-     * Related Designation.
-     */
-    public function designation(): BelongsTo
-    {
-        return $this->belongsTo(Designation::class);
-    }
-
-    /**
-     * Related WorkLocation.
-     */
-    public function workLocation(): BelongsTo
-    {
-        return $this->belongsTo(WorkLocation::class);
-    }
-
-    /**
-     * Related Shift.
-     */
-    public function shift(): BelongsTo
-    {
-        return $this->belongsTo(Shift::class);
-    }
-
-    /**
-     * Related PayGrade.
-     */
-    public function payGrade(): BelongsTo
-    {
-        return $this->belongsTo(PayGrade::class);
-    }
-
-    /**
-     * Scope a query by common searchable columns.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('email', 'like', "%{$search}%")
-            );
-        });
     }
 }

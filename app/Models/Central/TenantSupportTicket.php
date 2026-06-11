@@ -50,21 +50,6 @@ class TenantSupportTicket extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'category' => SupportTicketCategory::class,
-            'priority' => SupportTicketPriority::class,
-            'status' => SupportTicketStatus::class,
-            'resolved_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by subject or body.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -82,27 +67,27 @@ class TenantSupportTicket extends Model
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterStatus(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('status', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('status', $values));
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterPriority(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('priority', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('priority', $values));
     }
 
     /**
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterCategory(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('category', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('category', $values));
     }
 
     /**
@@ -127,5 +112,20 @@ class TenantSupportTicket extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(TenantSupportMessage::class, 'ticket_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'category' => SupportTicketCategory::class,
+            'priority' => SupportTicketPriority::class,
+            'status' => SupportTicketStatus::class,
+            'resolved_at' => 'datetime',
+        ];
     }
 }

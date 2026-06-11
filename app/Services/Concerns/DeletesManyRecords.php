@@ -12,8 +12,8 @@ trait DeletesManyRecords
     /**
      * Delete multiple records by primary key inside a transaction.
      *
-     * @param  class-string<Model>  $modelClass
-     * @param  list<int|string>  $ids
+     * @param class-string<Model> $modelClass
+     * @param list<int|string> $ids
      */
     protected function deleteManyByIds(string $modelClass, array $ids): int
     {

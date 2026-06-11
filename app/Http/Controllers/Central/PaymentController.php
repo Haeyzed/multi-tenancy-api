@@ -22,12 +22,14 @@ class PaymentController extends Controller
 {
     public function __construct(
         private readonly PaymentService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated Payment records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -54,7 +56,7 @@ class PaymentController extends Controller
     /**
      * Create a new Payment.
      *
-     * @param  StorePaymentRequest  $request  Validated request payload.
+     * @param StorePaymentRequest $request Validated request payload.
      */
     public function store(StorePaymentRequest $request): JsonResponse
     {
@@ -66,7 +68,7 @@ class PaymentController extends Controller
     /**
      * Find Payment by route binding.
      *
-     * @param  Payment  $payment  Payment instance.
+     * @param Payment $payment Payment instance.
      */
     public function show(string $payment): JsonResponse
     {
@@ -78,8 +80,8 @@ class PaymentController extends Controller
     /**
      * Update Payment.
      *
-     * @param  UpdatePaymentRequest  $request  Validated request payload.
-     * @param  Payment  $payment  Payment instance.
+     * @param UpdatePaymentRequest $request Validated request payload.
+     * @param Payment $payment Payment instance.
      */
     public function update(UpdatePaymentRequest $request, Payment $payment): JsonResponse
     {
@@ -91,7 +93,7 @@ class PaymentController extends Controller
     /**
      * Delete Payment.
      *
-     * @param  Payment  $payment  Payment instance.
+     * @param Payment $payment Payment instance.
      */
     public function destroy(Payment $payment): JsonResponse
     {
@@ -103,8 +105,8 @@ class PaymentController extends Controller
     /**
      * Refund a payment partially or in full.
      *
-     * @param  Request  $request  Must include `amount` in smallest currency unit.
-     * @param  Payment  $payment  Payment instance.
+     * @param Request $request Must include `amount` in smallest currency unit.
+     * @param Payment $payment Payment instance.
      */
     public function refund(RefundPaymentRequest $request, Payment $payment): JsonResponse
     {

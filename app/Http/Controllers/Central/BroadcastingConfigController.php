@@ -21,7 +21,7 @@ class BroadcastingConfigController extends Controller
             'driver' => 'reverb',
             'key' => $connection['key'] ?? null,
             'host' => $options['host'] ?? 'localhost',
-            'port' => (int) ($options['port'] ?? 8080),
+            'port' => (int)($options['port'] ?? 8080),
             'scheme' => $options['scheme'] ?? 'http',
             'auth_endpoint' => url('/api/central/broadcasting/auth'),
             'channel' => 'central.tenants',

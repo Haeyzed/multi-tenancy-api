@@ -16,7 +16,7 @@ abstract class BaseRequest extends FormRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param  Validator  $validator  Validator instance with failed rules.
+     * @param Validator $validator Validator instance with failed rules.
      */
     protected function failedValidation(Validator $validator): void
     {

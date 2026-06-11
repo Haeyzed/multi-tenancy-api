@@ -38,20 +38,6 @@ class SubscriptionEvent extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'event_type' => SubscriptionEventType::class,
-            'triggered_by' => EventTriggeredBy::class,
-            'metadata' => 'array',
-        ];
-    }
-
-    /**
      * Subscription this event was recorded for.
      */
     public function subscription(): BelongsTo
@@ -73,5 +59,19 @@ class SubscriptionEvent extends Model
     public function toPlan(): BelongsTo
     {
         return $this->belongsTo(Plan::class, 'to_plan_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'event_type' => SubscriptionEventType::class,
+            'triggered_by' => EventTriggeredBy::class,
+            'metadata' => 'array',
+        ];
     }
 }

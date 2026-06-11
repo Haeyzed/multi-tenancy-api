@@ -20,12 +20,14 @@ class InvoiceItemController extends Controller
 {
     public function __construct(
         private readonly InvoiceItemService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated InvoiceItem records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -38,7 +40,7 @@ class InvoiceItemController extends Controller
     /**
      * Create a new InvoiceItem.
      *
-     * @param  StoreInvoiceItemRequest  $request  Validated request payload.
+     * @param StoreInvoiceItemRequest $request Validated request payload.
      */
     public function store(StoreInvoiceItemRequest $request): JsonResponse
     {
@@ -50,7 +52,7 @@ class InvoiceItemController extends Controller
     /**
      * Find InvoiceItem by route binding.
      *
-     * @param  InvoiceItem  $invoiceItem  InvoiceItem instance.
+     * @param InvoiceItem $invoiceItem InvoiceItem instance.
      */
     public function show(InvoiceItem $invoiceItem): JsonResponse
     {
@@ -60,8 +62,8 @@ class InvoiceItemController extends Controller
     /**
      * Update InvoiceItem.
      *
-     * @param  UpdateInvoiceItemRequest  $request  Validated request payload.
-     * @param  InvoiceItem  $invoiceItem  InvoiceItem instance.
+     * @param UpdateInvoiceItemRequest $request Validated request payload.
+     * @param InvoiceItem $invoiceItem InvoiceItem instance.
      */
     public function update(UpdateInvoiceItemRequest $request, InvoiceItem $invoiceItem): JsonResponse
     {
@@ -73,7 +75,7 @@ class InvoiceItemController extends Controller
     /**
      * Delete InvoiceItem.
      *
-     * @param  InvoiceItem  $invoiceItem  InvoiceItem instance.
+     * @param InvoiceItem $invoiceItem InvoiceItem instance.
      */
     public function destroy(InvoiceItem $invoiceItem): JsonResponse
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
+use App\Support\QueryFilter;
 use Database\Factories\Central\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,11 +38,6 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use CentralConnection, HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
-    protected static function newFactory(): UserFactory
-    {
-        return UserFactory::new();
-    }
-
     /**
      * @var list<string>
      */
@@ -53,7 +49,6 @@ class User extends Authenticatable
         'last_login_at',
         'is_active',
     ];
-
     /**
      * @var list<string>
      */
@@ -62,19 +57,9 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected static function newFactory(): UserFactory
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'is_active' => 'boolean',
-            'password' => 'hashed',
-        ];
+        return UserFactory::new();
     }
 
     /**
@@ -99,13 +84,13 @@ class User extends Authenticatable
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
-     * @param  list<string>  $statuses
+     * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = \App\Support\QueryFilter::booleanStatuses($statuses);
+        $values = QueryFilter::booleanStatuses($statuses);
 
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
     }
 
     /**
@@ -146,5 +131,20 @@ class User extends Authenticatable
     public function pushNotificationTokens(): HasMany
     {
         return $this->hasMany(PushNotificationToken::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'is_active' => 'boolean',
+            'password' => 'hashed',
+        ];
     }
 }

@@ -19,24 +19,6 @@ use Random\RandomException;
 class OtpService
 {
     /**
-     * Create a new OTP and send it to the user.
-     *
-     * @throws RandomException
-     */
-    public function issue(User $user, OtpPurpose $purpose): void
-    {
-        $this->invalidatePending($user->email, $purpose);
-
-        [$plainOtp, $record] = $this->createRecord($user, $purpose);
-
-        $user->notify(new AuthOtpNotification(
-            $plainOtp,
-            $purpose,
-            (int) config('otp.ttl_minutes'),
-        ));
-    }
-
-    /**
      * Resend the latest pending OTP or issue a new one.
      *
      * @throws RandomException
@@ -45,7 +27,7 @@ class OtpService
     {
         $user = $this->findActiveUserByEmail($email);
 
-        if (! $user) {
+        if (!$user) {
             return;
         }
 
@@ -66,8 +48,133 @@ class OtpService
         $user->notify(new AuthOtpNotification(
             $plainOtp,
             $purpose,
-            (int) config('otp.ttl_minutes'),
+            (int)config('otp.ttl_minutes'),
         ));
+    }
+
+    private function findActiveUserByEmail(string $email): ?User
+    {
+        return User::query()
+            ->where('email', $email)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    private function findLatestPending(string $email, OtpPurpose $purpose): ?Otp
+    {
+        return Otp::query()
+            ->where('email', $email)
+            ->where('purpose', $purpose)
+            ->whereNull('verified_at')
+            ->latest('id')
+            ->first();
+    }
+
+    private function assertResendAllowed(Otp $record): void
+    {
+        if ($record->last_sent_at === null) {
+            return;
+        }
+
+        $cooldownSeconds = (int)config('otp.resend_cooldown_seconds');
+        $nextAllowedAt = $record->last_sent_at->copy()->addSeconds($cooldownSeconds);
+
+        if ($nextAllowedAt->isFuture()) {
+            $waitSeconds = max(1, (int)now()->diffInSeconds($nextAllowedAt));
+
+            throw ValidationException::withMessages([
+                'email' => ["Please wait $waitSeconds seconds before requesting another code."],
+            ]);
+        }
+    }
+
+    /**
+     * @throws RandomException
+     */
+    private function regenerateOtp(Otp $record): string
+    {
+        $plainOtp = $this->generatePlainOtp();
+        $ttlMinutes = (int)config('otp.ttl_minutes');
+
+        $record->update([
+            'otp' => Hash::make($plainOtp),
+            'expires_at' => now()->addMinutes($ttlMinutes),
+            'attempts' => 0,
+        ]);
+
+        return $plainOtp;
+    }
+
+    /**
+     * @throws RandomException
+     */
+    private function generatePlainOtp(): string
+    {
+        $length = max(4, (int)config('otp.length'));
+
+        return str_pad(
+            (string)random_int(0, (10 ** $length) - 1),
+            $length,
+            '0',
+            STR_PAD_LEFT,
+        );
+    }
+
+    /**
+     * Create a new OTP and send it to the user.
+     *
+     * @throws RandomException
+     */
+    public function issue(User $user, OtpPurpose $purpose): void
+    {
+        $this->invalidatePending($user->email, $purpose);
+
+        [$plainOtp, $record] = $this->createRecord($user, $purpose);
+
+        $user->notify(new AuthOtpNotification(
+            $plainOtp,
+            $purpose,
+            (int)config('otp.ttl_minutes'),
+        ));
+    }
+
+    private function invalidatePending(string $email, OtpPurpose $purpose): void
+    {
+        Otp::query()
+            ->where('email', $email)
+            ->where('purpose', $purpose)
+            ->whereNull('verified_at')
+            ->delete();
+    }
+
+    /**
+     * Remove a consumed OTP record.
+     */
+    public function delete(Otp $record): void
+    {
+        $record->delete();
+    }
+
+    /**
+     * @return array{0: string, 1: Otp}
+     *
+     * @throws RandomException
+     */
+    private function createRecord(User $user, OtpPurpose $purpose): array
+    {
+        $plainOtp = $this->generatePlainOtp();
+        $ttlMinutes = (int)config('otp.ttl_minutes');
+
+        $record = Otp::query()->create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'otp' => Hash::make($plainOtp),
+            'purpose' => $purpose,
+            'expires_at' => now()->addMinutes($ttlMinutes),
+            'last_sent_at' => now(),
+        ]);
+
+        return [$plainOtp, $record];
     }
 
     /**
@@ -93,10 +200,10 @@ class OtpService
             ]);
         }
 
-        if (! Hash::check($otp, $record->otp)) {
+        if (!Hash::check($otp, $record->otp)) {
             $record->increment('attempts');
 
-            if ($record->attempts >= (int) config('otp.max_attempts')) {
+            if ($record->attempts >= (int)config('otp.max_attempts')) {
                 $record->delete();
             }
 
@@ -106,7 +213,7 @@ class OtpService
         }
 
         $verificationToken = Str::random(64);
-        $tokenTtlMinutes = (int) config('otp.verification_token_ttl_minutes');
+        $tokenTtlMinutes = (int)config('otp.verification_token_ttl_minutes');
 
         $record->update([
             'verified_at' => now(),
@@ -124,10 +231,11 @@ class OtpService
      * Validate a verification token for a completed OTP flow.
      */
     public function consumeVerificationToken(
-        string $email,
-        string $verificationToken,
+        string     $email,
+        string     $verificationToken,
         OtpPurpose $purpose,
-    ): Otp {
+    ): Otp
+    {
         $record = Otp::query()
             ->where('email', $email)
             ->where('purpose', $purpose)
@@ -135,125 +243,18 @@ class OtpService
             ->latest('id')
             ->first();
 
-        if ($record === null || ! $record->hasValidVerificationToken()) {
+        if ($record === null || !$record->hasValidVerificationToken()) {
             throw ValidationException::withMessages([
                 'verification_token' => ['The verification token is invalid or has expired.'],
             ]);
         }
 
-        if (! Hash::check($verificationToken, (string) $record->verification_token)) {
+        if (!Hash::check($verificationToken, (string)$record->verification_token)) {
             throw ValidationException::withMessages([
                 'verification_token' => ['The verification token is invalid or has expired.'],
             ]);
         }
 
         return $record;
-    }
-
-    /**
-     * Remove a consumed OTP record.
-     */
-    public function delete(Otp $record): void
-    {
-        $record->delete();
-    }
-
-    private function findActiveUserByEmail(string $email): ?User
-    {
-        return User::query()
-            ->where('email', $email)
-            ->where('is_active', true)
-            ->first();
-    }
-
-    private function invalidatePending(string $email, OtpPurpose $purpose): void
-    {
-        Otp::query()
-            ->where('email', $email)
-            ->where('purpose', $purpose)
-            ->whereNull('verified_at')
-            ->delete();
-    }
-
-    private function findLatestPending(string $email, OtpPurpose $purpose): ?Otp
-    {
-        return Otp::query()
-            ->where('email', $email)
-            ->where('purpose', $purpose)
-            ->whereNull('verified_at')
-            ->latest('id')
-            ->first();
-    }
-
-    /**
-     * @return array{0: string, 1: Otp}
-     *
-     * @throws RandomException
-     */
-    private function createRecord(User $user, OtpPurpose $purpose): array
-    {
-        $plainOtp = $this->generatePlainOtp();
-        $ttlMinutes = (int) config('otp.ttl_minutes');
-
-        $record = Otp::query()->create([
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'otp' => Hash::make($plainOtp),
-            'purpose' => $purpose,
-            'expires_at' => now()->addMinutes($ttlMinutes),
-            'last_sent_at' => now(),
-        ]);
-
-        return [$plainOtp, $record];
-    }
-
-    /**
-     * @throws RandomException
-     */
-    private function regenerateOtp(Otp $record): string
-    {
-        $plainOtp = $this->generatePlainOtp();
-        $ttlMinutes = (int) config('otp.ttl_minutes');
-
-        $record->update([
-            'otp' => Hash::make($plainOtp),
-            'expires_at' => now()->addMinutes($ttlMinutes),
-            'attempts' => 0,
-        ]);
-
-        return $plainOtp;
-    }
-
-    /**
-     * @throws RandomException
-     */
-    private function generatePlainOtp(): string
-    {
-        $length = max(4, (int) config('otp.length'));
-
-        return str_pad(
-            (string) random_int(0, (10 ** $length) - 1),
-            $length,
-            '0',
-            STR_PAD_LEFT,
-        );
-    }
-
-    private function assertResendAllowed(Otp $record): void
-    {
-        if ($record->last_sent_at === null) {
-            return;
-        }
-
-        $cooldownSeconds = (int) config('otp.resend_cooldown_seconds');
-        $nextAllowedAt = $record->last_sent_at->copy()->addSeconds($cooldownSeconds);
-
-        if ($nextAllowedAt->isFuture()) {
-            $waitSeconds = max(1, (int) now()->diffInSeconds($nextAllowedAt));
-
-            throw ValidationException::withMessages([
-                'email' => ["Please wait $waitSeconds seconds before requesting another code."],
-            ]);
-        }
     }
 }

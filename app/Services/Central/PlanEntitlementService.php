@@ -17,6 +17,42 @@ use Illuminate\Support\Collection;
 class PlanEntitlementService
 {
     /**
+     * Determine whether a boolean feature is enabled for the tenant.
+     *
+     * @param Tenant $tenant Tenant to check.
+     * @param string $featureKey Feature identifier (e.g. api_access).
+     */
+    public function hasFeature(Tenant $tenant, string $featureKey): bool
+    {
+        $value = $this->getFeature($tenant, $featureKey);
+
+        if ($value === null) {
+            return false;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN) || $value === 'unlimited';
+        }
+
+        return (bool)$value;
+    }
+
+    /**
+     * Get a single feature value for the tenant.
+     *
+     * @param Tenant $tenant Tenant to check.
+     * @param string $featureKey Feature identifier.
+     */
+    public function getFeature(Tenant $tenant, string $featureKey): bool|int|float|string|null
+    {
+        return $this->all($tenant)[$featureKey] ?? null;
+    }
+
+    /**
      * Get all enforceable entitlements for a tenant keyed by feature_key.
      *
      * @return array<string, bool|int|float|string>
@@ -39,47 +75,24 @@ class PlanEntitlementService
     }
 
     /**
-     * Determine whether a boolean feature is enabled for the tenant.
-     *
-     * @param  Tenant  $tenant  Tenant to check.
-     * @param  string  $featureKey  Feature identifier (e.g. api_access).
+     * Cast a plan feature row to its typed runtime value.
      */
-    public function hasFeature(Tenant $tenant, string $featureKey): bool
+    private function castFeatureValue(PlanFeature $feature): bool|int|float|string
     {
-        $value = $this->getFeature($tenant, $featureKey);
-
-        if ($value === null) {
-            return false;
-        }
-
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        if (is_string($value)) {
-            return filter_var($value, FILTER_VALIDATE_BOOLEAN) || $value === 'unlimited';
-        }
-
-        return (bool) $value;
-    }
-
-    /**
-     * Get a single feature value for the tenant.
-     *
-     * @param  Tenant  $tenant  Tenant to check.
-     * @param  string  $featureKey  Feature identifier.
-     */
-    public function getFeature(Tenant $tenant, string $featureKey): bool|int|float|string|null
-    {
-        return $this->all($tenant)[$featureKey] ?? null;
+        return match ($feature->feature_type) {
+            FeatureType::Boolean => filter_var($feature->feature_value, FILTER_VALIDATE_BOOLEAN),
+            FeatureType::Integer => (int)$feature->feature_value,
+            FeatureType::Decimal => (float)$feature->feature_value,
+            FeatureType::String => $feature->feature_value,
+        };
     }
 
     /**
      * Check whether current usage is within a numeric plan limit.
      *
-     * @param  Tenant  $tenant  Tenant to check.
-     * @param  string  $featureKey  Limit feature key (e.g. max_products).
-     * @param  int  $currentUsage  Current usage count.
+     * @param Tenant $tenant Tenant to check.
+     * @param string $featureKey Limit feature key (e.g. max_products).
+     * @param int $currentUsage Current usage count.
      */
     public function withinLimit(Tenant $tenant, string $featureKey, int $currentUsage): bool
     {
@@ -93,11 +106,11 @@ class PlanEntitlementService
             return true;
         }
 
-        if (! is_numeric($limit)) {
+        if (!is_numeric($limit)) {
             return false;
         }
 
-        return $currentUsage <= (int) $limit;
+        return $currentUsage <= (int)$limit;
     }
 
     /**
@@ -110,18 +123,5 @@ class PlanEntitlementService
         $tenant->loadMissing('plan.planFeatures');
 
         return $tenant->plan?->planFeatures ?? collect();
-    }
-
-    /**
-     * Cast a plan feature row to its typed runtime value.
-     */
-    private function castFeatureValue(PlanFeature $feature): bool|int|float|string
-    {
-        return match ($feature->feature_type) {
-            FeatureType::Boolean => filter_var($feature->feature_value, FILTER_VALIDATE_BOOLEAN),
-            FeatureType::Integer => (int) $feature->feature_value,
-            FeatureType::Decimal => (float) $feature->feature_value,
-            FeatureType::String => $feature->feature_value,
-        };
     }
 }

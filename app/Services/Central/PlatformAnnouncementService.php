@@ -7,7 +7,6 @@ namespace App\Services\Central;
 use App\Models\Central\Plan;
 use App\Models\Central\PlatformAnnouncement;
 use App\Services\Concerns\DeletesManyRecords;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -17,6 +16,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class PlatformAnnouncementService
 {
     use DeletesManyRecords;
+
     /**
      * Get all PlatformAnnouncement records.
      *
@@ -30,20 +30,21 @@ class PlatformAnnouncementService
     /**
      * Get paginated PlatformAnnouncement records.
      *
-     * @param  int  $perPage  Number of records per page.
-     * @param  string|null  $search  Optional search term.
-     * @param  list<string>  $isActive
-     * @param  list<string>  $types
-     * @param  list<string>  $targetAudiences
+     * @param int $perPage Number of records per page.
+     * @param string|null $search Optional search term.
+     * @param list<string> $isActive
+     * @param list<string> $types
+     * @param list<string> $targetAudiences
      * @return LengthAwarePaginator<int, PlatformAnnouncement>
      */
     public function getPaginated(
-        int $perPage = 15,
+        int     $perPage = 15,
         ?string $search = null,
-        array $isActive = [],
-        array $types = [],
-        array $targetAudiences = [],
-    ): LengthAwarePaginator {
+        array   $isActive = [],
+        array   $types = [],
+        array   $targetAudiences = [],
+    ): LengthAwarePaginator
+    {
         $paginator = PlatformAnnouncement::query()
             ->search($search)
             ->filterIsActive($isActive)
@@ -58,9 +59,47 @@ class PlatformAnnouncementService
     }
 
     /**
+     * Resolve plan names for API responses without N+1 queries.
+     *
+     * @param Collection<int, PlatformAnnouncement> $announcements
+     */
+    private function hydrateTargetPlanNames(Collection $announcements): void
+    {
+        if ($announcements->isEmpty()) {
+            return;
+        }
+
+        $planIds = $announcements
+            ->flatMap(fn(PlatformAnnouncement $announcement) => $announcement->target_plans ?? [])
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($planIds === []) {
+            return;
+        }
+
+        $namesById = Plan::query()
+            ->whereIn('id', $planIds)
+            ->pluck('name', 'id');
+
+        foreach ($announcements as $announcement) {
+            $announcement->setAttribute(
+                'target_plan_names',
+                collect($announcement->target_plans ?? [])
+                    ->map(fn(string $id): ?string => $namesById[$id] ?? null)
+                    ->filter()
+                    ->values()
+                    ->all(),
+            );
+        }
+    }
+
+    /**
      * Find PlatformAnnouncement by ID.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function find(int $id): ?PlatformAnnouncement
     {
@@ -70,7 +109,7 @@ class PlatformAnnouncementService
     /**
      * Find PlatformAnnouncement by ID or fail.
      *
-     * @param  int  $id  Record identifier.
+     * @param int $id Record identifier.
      */
     public function findOrFail(int $id): PlatformAnnouncement
     {
@@ -83,7 +122,7 @@ class PlatformAnnouncementService
     /**
      * Create a new PlatformAnnouncement.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public function create(array $data): PlatformAnnouncement
     {
@@ -96,8 +135,8 @@ class PlatformAnnouncementService
     /**
      * Update PlatformAnnouncement.
      *
-     * @param  PlatformAnnouncement  $platformAnnouncement  The model instance to update.
-     * @param  array<string, mixed>  $data  Attribute data to persist.
+     * @param PlatformAnnouncement $platformAnnouncement The model instance to update.
+     * @param array<string, mixed> $data Attribute data to persist.
      */
     public function update(PlatformAnnouncement $platformAnnouncement, array $data): PlatformAnnouncement
     {
@@ -112,17 +151,17 @@ class PlatformAnnouncementService
     /**
      * Delete PlatformAnnouncement.
      *
-     * @param  PlatformAnnouncement  $platformAnnouncement  The model instance to delete.
+     * @param PlatformAnnouncement $platformAnnouncement The model instance to delete.
      */
     public function delete(PlatformAnnouncement $platformAnnouncement): bool
     {
-        return (bool) $platformAnnouncement->delete();
+        return (bool)$platformAnnouncement->delete();
     }
 
     /**
      * Delete multiple announcements by ID.
      *
-     * @param  list<int>  $ids
+     * @param list<int> $ids
      */
     public function deleteMany(array $ids): int
     {
@@ -147,57 +186,20 @@ class PlatformAnnouncementService
     }
 
     /**
+     * KPI card metrics for announcements.
+     *
+     * @return list<array{key: string, label: string, value: int}>
+     */
+
+    /**
      * Filter by type.
      *
-     * @param  string  $type  Content type to filter by.
+     * @param string $type Content type to filter by.
      * @return Collection<int, PlatformAnnouncement>
      */
     public function getByType(string $type): Collection
     {
         return PlatformAnnouncement::query()->where('type', $type)->get();
-    }
-
-    /**
-     * KPI card metrics for announcements.
-     *
-     * @return list<array{key: string, label: string, value: int}>
-     */
-    /**
-     * Resolve plan names for API responses without N+1 queries.
-     *
-     * @param  Collection<int, PlatformAnnouncement>  $announcements
-     */
-    private function hydrateTargetPlanNames(Collection $announcements): void
-    {
-        if ($announcements->isEmpty()) {
-            return;
-        }
-
-        $planIds = $announcements
-            ->flatMap(fn (PlatformAnnouncement $announcement) => $announcement->target_plans ?? [])
-            ->unique()
-            ->filter()
-            ->values()
-            ->all();
-
-        if ($planIds === []) {
-            return;
-        }
-
-        $namesById = Plan::query()
-            ->whereIn('id', $planIds)
-            ->pluck('name', 'id');
-
-        foreach ($announcements as $announcement) {
-            $announcement->setAttribute(
-                'target_plan_names',
-                collect($announcement->target_plans ?? [])
-                    ->map(fn (string $id): ?string => $namesById[$id] ?? null)
-                    ->filter()
-                    ->values()
-                    ->all(),
-            );
-        }
     }
 
     public function getMetrics(): array

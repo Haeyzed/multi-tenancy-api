@@ -6,6 +6,7 @@ namespace App\Models\Central;
 
 use App\Enums\Central\ErrorLogSeverity;
 use App\Models\Concerns\FilterableByTenant;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,21 +46,6 @@ class ErrorLog extends Model
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'severity' => ErrorLogSeverity::class,
-            'context' => 'array',
-            'occurred_at' => 'datetime',
-            'resolved_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Scope a query to search by message or channel.
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -79,21 +65,21 @@ class ErrorLog extends Model
     /**
      * Filter by severity values.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterSeverity(Builder $query, array $values): void
     {
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('severity', $values));
+        $query->when($values !== [], fn(Builder $q) => $q->whereIn('severity', $values));
     }
 
     /**
      * Filter by resolved/unresolved tokens.
      *
-     * @param  list<string>  $values
+     * @param list<string> $values
      */
     public function scopeFilterResolution(Builder $query, array $values): void
     {
-        $mapped = \App\Support\QueryFilter::booleanResolved($values);
+        $mapped = QueryFilter::booleanResolved($values);
 
         if ($mapped === []) {
             return;
@@ -116,5 +102,20 @@ class ErrorLog extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'severity' => ErrorLogSeverity::class,
+            'context' => 'array',
+            'occurred_at' => 'datetime',
+            'resolved_at' => 'datetime',
+        ];
     }
 }
