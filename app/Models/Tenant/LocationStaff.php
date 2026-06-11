@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models\Tenant;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * Location staff stored in the tenant database.
+ * @property int $id
+ * @property string $location_id
+ * @property string $employee_id
+ * @property string|null $role_at_location
+ * @property bool $is_primary_location
+ * @property Carbon|null $started_at
+ * @property Carbon|null $ended_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
+class LocationStaff extends TenantModel
+{
+    use HasFactory;
+
+    protected $table = 'location_staff';
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'location_id',
+        'employee_id',
+        'role_at_location',
+        'is_primary_location',
+        'started_at',
+        'ended_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_primary_location' => 'boolean',
+            'started_at' => 'date',
+            'ended_at' => 'date',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Related Employee.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+}

@@ -1,0 +1,186 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models\Tenant;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * Employees stored in the tenant database.
+ * @property string $id
+ * @property string|null $employee_code
+ * @property string|null $user_id
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string|null $personal_email
+ * @property Carbon|null $date_of_birth
+ * @property string|null $gender
+ * @property string|null $marital_status
+ * @property string|null $nationality
+ * @property string|null $national_id
+ * @property int|null $avatar_media_id
+ * @property string $status
+ * @property Carbon|null $hire_date
+ * @property Carbon|null $termination_date
+ * @property string|null $termination_reason
+ * @property int|null $department_id
+ * @property int|null $designation_id
+ * @property string|null $manager_id
+ * @property string $employment_type
+ * @property int|null $work_location_id
+ * @property int|null $shift_id
+ * @property string $base_salary
+ * @property string|null $salary_currency
+ * @property string $salary_type
+ * @property int|null $pay_grade_id
+ * @property string|null $bank_name
+ * @property string|null $bank_account_number
+ * @property string|null $bank_account_name
+ * @property string|null $tax_id
+ * @property string|null $emergency_contact_name
+ * @property string|null $emergency_contact_phone
+ * @property string|null $emergency_contact_relation
+ * @property string|null $education_level
+ * @property string|null $bio
+ * @property string|null $notes
+ * @property string|null $created_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @method static Builder|Employee search(?string $search)
+ */
+class Employee extends TenantModel
+{
+    use HasFactory, HasUuids, SoftDeletes;
+
+    protected $table = 'employees';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'employee_code',
+        'user_id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'personal_email',
+        'date_of_birth',
+        'gender',
+        'marital_status',
+        'nationality',
+        'national_id',
+        'avatar_media_id',
+        'status',
+        'hire_date',
+        'termination_date',
+        'termination_reason',
+        'department_id',
+        'designation_id',
+        'manager_id',
+        'employment_type',
+        'work_location_id',
+        'shift_id',
+        'base_salary',
+        'salary_currency',
+        'salary_type',
+        'pay_grade_id',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_name',
+        'tax_id',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'emergency_contact_relation',
+        'education_level',
+        'bio',
+        'notes',
+        'created_by',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'date_of_birth' => 'date',
+            'hire_date' => 'date',
+            'termination_date' => 'date',
+            'base_salary' => 'decimal:2',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Related User.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Related Department.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Related Designation.
+     */
+    public function designation(): BelongsTo
+    {
+        return $this->belongsTo(Designation::class);
+    }
+
+    /**
+     * Related WorkLocation.
+     */
+    public function workLocation(): BelongsTo
+    {
+        return $this->belongsTo(WorkLocation::class);
+    }
+
+    /**
+     * Related Shift.
+     */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    /**
+     * Related PayGrade.
+     */
+    public function payGrade(): BelongsTo
+    {
+        return $this->belongsTo(PayGrade::class);
+    }
+
+    /**
+     * Scope a query by common searchable columns.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('email', 'like', "%{$search}%")
+            );
+        });
+    }
+}

@@ -7,6 +7,7 @@ namespace App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -15,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
- * Store staff account inside a tenant database.
+ * Store staff or customer account inside a tenant database.
  *
  * @property string $id
  * @property string $email
@@ -23,9 +24,21 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $first_name
  * @property string $last_name
  * @property string|null $phone
+ * @property int|null $avatar_media_id
  * @property Carbon|null $email_verified_at
+ * @property Carbon|null $phone_verified_at
  * @property Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property Carbon|null $birth_date
+ * @property string|null $gender
+ * @property string|null $locale
+ * @property string|null $timezone
  * @property bool $is_active
+ * @property bool $is_marketing_opt_in
+ * @property string|null $notes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  *
  * @method static Builder|User search(?string $search)
  */
@@ -49,9 +62,18 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'phone',
+        'avatar_media_id',
         'email_verified_at',
+        'phone_verified_at',
         'last_login_at',
+        'last_login_ip',
+        'birth_date',
+        'gender',
+        'locale',
+        'timezone',
         'is_active',
+        'is_marketing_opt_in',
+        'notes',
     ];
 
     /**
@@ -81,6 +103,14 @@ class User extends Authenticatable
     public function getNameAttribute(): string
     {
         return trim($this->first_name.' '.$this->last_name);
+    }
+
+    /**
+     * Avatar media file for this user.
+     */
+    public function avatarMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'avatar_media_id');
     }
 
     /**

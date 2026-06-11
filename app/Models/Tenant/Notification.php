@@ -1,0 +1,85 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models\Tenant;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+/**
+ * Notifications stored in the tenant database.
+ * @property string $id
+ * @property string $user_id
+ * @property string|null $type
+ * @property string|null $title
+ * @property string|null $body
+ * @property array<string, mixed>|null $data
+ * @property string $channel
+ * @property bool $is_read
+ * @property Carbon|null $read_at
+ * @property Carbon|null $sent_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @method static Builder|Notification search(?string $search)
+ */
+class Notification extends TenantModel
+{
+    use HasFactory, HasUuids;
+
+    protected $table = 'notifications';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'user_id',
+        'type',
+        'title',
+        'body',
+        'data',
+        'channel',
+        'is_read',
+        'read_at',
+        'sent_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+            'is_read' => 'boolean',
+            'read_at' => 'datetime',
+            'sent_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Related User.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Scope a query by common searchable columns.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $inner) use ($search) {
+                $inner->where('title', 'like', "%{$search}%")
+            );
+        });
+    }
+}
