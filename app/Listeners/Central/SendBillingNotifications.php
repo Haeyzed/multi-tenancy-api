@@ -24,8 +24,14 @@ class SendBillingNotifications implements ShouldQueue
 {
     public function handleTenantOnboarded(TenantOnboarded $event): void
     {
-        Notification::route('mail', $event->tenant->owner_email)
-            ->notify(new WelcomeSignupNotification($event->tenant));
+        $tenant = $event->tenant->fresh(['plan', 'domains']);
+
+        if ($tenant === null) {
+            return;
+        }
+
+        Notification::route('mail', $tenant->owner_email)
+            ->notify(new WelcomeSignupNotification($tenant));
     }
 
     public function handleSubscriptionPaymentCompleted(SubscriptionPaymentCompleted $event): void

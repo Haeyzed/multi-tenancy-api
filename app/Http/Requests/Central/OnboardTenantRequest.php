@@ -52,7 +52,7 @@ class OnboardTenantRequest extends BaseRequest
              *
              * @var string $domain
              *
-             * @example "acme-corp.saas.local"
+             * @example "acme-corp.multi-tenancy-api.test"
              */
             'domain' => 'required|string|max:255|unique:domains,domain',
 
@@ -91,6 +91,13 @@ class OnboardTenantRequest extends BaseRequest
              * @example "John Doe"
              */
             'owner_name' => 'required|string|max:255',
+
+            /**
+             * Owner account password for the tenant store admin.
+             *
+             * @var string $owner_password
+             */
+            'owner_password' => 'sometimes|string|min:8|max:255',
 
             /**
              * Optional payment provider for the subscription.

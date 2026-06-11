@@ -28,10 +28,26 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => [
-        '127.0.0.1',
-        'localhost',
-    ],
+    'central_domains' => array_values(array_filter(array_map(
+        trim(...),
+        explode(',', env('CENTRAL_DOMAINS', '127.0.0.1,localhost,multi-tenancy-api.test')),
+    ))),
+
+    /**
+     * Default suffix for tenant hostnames during onboarding (e.g. acme.multi-tenancy-api.test).
+     */
+    'tenant_domain_base' => env('TENANT_DOMAIN_BASE', 'multi-tenancy-api.test'),
+
+    /**
+     * Max seconds for self-onboarding HTTP requests (tenant DB creation + migrations).
+     */
+    'self_onboarding_max_execution_time' => (int) env('SELF_ONBOARDING_MAX_EXECUTION_TIME', 600),
+
+    /**
+     * Queue tenant database creation/migration/seed jobs instead of blocking HTTP requests.
+     * Requires a running queue worker (`php artisan queue:work`).
+     */
+    'queue_tenant_creation' => env('TENANCY_QUEUE_TENANT_CREATION', true),
 
     /**
      * Middleware applied to tenant API routes (see routes/tenant.php).
@@ -222,7 +238,12 @@ return [
      * Parameters used by the tenants:seed command.
      */
     'seeder_parameters' => [
-        '--class' => 'DatabaseSeeder', // root seeder class
-        // '--force' => true, // This needs to be true to seed tenant databases in production
+        '--class' => 'Database\\Seeders\\Tenant\\TenantDatabaseSeeder',
     ],
+
+    /**
+     * Tenant owner onboarding URLs. {domain} is replaced with the tenant hostname.
+     */
+    'owner_login_url' => env('TENANT_OWNER_LOGIN_URL', 'http://{domain}/admin/login'),
+    'owner_password_setup_url' => env('TENANT_OWNER_PASSWORD_SETUP_URL', 'http://{domain}/admin/set-password'),
 ];

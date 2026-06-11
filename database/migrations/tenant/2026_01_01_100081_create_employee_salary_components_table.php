@@ -22,7 +22,7 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->unique(['employee_id', 'component_id', 'effective_date']);
+            $table->unique(['employee_id', 'component_id', 'effective_date'], 'emp_salary_comp_eff_date_uniq');
         });
     }
 

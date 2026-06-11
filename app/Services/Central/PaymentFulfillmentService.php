@@ -18,6 +18,8 @@ use App\Models\Central\Invoice;
 use App\Models\Central\Payment;
 use App\Models\Central\Subscription;
 use App\Models\Central\SubscriptionEvent;
+use App\Models\Central\Tenant;
+use App\Support\OnboardingNotes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -28,18 +30,22 @@ class PaymentFulfillmentService
 {
     public function __construct(
         private readonly SubscriptionLifecycleService $lifecycle,
+        private readonly PaymentRecordingService $payments,
     ) {}
 
     /**
      * Activate a subscription after initial or trial-conversion payment.
+     *
+     * @param  array<string, mixed>|null  $cardMetadata
      */
     public function fulfill(
         Invoice $invoice,
         string $providerPaymentId,
         PaymentProvider $provider,
         bool $trialConversion = false,
+        ?array $cardMetadata = null,
     ): Subscription {
-        return DB::transaction(function () use ($invoice, $providerPaymentId, $provider, $trialConversion) {
+        return DB::transaction(function () use ($invoice, $providerPaymentId, $provider, $trialConversion, $cardMetadata) {
             $invoice->refresh();
 
             if ($invoice->status === InvoiceStatus::Paid) {
@@ -52,8 +58,8 @@ class PaymentFulfillmentService
             $wasPending = $tenant?->status === TenantStatus::Pending
                 || $subscription->status === SubscriptionStatus::Paused;
 
-            $this->recordPayment($invoice, $providerPaymentId, $provider);
-            $this->markInvoicePaid($invoice, $providerPaymentId);
+            $this->recordPayment($invoice, $providerPaymentId, $provider, $cardMetadata);
+            $this->markInvoicePaid($invoice, $providerPaymentId, $provider);
 
             $subscriptionStatus = SubscriptionStatus::Active;
 
@@ -74,11 +80,19 @@ class PaymentFulfillmentService
                 'trial_ends_at' => $trialConversion ? null : $tenant->trial_ends_at,
             ]);
 
-            $this->recordPaymentEvent($subscription, $plan?->id, $providerPaymentId, $invoice->id);
+            $invoice->refresh();
+
+            $this->recordPaymentEvent(
+                $subscription,
+                $plan?->id,
+                $providerPaymentId,
+                $invoice->id,
+                $invoice->notes,
+            );
 
             $subscription = $subscription->fresh(['tenant', 'plan', 'latestInvoice', 'lifecycleEvents']);
 
-            event(new SubscriptionPaymentCompleted($subscription, $invoice->fresh()));
+            event(new SubscriptionPaymentCompleted($subscription, $invoice));
 
             if ($wasPending) {
                 event(new SubscriptionCreated($subscription));
@@ -106,13 +120,21 @@ class PaymentFulfillmentService
             $invoice->refresh();
 
             if ($invoice->status !== InvoiceStatus::Paid) {
-                $this->recordPayment($invoice, $providerPaymentId, $provider);
-                $this->markInvoicePaid($invoice, $providerPaymentId);
+                $this->recordPayment($invoice, $providerPaymentId, $provider, null);
+                $this->markInvoicePaid($invoice, $providerPaymentId, $provider);
             }
 
             $subscription = $invoice->subscription()->with(['tenant', 'plan'])->firstOrFail();
 
-            $this->recordPaymentEvent($subscription, $subscription->plan_id, $providerPaymentId, $invoice->id);
+            $invoice->refresh();
+
+            $this->recordPaymentEvent(
+                $subscription,
+                $subscription->plan_id,
+                $providerPaymentId,
+                $invoice->id,
+                $invoice->notes,
+            );
 
             return $this->lifecycle->advanceBillingPeriod(
                 $subscription,
@@ -123,31 +145,43 @@ class PaymentFulfillmentService
         });
     }
 
-    private function recordPayment(Invoice $invoice, string $providerPaymentId, PaymentProvider $provider): void
-    {
-        Payment::query()->updateOrCreate(
-            [
-                'invoice_id' => $invoice->id,
-                'provider_payment_id' => $providerPaymentId,
-            ],
-            [
-                'tenant_id' => $invoice->tenant_id,
-                'amount' => $invoice->amount_due,
-                'currency' => $invoice->currency,
-                'status' => PaymentStatus::Succeeded,
-                'payment_provider' => $provider,
-            ],
+    /**
+     * @param  array<string, mixed>|null  $cardMetadata
+     */
+    private function recordPayment(
+        Invoice $invoice,
+        string $providerPaymentId,
+        PaymentProvider $provider,
+        ?array $cardMetadata = null,
+    ): void {
+        $tenant = $invoice->tenant ?? Tenant::query()->findOrFail($invoice->tenant_id);
+
+        $this->payments->recordSucceeded(
+            $tenant,
+            $provider,
+            $providerPaymentId,
+            $invoice->amount_due,
+            $invoice->currency,
+            $invoice,
+            $cardMetadata,
         );
     }
 
-    private function markInvoicePaid(Invoice $invoice, string $providerPaymentId): void
-    {
+    private function markInvoicePaid(
+        Invoice $invoice,
+        string $providerPaymentId,
+        PaymentProvider $provider,
+    ): void {
         $invoice->update([
             'status' => InvoiceStatus::Paid,
             'amount_paid' => $invoice->amount_due,
             'amount_remaining' => 0,
             'paid_at' => now(),
             'payment_intent_id' => $providerPaymentId,
+            'notes' => OnboardingNotes::compose(
+                $invoice->notes,
+                OnboardingNotes::invoicePaid($provider->value, $providerPaymentId),
+            ),
         ]);
     }
 
@@ -156,6 +190,7 @@ class PaymentFulfillmentService
         ?string $planId,
         string $providerPaymentId,
         string $invoiceId,
+        ?string $note = null,
     ): void {
         SubscriptionEvent::query()->create([
             'subscription_id' => $subscription->id,
@@ -163,10 +198,11 @@ class PaymentFulfillmentService
             'from_plan_id' => $planId,
             'to_plan_id' => $planId,
             'triggered_by' => EventTriggeredBy::Payment,
-            'metadata' => [
+            'metadata' => array_filter([
                 'invoice_id' => $invoiceId,
                 'provider_payment_id' => $providerPaymentId,
-            ],
+                'note' => $note,
+            ], fn ($value) => $value !== null && $value !== ''),
         ]);
     }
 }

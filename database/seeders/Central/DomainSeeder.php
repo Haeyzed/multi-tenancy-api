@@ -20,12 +20,14 @@ class DomainSeeder extends Seeder
      */
     public function run(): void
     {
+        $base = config('tenancy.tenant_domain_base', 'multi-tenancy-api.test');
+
         $domains = [
-            ['domain' => 'acme-corp.saas.local', 'tenant' => 'acme-corp', 'is_primary' => true, 'is_fallback' => false, 'verified' => true],
+            ['domain' => "acme-corp.{$base}", 'tenant' => 'acme-corp', 'is_primary' => true, 'is_fallback' => false, 'verified' => true],
             ['domain' => 'shop.acme.com', 'tenant' => 'acme-corp', 'is_primary' => false, 'is_fallback' => false, 'verified' => true],
-            ['domain' => 'beta-solutions.saas.local', 'tenant' => 'beta-solutions', 'is_primary' => true, 'is_fallback' => false, 'verified' => true],
-            ['domain' => 'gamma-innovations.saas.local', 'tenant' => 'gamma-innovations', 'is_primary' => true, 'is_fallback' => true, 'verified' => false],
-            ['domain' => 'delta-works.saas.local', 'tenant' => 'delta-works', 'is_primary' => true, 'is_fallback' => false, 'verified' => true],
+            ['domain' => "beta-solutions.{$base}", 'tenant' => 'beta-solutions', 'is_primary' => true, 'is_fallback' => false, 'verified' => true],
+            ['domain' => "gamma-innovations.{$base}", 'tenant' => 'gamma-innovations', 'is_primary' => true, 'is_fallback' => true, 'verified' => false],
+            ['domain' => "delta-works.{$base}", 'tenant' => 'delta-works', 'is_primary' => true, 'is_fallback' => false, 'verified' => true],
         ];
 
         foreach ($domains as $domain) {

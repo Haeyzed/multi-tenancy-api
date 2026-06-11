@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Central;
 
 /**
- * Validates self-service tenant signup payload.
+ * Validates self-service tenant onboarding payload.
  */
-class SelfServiceSignupRequest extends BaseRequest
+class SelfOnboardingRequest extends BaseRequest
 {
     public function authorize(): bool
     {
@@ -52,7 +52,7 @@ class SelfServiceSignupRequest extends BaseRequest
              *
              * @var string $domain
              *
-             * @example "acme-corp.saas.local"
+             * @example "acme-corp.multi-tenancy-api.test"
              */
             'domain' => 'required|string|max:255|unique:domains,domain',
 
@@ -93,6 +93,13 @@ class SelfServiceSignupRequest extends BaseRequest
             'owner_name' => 'required|string|max:255',
 
             /**
+             * Password for the tenant store owner account.
+             *
+             * @var string $owner_password
+             */
+            'owner_password' => 'required|string|min:8|max:255',
+
+            /**
              * Payment provider for checkout or trial card setup.
              *
              * @var string $payment_provider
@@ -106,7 +113,7 @@ class SelfServiceSignupRequest extends BaseRequest
              *
              * @var string $success_url
              *
-             * @example "https://app.example.com/signup/success"
+             * @example "https://app.example.com/self-onboarding/success"
              */
             'success_url' => 'sometimes|url',
 
@@ -115,7 +122,7 @@ class SelfServiceSignupRequest extends BaseRequest
              *
              * @var string $cancel_url
              *
-             * @example "https://app.example.com/signup/cancel"
+             * @example "https://app.example.com/self-onboarding/cancel"
              */
             'cancel_url' => 'sometimes|url',
 
@@ -136,6 +143,15 @@ class SelfServiceSignupRequest extends BaseRequest
              * @example {"industry":"retail"}
              */
             'meta' => 'sometimes|array',
+
+            /**
+             * Optional onboarding note stored on invoices and tenant billing history.
+             *
+             * @var string $notes
+             *
+             * @example "Retail store launch — Lagos branch"
+             */
+            'notes' => 'nullable|string|max:2000',
         ];
     }
 }

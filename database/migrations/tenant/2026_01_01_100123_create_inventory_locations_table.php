@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('reorder_point')->default(10);
             $table->integer('reorder_qty')->default(50);
             $table->timestamps();
-            $table->unique(['product_id', 'variant_id', 'warehouse_id', 'bin_id']);
+            $table->unique(['product_id', 'variant_id', 'warehouse_id', 'bin_id'], 'inv_loc_prod_var_wh_bin_uniq');
         });
     }
 

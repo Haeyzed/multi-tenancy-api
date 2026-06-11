@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $provider_payment_id
  * @property PaymentMethodType|null $payment_method_type
  * @property string|null $payment_method_last4
+ * @property string|null $payment_method_brand
  * @property string|null $failure_message
  * @property int $refunded_amount
  *
@@ -50,6 +51,7 @@ class Payment extends Model
         'provider_payment_id',
         'payment_method_type',
         'payment_method_last4',
+        'payment_method_brand',
         'failure_message',
         'refunded_amount',
     ];

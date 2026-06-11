@@ -4,26 +4,29 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Events\Central\Broadcasting\CentralTenantRegisteredBroadcast;
+use App\Support\OnboardingNotes;
+use App\Support\SafeBroadcast;
 use App\Enums\Central\BillingCycle;
 use App\Enums\Central\InvoiceStatus;
 use App\Enums\Central\PaymentProvider;
 use App\Enums\Central\PaymentStatus;
 use App\Enums\Central\SubscriptionStatus;
 use App\Enums\Central\TenantStatus;
-use App\Events\Central\TenantOnboarded;
 use App\Models\Central\Invoice;
 use App\Models\Central\Payment;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
 use App\Models\Central\Tenant;
 use App\Services\Payment\PaymentGatewayManager;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
- * Self-service tenant signup with optional payment checkout.
+ * Self-service tenant onboarding with optional payment checkout.
  */
-class SelfServiceSignupService
+class SelfOnboardingService
 {
     public function __construct(
         private readonly SubscriptionLifecycleService $subscriptions,
@@ -43,8 +46,10 @@ class SelfServiceSignupService
      *     invoice_id: string|null
      * }
      */
-    public function signup(array $data): array
+    public function onboard(array $data): array
     {
+        set_time_limit((int) config('tenancy.self_onboarding_max_execution_time', 600));
+
         // Tenant creation must not run inside DB::transaction — Stancl's TenantCreated
         // pipeline (CreateDatabase, MigrateDatabase) runs synchronously and breaks it.
         $slug = $data['slug'] ?? Str::slug($data['name']);
@@ -52,6 +57,22 @@ class SelfServiceSignupService
         $plan = Plan::query()->findOrFail($data['plan_id']);
         $billingCycle = BillingCycle::from($data['billing_cycle']);
         $paymentProvider = PaymentProvider::from($data['payment_provider']);
+
+        $meta = $data['meta'] ?? [];
+        $userNotes = isset($data['notes']) ? trim((string) $data['notes']) : '';
+        $onboardingNotes = OnboardingNotes::compose(
+            $userNotes !== '' ? $userNotes : null,
+            OnboardingNotes::signupStarted(
+                $plan->name,
+                $billingCycle->value,
+                $paymentProvider->value,
+            ),
+        );
+        $meta['onboarding_notes'] = $onboardingNotes;
+
+        if (! empty($data['owner_password'])) {
+            $meta['pending_owner_password'] = Crypt::encryptString($data['owner_password']);
+        }
 
         $tenant = Tenant::query()->create([
             'name' => $data['name'],
@@ -64,7 +85,7 @@ class SelfServiceSignupService
             'owner_email' => $data['owner_email'],
             'owner_name' => $data['owner_name'],
             'settings' => $data['settings'] ?? [],
-            'meta' => $data['meta'] ?? [],
+            'meta' => $meta,
         ]);
 
         $tenant->createDomain([
@@ -74,11 +95,16 @@ class SelfServiceSignupService
             'verified' => false,
         ]);
 
+        SafeBroadcast::dispatch(new CentralTenantRegisteredBroadcast(
+            $tenant->fresh(['plan', 'domains', 'activeSubscription']),
+        ));
+
         $initiated = $this->subscriptions->initiateForSignup(
             $tenant,
             $plan,
             $billingCycle,
             $paymentProvider,
+            $onboardingNotes,
         );
 
         $result = [
@@ -118,7 +144,6 @@ class SelfServiceSignupService
                 $data['cancel_url'] ?? null,
             );
             $checkoutUrl = $checkout['checkout_url'];
-            event(new TenantOnboarded($result['tenant']));
         }
 
         return [
@@ -132,7 +157,7 @@ class SelfServiceSignupService
     }
 
     /**
-     * Create a checkout session for an existing unpaid signup invoice.
+     * Create a checkout session for an existing unpaid onboarding invoice.
      *
      * @return array{checkout_url: string, invoice_id: string}
      */

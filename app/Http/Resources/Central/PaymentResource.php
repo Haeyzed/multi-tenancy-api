@@ -100,6 +100,15 @@ class PaymentResource extends JsonResource
             'payment_method_last4' => $this->payment_method_last4,
 
             /**
+             * Card brand used for the payment.
+             *
+             * @example "visa"
+             *
+             * @default null
+             */
+            'payment_method_brand' => $this->payment_method_brand,
+
+            /**
              * Failure message if the payment did not succeed.
              *
              * @example "Insufficient funds"

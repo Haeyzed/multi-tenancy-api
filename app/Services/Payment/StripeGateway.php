@@ -16,6 +16,7 @@ use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\PaymentIntent;
+use Stripe\PaymentMethod;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use UnexpectedValueException;
@@ -254,14 +255,14 @@ class StripeGateway implements RecurringPaymentGatewayContract
             return null;
         }
 
-        return [
+        return $this->enrichCardDetails([
             'provider_customer_id' => $session->customer,
             'provider_method_id' => (string) $paymentMethodId,
             'purpose' => 'trial_setup',
             'subscription_id' => $session->metadata['subscription_id'] ?? null,
             'tenant_id' => $session->metadata['tenant_id'] ?? null,
             'type' => 'card',
-        ];
+        ]);
     }
 
     /**
@@ -281,7 +282,7 @@ class StripeGateway implements RecurringPaymentGatewayContract
             return null;
         }
 
-        return [
+        return $this->enrichCardDetails([
             'provider_customer_id' => $session->customer,
             'provider_method_id' => (string) $paymentMethodId,
             'purpose' => $session->metadata['purpose'] ?? 'payment',
@@ -289,6 +290,40 @@ class StripeGateway implements RecurringPaymentGatewayContract
             'tenant_id' => $session->metadata['tenant_id'] ?? null,
             'invoice_id' => $session->metadata['invoice_id'] ?? null,
             'type' => 'card',
-        ];
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function enrichCardDetails(array $data): array
+    {
+        $paymentMethodId = $data['provider_method_id'] ?? null;
+
+        if (! is_string($paymentMethodId) || ! str_starts_with($paymentMethodId, 'pm_')) {
+            return $data;
+        }
+
+        try {
+            $method = PaymentMethod::retrieve($paymentMethodId);
+        } catch (ApiErrorException) {
+            return $data;
+        }
+
+        if (($method->type ?? null) !== 'card' || $method->card === null) {
+            return $data;
+        }
+
+        $data['last4'] = $method->card->last4 ?? null;
+        $data['brand'] = $method->card->brand ?? null;
+        $data['exp_month'] = $method->card->exp_month ?? null;
+        $data['exp_year'] = $method->card->exp_year ?? null;
+        $data['billing_details'] = array_filter([
+            'name' => $method->billing_details->name ?? null,
+            'email' => $method->billing_details->email ?? null,
+        ]);
+
+        return $data;
     }
 }

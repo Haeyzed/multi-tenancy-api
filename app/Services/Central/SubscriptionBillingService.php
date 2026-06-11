@@ -27,7 +27,7 @@ class SubscriptionBillingService
         private readonly SubscriptionLifecycleService $lifecycle,
         private readonly PaymentFulfillmentService $fulfillment,
         private readonly PaymentGatewayManager $gateways,
-        private readonly SelfServiceSignupService $signup,
+        private readonly SelfOnboardingService $selfOnboarding,
     ) {}
 
     /**
@@ -222,7 +222,7 @@ class SubscriptionBillingService
         $checkoutUrl = null;
 
         try {
-            $checkout = $this->signup->checkout(
+            $checkout = $this->selfOnboarding->checkout(
                 $subscription->tenant,
                 $subscription->payment_provider,
             );

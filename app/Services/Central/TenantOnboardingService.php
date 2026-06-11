@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
+use App\Events\Central\Broadcasting\CentralTenantRegisteredBroadcast;
+use App\Support\SafeBroadcast;
 use App\Enums\Central\BillingCycle;
 use App\Enums\Central\EventTriggeredBy;
 use App\Enums\Central\PaymentProvider;
@@ -55,6 +57,10 @@ class TenantOnboardingService
             'verified' => false,
         ]);
 
+        SafeBroadcast::dispatch(new CentralTenantRegisteredBroadcast(
+            $tenant->fresh(['plan', 'domains', 'activeSubscription']),
+        ));
+
         $paymentProvider = isset($data['payment_provider'])
             ? PaymentProvider::from($data['payment_provider'])
             : null;
@@ -69,7 +75,10 @@ class TenantOnboardingService
 
         $tenant = $tenant->fresh(['plan', 'domains', 'activeSubscription']);
 
-        event(new TenantOnboarded($tenant));
+        event(new TenantOnboarded(
+            $tenant,
+            $data['owner_password'] ?? null,
+        ));
 
         return $tenant;
     }

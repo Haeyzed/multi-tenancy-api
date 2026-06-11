@@ -10,6 +10,8 @@ use App\Models\Central\PaymentMethod;
 use App\Models\Central\Tenant;
 use App\Services\Central\PaymentFulfillmentService;
 use App\Services\Central\PaymentMethodSetupService;
+use App\Services\Central\PaymentRecordingService;
+use App\Support\OnboardingNotes;
 use RuntimeException;
 
 /**
@@ -21,6 +23,7 @@ class PaystackChargeHandlerService
         private readonly PaystackGateway $gateway,
         private readonly PaymentFulfillmentService $fulfillment,
         private readonly PaymentMethodSetupService $setup,
+        private readonly PaymentRecordingService $payments,
     ) {}
 
     /**
@@ -32,7 +35,8 @@ class PaystackChargeHandlerService
      *     subscription_id: string|null,
      *     invoice_id: string|null,
      *     payment_method_saved: bool,
-     *     tenant_activated: bool
+     *     tenant_activated: bool,
+     *     payment_recorded: bool
      * }
      */
     public function handleSuccessfulCharge(array $charge): array
@@ -48,6 +52,7 @@ class PaystackChargeHandlerService
         $purpose = (string) ($metadata['purpose'] ?? 'payment');
         $tenantId = isset($metadata['tenant_id']) ? (string) $metadata['tenant_id'] : null;
         $subscriptionId = isset($metadata['subscription_id']) ? (string) $metadata['subscription_id'] : null;
+        $methodData = $this->gateway->extractPaymentMethodFromWebhook($event);
 
         if ($this->gateway->isSetupWebhook($event)) {
             $alreadySaved = $tenantId !== null
@@ -55,6 +60,38 @@ class PaystackChargeHandlerService
 
             if (! $alreadySaved) {
                 $this->setup->handlePaystackSetup($event);
+            }
+
+            $paymentRecorded = false;
+
+            if ($tenantId !== null) {
+                $tenant = Tenant::query()->find($tenantId);
+
+                if ($tenant !== null) {
+                    $this->payments->recordSucceeded(
+                        $tenant,
+                        PaymentProvider::Paystack,
+                        $reference,
+                        (int) ($charge['amount'] ?? config('payments.trial_setup_amount', 10_000)),
+                        strtoupper((string) ($charge['currency'] ?? 'NGN')),
+                        null,
+                        $methodData,
+                    );
+
+                    $meta = $tenant->meta ?? [];
+                    $meta['onboarding_notes'] = OnboardingNotes::compose(
+                        $meta['onboarding_notes'] ?? null,
+                        OnboardingNotes::trialVerificationPaid(
+                            PaymentProvider::Paystack->value,
+                            $reference,
+                            (int) ($charge['amount'] ?? config('payments.trial_setup_amount', 10_000)),
+                            strtoupper((string) ($charge['currency'] ?? 'NGN')),
+                        ),
+                    );
+                    $tenant->update(['meta' => $meta]);
+
+                    $paymentRecorded = true;
+                }
             }
 
             return [
@@ -66,6 +103,7 @@ class PaystackChargeHandlerService
                 'payment_method_saved' => true,
                 'tenant_activated' => $tenantId !== null
                     && Tenant::query()->whereKey($tenantId)->value('status') === 'active',
+                'payment_recorded' => $paymentRecorded,
             ];
         }
 
@@ -78,9 +116,13 @@ class PaystackChargeHandlerService
         $invoice = Invoice::query()->findOrFail($invoiceId);
         $wasPending = $invoice->status->value !== 'paid';
 
-        $this->fulfillment->fulfill($invoice, $reference, PaymentProvider::Paystack);
-
-        $methodData = $this->gateway->extractPaymentMethodFromWebhook($event);
+        $this->fulfillment->fulfill(
+            $invoice,
+            $reference,
+            PaymentProvider::Paystack,
+            false,
+            $methodData,
+        );
 
         if ($methodData !== null) {
             $this->setup->persistDetails($methodData, PaymentProvider::Paystack);
@@ -94,6 +136,7 @@ class PaystackChargeHandlerService
             'invoice_id' => $invoiceId,
             'payment_method_saved' => $methodData !== null,
             'tenant_activated' => $wasPending,
+            'payment_recorded' => true,
         ];
     }
 }

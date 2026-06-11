@@ -23,6 +23,7 @@ class PaymentMethodService
     {
         return PaymentMethod::query()
             ->forTenant()
+            ->with('tenant')
             ->search($search)
             ->get();
     }
@@ -38,6 +39,7 @@ class PaymentMethodService
     {
         return PaymentMethod::query()
             ->forTenant()
+            ->with('tenant')
             ->search($search)
             ->paginate($perPage);
     }
@@ -49,7 +51,7 @@ class PaymentMethodService
      */
     public function find(int $id): ?PaymentMethod
     {
-        return PaymentMethod::query()->find($id);
+        return PaymentMethod::query()->with('tenant')->find($id);
     }
 
     /**
@@ -59,7 +61,7 @@ class PaymentMethodService
      */
     public function findOrFail(int $id): PaymentMethod
     {
-        return PaymentMethod::query()->findOrFail($id);
+        return PaymentMethod::query()->with('tenant')->findOrFail($id);
     }
 
     /**

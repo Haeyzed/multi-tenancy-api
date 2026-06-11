@@ -15,7 +15,6 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('warehouse_id')->constrained('warehouses');
             $table->enum('status', ['pending', 'picking', 'picked', 'packed', 'shipped', 'cancelled'])->default('pending');
-            $table->timestamp('created_at')->useCurrent();
             $table->timestamp('completed_at')->nullable();
             $table->foreignUuid('picker_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->foreignUuid('packer_id')->nullable()->constrained('employees')->nullOnDelete();

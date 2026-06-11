@@ -20,6 +20,11 @@ class TenantFactory extends Factory
 {
     protected $model = Tenant::class;
 
+    private function tenantDomain(string $slug): string
+    {
+        return $slug.'.'.config('tenancy.tenant_domain_base', 'multi-tenancy-api.test');
+    }
+
     /**
      * Define the model's default state.
      *
@@ -34,7 +39,7 @@ class TenantFactory extends Factory
             'name' => $name,
             'slug' => $slug,
             'database' => 'tenant_'.$slug,
-            'domain' => "{$slug}.saas.local",
+            'domain' => $this->tenantDomain($slug),
             'status' => TenantStatus::Active,
             'plan_id' => Plan::factory(),
             'billing_cycle' => fake()->randomElement(BillingCycle::cases()),
@@ -58,7 +63,7 @@ class TenantFactory extends Factory
             'name' => 'Acme Corp',
             'slug' => 'acme-corp',
             'database' => 'tenant_acme_corp',
-            'domain' => 'acme-corp.saas.local',
+            'domain' => $this->tenantDomain('acme-corp'),
             'status' => TenantStatus::Active,
             'billing_cycle' => BillingCycle::Monthly,
             'trial_ends_at' => now()->subDays(45),
@@ -81,7 +86,7 @@ class TenantFactory extends Factory
             'name' => 'Beta Solutions',
             'slug' => 'beta-solutions',
             'database' => 'tenant_beta_solutions',
-            'domain' => 'beta-solutions.saas.local',
+            'domain' => $this->tenantDomain('beta-solutions'),
             'status' => TenantStatus::Active,
             'billing_cycle' => BillingCycle::Yearly,
             'trial_ends_at' => now()->subDays(90),
@@ -104,7 +109,7 @@ class TenantFactory extends Factory
             'name' => 'Gamma Innovations',
             'slug' => 'gamma-innovations',
             'database' => 'tenant_gamma_innovations',
-            'domain' => 'gamma-innovations.saas.local',
+            'domain' => $this->tenantDomain('gamma-innovations'),
             'status' => TenantStatus::Pending,
             'billing_cycle' => BillingCycle::Monthly,
             'trial_ends_at' => now()->addDays(10),
@@ -127,7 +132,7 @@ class TenantFactory extends Factory
             'name' => 'Delta Works',
             'slug' => 'delta-works',
             'database' => 'tenant_delta_works',
-            'domain' => 'delta-works.saas.local',
+            'domain' => $this->tenantDomain('delta-works'),
             'status' => TenantStatus::Suspended,
             'billing_cycle' => BillingCycle::Monthly,
             'trial_ends_at' => now()->subDays(120),
@@ -150,7 +155,7 @@ class TenantFactory extends Factory
             'name' => 'Epsilon Ltd',
             'slug' => 'epsilon-ltd',
             'database' => 'tenant_epsilon_ltd',
-            'domain' => 'epsilon-ltd.saas.local',
+            'domain' => $this->tenantDomain('epsilon-ltd'),
             'status' => TenantStatus::Cancelled,
             'plan_id' => null,
             'billing_cycle' => BillingCycle::Monthly,

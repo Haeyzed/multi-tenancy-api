@@ -6,33 +6,35 @@ namespace App\Http\Controllers\Central;
 
 use App\Enums\Central\PaymentProvider;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Central\SelfServiceSignupRequest;
-use App\Http\Requests\Central\SignupCheckoutRequest;
+use App\Http\Requests\Central\SelfOnboardingCheckoutRequest;
+use App\Http\Requests\Central\SelfOnboardingRequest;
 use App\Http\Resources\Central\TenantResource;
 use App\Models\Central\Tenant;
-use App\Services\Central\SelfServiceSignupService;
+use App\Services\Central\SelfOnboardingService;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Self-service tenant registration and checkout.
+ * Self-service tenant onboarding and checkout.
  */
-class SignupController extends Controller
+class SelfOnboardingController extends Controller
 {
     public function __construct(
-        private readonly SelfServiceSignupService $service,
+        private readonly SelfOnboardingService $service,
     ) {}
 
     /**
      * Register a new tenant and optionally redirect to payment.
      */
-    public function store(SelfServiceSignupRequest $request): JsonResponse
+    public function store(SelfOnboardingRequest $request): JsonResponse
     {
-        $result = $this->service->signup($request->validated());
+        set_time_limit((int) config('tenancy.self_onboarding_max_execution_time', 600));
+
+        $result = $this->service->onboard($request->validated());
 
         $message = match (true) {
-            $result['requires_payment'] => 'Signup initiated. Complete payment to activate your account.',
-            $result['requires_payment_method'] => 'Signup completed. Add a payment method to continue after your trial.',
-            default => 'Signup completed. Your trial has started.',
+            $result['requires_payment'] => 'Self-onboarding initiated. Complete payment to activate your account.',
+            $result['requires_payment_method'] => 'Self-onboarding started. Add a payment method to continue after your trial.',
+            default => 'Self-onboarding completed. Your trial has started.',
         };
 
         return $this->created([
@@ -46,9 +48,9 @@ class SignupController extends Controller
     }
 
     /**
-     * Create a new checkout session for a pending signup.
+     * Create a new checkout session for a pending self-onboarding tenant.
      */
-    public function checkout(SignupCheckoutRequest $request, Tenant $tenant): JsonResponse
+    public function checkout(SelfOnboardingCheckoutRequest $request, Tenant $tenant): JsonResponse
     {
         $provider = PaymentProvider::from($request->string('payment_provider')->toString());
 

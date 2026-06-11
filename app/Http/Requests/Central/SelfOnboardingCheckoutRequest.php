@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Central;
 
 /**
- * Validates checkout retry payload for pending signups.
+ * Validates checkout retry payload for pending self-onboarding tenants.
  */
-class SignupCheckoutRequest extends BaseRequest
+class SelfOnboardingCheckoutRequest extends BaseRequest
 {
     public function authorize(): bool
     {
@@ -34,7 +34,7 @@ class SignupCheckoutRequest extends BaseRequest
              *
              * @var string $success_url
              *
-             * @example "https://app.example.com/signup/success"
+             * @example "https://app.example.com/self-onboarding/success"
              */
             'success_url' => 'sometimes|url',
 
@@ -43,7 +43,7 @@ class SignupCheckoutRequest extends BaseRequest
              *
              * @var string $cancel_url
              *
-             * @example "https://app.example.com/signup/cancel"
+             * @example "https://app.example.com/self-onboarding/cancel"
              */
             'cancel_url' => 'sometimes|url',
         ];

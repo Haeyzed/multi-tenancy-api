@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\Central\TenantOnboarded;
+use App\Listeners\Central\BroadcastCentralTenantOnboarded;
 use App\Listeners\Central\LogCentralLifecycleEvents;
+use App\Listeners\Central\ProvisionTenantOwner;
 use App\Listeners\Central\SendBillingNotifications;
 use App\Enums\Central\UserRole;
 use App\Models\Central\User;
@@ -10,6 +13,7 @@ use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +31,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Broadcast::routes([
+            'middleware' => ['auth:sanctum'],
+            'prefix' => 'api/central',
+        ]);
+
+        Event::listen(TenantOnboarded::class, ProvisionTenantOwner::class);
+        Event::listen(TenantOnboarded::class, BroadcastCentralTenantOnboarded::class);
         Event::subscribe(LogCentralLifecycleEvents::class);
         Event::subscribe(SendBillingNotifications::class);
 

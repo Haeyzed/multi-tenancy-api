@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Central\BroadcastingConfigController;
 use App\Http\Controllers\Central\ActivityController;
 use App\Http\Controllers\Central\ApiKeyController;
 use App\Http\Controllers\Central\AuthController;
@@ -22,7 +23,7 @@ use App\Http\Controllers\Central\PlatformAnnouncementController;
 use App\Http\Controllers\Central\PlatformChangelogController;
 use App\Http\Controllers\Central\PublicPlanController;
 use App\Http\Controllers\Central\RoleController;
-use App\Http\Controllers\Central\SignupController;
+use App\Http\Controllers\Central\SelfOnboardingController;
 use App\Http\Controllers\Central\StripeWebhookController;
 use App\Http\Controllers\Central\SubscriptionController;
 use App\Http\Controllers\Central\SubscriptionEventController;
@@ -70,13 +71,13 @@ Route::prefix('central')
 
         /*
         |------------------------------------------------------------------
-        | Public Self-Service Signup & Payments
+        | Public Self-Onboarding & Payments
         |------------------------------------------------------------------
         */
         Route::get('plans/public', [PublicPlanController::class, 'index'])->name('plans.public');
         Route::get('payments/config', [PaymentConfigController::class, 'index'])->name('payments.config');
-        Route::post('signup', [SignupController::class, 'store'])->name('signup.store');
-        Route::post('signup/{tenant}/checkout', [SignupController::class, 'checkout'])->name('signup.checkout');
+        Route::post('self-onboarding', [SelfOnboardingController::class, 'store'])->name('self-onboarding.store');
+        Route::post('self-onboarding/{tenant}/checkout', [SelfOnboardingController::class, 'checkout'])->name('self-onboarding.checkout');
 
         Route::get('payments/paystack/callback', PaystackCallbackController::class)
             ->name('payments.paystack.callback');
@@ -92,6 +93,9 @@ Route::prefix('central')
                 ->name('auth.change-password.otp');
             Route::post('auth/change-password', [AuthController::class, 'changePassword'])
                 ->name('auth.change-password');
+
+            Route::get('broadcasting/config', BroadcastingConfigController::class)
+                ->name('broadcasting.config');
 
             /*
             |------------------------------------------------------------------

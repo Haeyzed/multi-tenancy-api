@@ -22,6 +22,7 @@ use App\Models\Central\Subscription;
 use App\Models\Central\SubscriptionEvent;
 use App\Models\Central\SubscriptionItem;
 use App\Models\Central\Tenant;
+use App\Support\OnboardingNotes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -83,8 +84,9 @@ class SubscriptionLifecycleService
         Plan $plan,
         BillingCycle $billingCycle,
         PaymentProvider $paymentProvider,
+        ?string $onboardingNotes = null,
     ): array {
-        return DB::transaction(function () use ($tenant, $plan, $billingCycle, $paymentProvider) {
+        return DB::transaction(function () use ($tenant, $plan, $billingCycle, $paymentProvider, $onboardingNotes) {
             $now = now();
             $trialEndsAt = $plan->trial_days > 0 ? $now->copy()->addDays($plan->trial_days) : null;
             $periodEnd = $this->periodEnd($now, $billingCycle);
@@ -106,7 +108,18 @@ class SubscriptionLifecycleService
             $invoice = null;
 
             if ($requiresPayment) {
-                $invoice = $this->generateInvoice($subscription, $plan, $billingCycle, $now, $periodEnd);
+                $invoiceNotes = OnboardingNotes::compose(
+                    $onboardingNotes,
+                    OnboardingNotes::invoiceIssued($plan->name, $billingCycle->value),
+                );
+                $invoice = $this->generateInvoice(
+                    $subscription,
+                    $plan,
+                    $billingCycle,
+                    $now,
+                    $periodEnd,
+                    $invoiceNotes,
+                );
                 $subscription->update(['latest_invoice_id' => $invoice->id]);
             }
 
@@ -116,20 +129,17 @@ class SubscriptionLifecycleService
                 null,
                 $plan->id,
                 EventTriggeredBy::User,
+                $onboardingNotes !== null ? ['note' => $onboardingNotes] : null,
             );
 
             $tenant->update([
                 'plan_id' => $plan->id,
                 'billing_cycle' => $billingCycle,
-                'status' => $requiresPayment ? TenantStatus::Pending : TenantStatus::Active,
+                'status' => TenantStatus::Pending,
                 'trial_ends_at' => $trialEndsAt,
-                'subscribed_at' => $requiresPayment ? null : $now,
+                'subscribed_at' => null,
                 'expires_at' => $periodEnd,
             ]);
-
-            if (! $requiresPayment) {
-                event(new SubscriptionCreated($subscription->fresh(['tenant', 'plan', 'latestInvoice'])));
-            }
 
             return [
                 'subscription' => $subscription->fresh(['plan', 'subscriptionItems', 'latestInvoice', 'lifecycleEvents']),
@@ -411,6 +421,7 @@ class SubscriptionLifecycleService
         BillingCycle $billingCycle,
         Carbon $periodStart,
         Carbon $periodEnd,
+        ?string $notes = null,
     ): Invoice {
         $amount = $billingCycle === BillingCycle::Yearly ? $plan->price_yearly : $plan->price_monthly;
 
@@ -426,6 +437,7 @@ class SubscriptionLifecycleService
             'billing_period_start' => $periodStart,
             'billing_period_end' => $periodEnd,
             'due_date' => $periodStart->copy()->addDays(7),
+            'notes' => $notes,
             'line_items' => [
                 [
                     'description' => "{$plan->name} ({$billingCycle->value})",

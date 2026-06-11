@@ -14,5 +14,6 @@ class TenantOnboarded
 
     public function __construct(
         public Tenant $tenant,
+        public ?string $ownerPassword = null,
     ) {}
 }

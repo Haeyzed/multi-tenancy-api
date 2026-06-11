@@ -25,7 +25,7 @@ return new class extends Migration
             $table->integer('priority')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->index(['product_id', 'is_active', 'start_date', 'end_date']);
+            $table->index(['product_id', 'is_active', 'start_date', 'end_date'], 'ppr_product_active_dates_idx');
         });
     }
 

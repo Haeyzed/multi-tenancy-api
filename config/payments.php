@@ -27,11 +27,11 @@ return [
         'success_url' => env('CHECKOUT_SUCCESS_URL', env('APP_URL').'/api/central/payments/paystack/callback'),
         'frontend_success_url' => env(
             'CHECKOUT_FRONTEND_SUCCESS_URL',
-            rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/central/signup/success',
+            rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/onboard/success',
         ),
         'cancel_url' => env(
             'CHECKOUT_CANCEL_URL',
-            rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/central/signup/cancel',
+            rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/onboard/cancel',
         ),
     ],
 

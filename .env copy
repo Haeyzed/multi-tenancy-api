@@ -33,7 +33,7 @@ SESSION_ENCRYPT=false
 SESSION_PATH=/
 SESSION_DOMAIN=null
 
-BROADCAST_CONNECTION=log
+BROADCAST_CONNECTION=reverb
 FILESYSTEM_DISK=local
 QUEUE_CONNECTION=database
 
@@ -68,7 +68,7 @@ VITE_APP_NAME="${APP_NAME}"
 # Frontend app URL (Next.js) — used for post-payment redirects and cancel links
 FRONTEND_URL=http://localhost:3000
 
-# Payment providers (platform-level keys for self-service signup)
+# Payment providers (platform-level keys for self-service onboarding)
 STRIPE_KEY=
 STRIPE_SECRET=
 STRIPE_WEBHOOK_SECRET=
@@ -78,11 +78,45 @@ PAYSTACK_SECRET_KEY=sk_test_6aabb873734f2dd0eec9271338be66252d6a64e3
 
 # Paystack redirects here first; API verifies payment then sends the browser to CHECKOUT_FRONTEND_SUCCESS_URL
 CHECKOUT_SUCCESS_URL="${APP_URL}/api/central/payments/paystack/callback"
-CHECKOUT_FRONTEND_SUCCESS_URL="${FRONTEND_URL}/central/signup/success"
-CHECKOUT_CANCEL_URL="${FRONTEND_URL}/central/signup/cancel"
+CHECKOUT_FRONTEND_SUCCESS_URL="${FRONTEND_URL}/self-onboarding/success"
+CHECKOUT_CANCEL_URL="${FRONTEND_URL}/self-onboarding/cancel"
 
-# Paystack card verification amount during trial signup (in kobo)
+# Paystack card verification amount during trial signup (kobo). Minimum ₦100 = 10000.
 PAYSTACK_TRIAL_SETUP_AMOUNT=10000
+# Payment channels for Paystack checkout (comma-separated). Use card for saved authorizations.
+PAYSTACK_CHANNELS=card
+# Minimum Paystack charge in kobo (₦100 = 10000)
+PAYSTACK_MIN_AMOUNT=10000
 
 # Days before trial end to send reminder email
 TRIAL_REMINDER_DAYS=3
+
+# Stancl tenancy — central app hostnames (comma-separated)
+CENTRAL_DOMAINS=127.0.0.1,localhost,multi-tenancy-api.test
+
+# Default suffix for new tenant domains: {slug}.multi-tenancy-api.test
+TENANT_DOMAIN_BASE=multi-tenancy-api.test
+
+# Tenant owner links in welcome email; {domain} is replaced with the tenant hostname
+TENANT_OWNER_LOGIN_URL=http://{domain}/admin/login
+TENANT_OWNER_PASSWORD_SETUP_URL=http://{domain}/admin/set-password
+
+# Self-onboarding runs tenant migrations synchronously; allow extra time (seconds)
+SELF_ONBOARDING_MAX_EXECUTION_TIME=600
+
+# Queue tenant DB setup so self-onboarding returns quickly (requires: php artisan queue:work)
+TENANCY_QUEUE_TENANT_CREATION=true
+
+
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=400974
+REVERB_APP_KEY=ii6f1hs9igofrr3mtetb
+REVERB_APP_SECRET=n2sghncwjgass5lviiut
+REVERB_HOST="localhost"
+REVERB_PORT=8080
+REVERB_SCHEME=http
+
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"

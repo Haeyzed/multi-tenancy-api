@@ -60,16 +60,21 @@ class StripeWebhookController extends Controller
 
         $invoice = Invoice::query()->findOrFail($invoiceId);
 
-        $this->fulfillment->fulfill($invoice, $providerPaymentId, PaymentProvider::Stripe);
-
         $sessionId = $event['data']['object']['id'] ?? null;
+        $cardMetadata = $sessionId !== null
+            ? $this->gateway->resolvePaymentDetails((string) $sessionId)
+            : null;
 
-        if ($sessionId !== null) {
-            $details = $this->gateway->resolvePaymentDetails((string) $sessionId);
+        $this->fulfillment->fulfill(
+            $invoice,
+            $providerPaymentId,
+            PaymentProvider::Stripe,
+            false,
+            $cardMetadata,
+        );
 
-            if ($details !== null) {
-                $this->setup->persistDetails($details, PaymentProvider::Stripe);
-            }
+        if ($cardMetadata !== null) {
+            $this->setup->persistDetails($cardMetadata, PaymentProvider::Stripe);
         }
 
         return response()->json(['received' => true]);
