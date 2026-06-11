@@ -26,10 +26,13 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $service,
-    )
-    {
-    }
+    ) {}
 
+    /**
+     * Authenticate and issue an API token.
+     *
+     * @param  LoginRequest  $request  Validated login credentials.
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->service->login(
@@ -43,6 +46,11 @@ class AuthController extends Controller
         ], 'Login successful.');
     }
 
+    /**
+     * Revoke the current API token.
+     *
+     * @param  Request  $request  Incoming HTTP request.
+     */
     public function logout(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -52,6 +60,11 @@ class AuthController extends Controller
         return $this->deleted('Logged out successfully.');
     }
 
+    /**
+     * Get the authenticated user profile.
+     *
+     * @param  Request  $request  Incoming HTTP request.
+     */
     public function me(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -61,6 +74,10 @@ class AuthController extends Controller
     }
 
     /**
+     * Send a password-reset OTP to the given email address.
+     *
+     * @param  ForgotPasswordRequest  $request  Validated email address.
+     *
      * @throws RandomException
      */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
@@ -71,6 +88,10 @@ class AuthController extends Controller
     }
 
     /**
+     * Resend an OTP for the given email and purpose.
+     *
+     * @param  ResendOtpRequest  $request  Validated resend payload.
+     *
      * @throws RandomException
      */
     public function resendOtp(ResendOtpRequest $request): JsonResponse
@@ -83,6 +104,11 @@ class AuthController extends Controller
         return $this->success(message: 'If an account exists for that email, a verification code has been sent.');
     }
 
+    /**
+     * Verify an OTP and issue a short-lived verification token.
+     *
+     * @param  VerifyOtpRequest  $request  Validated verification payload.
+     */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         $result = $this->service->verifyOtp(
@@ -94,6 +120,11 @@ class AuthController extends Controller
         return $this->success($result, 'Verification successful.');
     }
 
+    /**
+     * Reset the account password using a verified OTP token.
+     *
+     * @param  ResetPasswordRequest  $request  Validated reset payload.
+     */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $this->service->resetPassword(
@@ -106,6 +137,10 @@ class AuthController extends Controller
     }
 
     /**
+     * Send an OTP to confirm a password change for the authenticated user.
+     *
+     * @param  Request  $request  Incoming HTTP request.
+     *
      * @throws RandomException
      */
     public function requestPasswordChangeOtp(Request $request): JsonResponse
@@ -117,6 +152,11 @@ class AuthController extends Controller
         return $this->success(message: 'A verification code has been sent to your email.');
     }
 
+    /**
+     * Change the authenticated user's password.
+     *
+     * @param  ChangePasswordRequest  $request  Validated change payload.
+     */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         /** @var User $user */

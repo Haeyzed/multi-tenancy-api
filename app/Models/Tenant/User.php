@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Support\QueryFilter;
 use Database\Factories\Tenant\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -41,6 +42,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @method static Builder|User search(?string $search)
+ * @method static Builder|User filterIsActive(array $statuses)
  */
 class User extends Authenticatable
 {
@@ -101,8 +103,8 @@ class User extends Authenticatable
     public function scopeSearch(Builder $query, ?string $search): void
     {
         $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $inner) use ($search) {
-                $inner->where('email', 'like', "%{$search}%")
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
             });
@@ -110,6 +112,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Filter by active/inactive status tokens (active, inactive).
+     *
+     * @param list<string> $statuses
+     */
+    public function scopeFilterIsActive(Builder $query, array $statuses): void
+    {
+        $values = QueryFilter::booleanStatuses($statuses);
+
+        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
      * @return array<string, string>
      */
     protected function casts(): array

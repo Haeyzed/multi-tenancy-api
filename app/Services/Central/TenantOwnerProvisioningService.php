@@ -9,10 +9,10 @@ use App\Enums\Tenant\TenantUserRole;
 use App\Models\Central\Tenant;
 use App\Models\Tenant\Role;
 use App\Models\Tenant\User;
+use App\Services\Tenant\TenantBootstrapService;
 use App\Support\TenantUrl;
 use Database\Seeders\Tenant\TenantRolePermissionSeeder;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -22,6 +22,10 @@ use RuntimeException;
  */
 class TenantOwnerProvisioningService
 {
+    public function __construct(
+        private readonly TenantBootstrapService $bootstrapService,
+    ) {}
+
     /**
      * Provision the tenant owner inside the tenant database.
      */
@@ -30,6 +34,7 @@ class TenantOwnerProvisioningService
         /** @var TenantOwnerProvisioningResult $result */
         $result = $tenant->run(function () use ($tenant, $ownerPassword) {
             $this->ensureRolesAndPermissions();
+            $this->bootstrapService->bootstrap($tenant);
 
             $existingOwner = User::query()
                 ->where('email', $tenant->owner_email)
@@ -38,8 +43,6 @@ class TenantOwnerProvisioningService
             if ($existingOwner !== null) {
                 return TenantOwnerProvisioningResult::alreadyProvisioned($existingOwner);
             }
-
-            $this->ensureStoreSettings($tenant);
 
             $passwordResolution = $this->resolveOwnerPassword($tenant, $ownerPassword);
 
@@ -88,23 +91,6 @@ class TenantOwnerProvisioningService
         }
 
         (new TenantRolePermissionSeeder)->run();
-    }
-
-    private function ensureStoreSettings(Tenant $tenant): void
-    {
-        if (DB::table('store_settings')->exists()) {
-            return;
-        }
-
-        DB::table('store_settings')->insert([
-            'store_name' => $tenant->name,
-            'store_slug' => $tenant->slug,
-            'default_language' => $tenant->settings['locale'] ?? 'en',
-            'timezone' => $tenant->settings['timezone'] ?? 'UTC',
-            'currency' => $tenant->settings['currency'] ?? 'USD',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 
     /**

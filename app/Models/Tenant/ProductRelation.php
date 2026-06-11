@@ -43,6 +43,11 @@ class ProductRelation extends TenantModel
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

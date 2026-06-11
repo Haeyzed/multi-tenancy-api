@@ -49,6 +49,11 @@ class UserSession extends TenantModel
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

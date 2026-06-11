@@ -22,10 +22,13 @@ class CategoryController extends Controller
 {
     public function __construct(
         private readonly CategoryService $service,
-    )
-    {
-    }
+    ) {}
 
+    /**
+     * Get paginated category records.
+     *
+     * @param  Request  $request  Incoming HTTP request.
+     */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
@@ -39,11 +42,17 @@ class CategoryController extends Controller
         return $this->paginated($items, CategoryResource::collection($items), 'Categories retrieved successfully.');
     }
 
+    /**
+     * List active categories as value/label pairs for select inputs.
+     */
     public function options(): JsonResponse
     {
         return $this->success($this->service->getOptions(), 'Category options retrieved successfully.');
     }
 
+    /**
+     * KPI card metrics for categories.
+     */
     public function metrics(): JsonResponse
     {
         return $this->success(
@@ -52,6 +61,11 @@ class CategoryController extends Controller
         );
     }
 
+    /**
+     * Create a new category.
+     *
+     * @param  StoreCategoryRequest  $request  Validated request payload.
+     */
     public function store(StoreCategoryRequest $request): JsonResponse
     {
         $item = $this->service->create($request->validated());
@@ -62,6 +76,11 @@ class CategoryController extends Controller
         );
     }
 
+    /**
+     * Find category by route binding.
+     *
+     * @param  Category  $category  Category instance.
+     */
     public function show(Category $category): JsonResponse
     {
         $item = $this->service->findOrFail($category->id);
@@ -69,6 +88,12 @@ class CategoryController extends Controller
         return $this->success(new CategoryResource($item), 'Category retrieved successfully.');
     }
 
+    /**
+     * Update category.
+     *
+     * @param  UpdateCategoryRequest  $request  Validated request payload.
+     * @param  Category  $category  Category instance.
+     */
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
         $item = $this->service->update($category, $request->validated());
@@ -76,6 +101,11 @@ class CategoryController extends Controller
         return $this->updated(new CategoryResource($item), 'Category updated successfully.');
     }
 
+    /**
+     * Delete category.
+     *
+     * @param  Category  $category  Category instance.
+     */
     public function destroy(Category $category): JsonResponse
     {
         $this->service->delete($category);
@@ -83,6 +113,9 @@ class CategoryController extends Controller
         return $this->deleted('Category deleted successfully.');
     }
 
+    /**
+     * Delete multiple categories in one request.
+     */
     public function bulkDestroy(BulkDeleteCategoriesRequest $request): JsonResponse
     {
         $deleted = $this->service->deleteMany($request->validated('ids'));

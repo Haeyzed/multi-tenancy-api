@@ -6,6 +6,8 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -33,6 +35,34 @@ class MediaLibraryFolder extends TenantModel
         'parent_id',
         'path',
     ];
+
+    /**
+     * Parent folder in the hierarchy.
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /**
+     * Child folders nested under this folder.
+     *
+     * @return HasMany<MediaLibraryFolder, $this>
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Media files stored in this folder.
+     *
+     * @return HasMany<Media, $this>
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class, 'folder_id');
+    }
 
     /**
      * Scope a query to search by name.

@@ -47,6 +47,11 @@ class SupplierPayment extends TenantModel
         return $this->belongsTo(SupplierInvoice::class);
     }
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Daily sales summary for a store location stored in the tenant database.
+ * Daily sales summary for a store stored in the tenant database.
  *
  * @property int $id
- * @property string $location_id
+ * @property string $store_id
  * @property Carbon|null $date
  * @property string $total_sales
  * @property int $order_count
@@ -32,7 +33,7 @@ class LocationSale extends TenantModel
      * @var list<string>
      */
     protected $fillable = [
-        'location_id',
+        'store_id',
         'date',
         'total_sales',
         'order_count',
@@ -41,6 +42,14 @@ class LocationSale extends TenantModel
         'card_sales',
         'other_sales',
     ];
+
+    /**
+     * Store this sales summary belongs to.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
 
     /**
      * Get the attributes that should be cast.

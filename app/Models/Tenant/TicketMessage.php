@@ -42,6 +42,11 @@ class TicketMessage extends TenantModel
         'attachment_media_ids',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

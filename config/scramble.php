@@ -20,7 +20,7 @@ return [
      * Multiple includes or wildcards → server defaults to / and paths stay full (/api/users).
      * Override with `servers`, or use Scramble::registerApi() for separate bases.
      */
-    'api_path' => 'api',
+    'api_path' => 'api/central',
 
     /*
      * Your API domain. By default, app domain is used. This is also a part of the default API routes
@@ -40,7 +40,7 @@ return [
         'version' => env('API_VERSION', '0.0.1'),
 
         /*
-         * Description rendered on the home page of the API documentation (`/docs/api`).
+         * Description rendered on the home page of the API documentation (`/docs/central`).
          */
         'description' => <<<'MD'
 ## Authentication
@@ -109,6 +109,10 @@ MD,
      *     'Prod' => 'https://scramble.dedoc.co/api',
      * ],
      * ```
+     */
+    /*
+     * Central and tenant server URLs are set per API in ScrambleServiceProvider.
+     * Tenant Try It uses SCRAMBLE_TENANT_DOMAIN (e.g. acme-corp.multi-tenancy-api.test).
      */
     'servers' => null,
 

@@ -49,6 +49,11 @@ class ShipmentItem extends TenantModel
         return $this->belongsTo(OrderItem::class);
     }
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

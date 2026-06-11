@@ -5,23 +5,21 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Store settings stored in the tenant database.
+ * Per-store operational and storefront settings.
+ *
+ * Linked 1:1 to a {@see Store}. Tenant-wide defaults live in {@see GeneralSetting}.
  *
  * @property int $id
- * @property string|null $store_name
- * @property string|null $store_slug
- * @property string|null $tagline
- * @property string|null $description
- * @property int|null $logo_media_id
- * @property int|null $favicon_media_id
+ * @property string $store_id
  * @property string|null $primary_color
  * @property string|null $secondary_color
- * @property string|null $currency
- * @property string|null $default_language
- * @property string|null $timezone
+ * @property string $currency
+ * @property string $default_language
+ * @property string $timezone
  * @property string $weight_unit
  * @property string $dimension_unit
  * @property bool $tax_included_in_prices
@@ -35,6 +33,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $custom_scripts
  * @property bool $maintenance_mode
  * @property string|null $maintenance_message
+ * @property bool $catalog_visible
+ * @property bool $checkout_enabled
+ * @property bool $guest_checkout_allowed
+ * @property bool $shipping_enabled
+ * @property bool $cod_enabled
+ * @property bool $card_payment_enabled
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -48,12 +52,7 @@ class StoreSetting extends TenantModel
      * @var list<string>
      */
     protected $fillable = [
-        'store_name',
-        'store_slug',
-        'tagline',
-        'description',
-        'logo_media_id',
-        'favicon_media_id',
+        'store_id',
         'primary_color',
         'secondary_color',
         'currency',
@@ -72,14 +71,40 @@ class StoreSetting extends TenantModel
         'custom_scripts',
         'maintenance_mode',
         'maintenance_message',
+        'catalog_visible',
+        'checkout_enabled',
+        'guest_checkout_allowed',
+        'shipping_enabled',
+        'cod_enabled',
+        'card_payment_enabled',
     ];
 
+    /**
+     * Store this settings row belongs to.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
             'tax_included_in_prices' => 'boolean',
             'auto_invoice' => 'boolean',
             'maintenance_mode' => 'boolean',
+            'catalog_visible' => 'boolean',
+            'checkout_enabled' => 'boolean',
+            'guest_checkout_allowed' => 'boolean',
+            'shipping_enabled' => 'boolean',
+            'cod_enabled' => 'boolean',
+            'card_payment_enabled' => 'boolean',
+            'order_number_start' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

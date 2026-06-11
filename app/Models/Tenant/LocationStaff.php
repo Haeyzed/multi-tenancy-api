@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Staff assignment at a store location stored in the tenant database.
+ * Staff assignment at a store stored in the tenant database.
  *
  * @property int $id
- * @property string $location_id
+ * @property string $store_id
  * @property string $employee_id
  * @property string|null $role_at_location
  * @property bool $is_primary_location
@@ -31,7 +31,7 @@ class LocationStaff extends TenantModel
      * @var list<string>
      */
     protected $fillable = [
-        'location_id',
+        'store_id',
         'employee_id',
         'role_at_location',
         'is_primary_location',
@@ -40,7 +40,15 @@ class LocationStaff extends TenantModel
     ];
 
     /**
-     * Employee assigned to this location.
+     * Store this assignment belongs to.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * Employee assigned to this store.
      */
     public function employee(): BelongsTo
     {

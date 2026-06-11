@@ -48,6 +48,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|Product search(?string $search)
  * @method static Builder|Product filterStatus(array $statuses)
  */
@@ -55,8 +56,10 @@ class Product extends TenantModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    public $incrementing = false;
     protected $table = 'products';
+
+    public $incrementing = false;
+
     protected $keyType = 'string';
 
     /**
@@ -100,44 +103,6 @@ class Product extends TenantModel
      *
      * @return array<string, string>
      */
-
-    /**
-     * Brand this product belongs to.
-     */
-    public function brand(): BelongsTo
-    {
-        return $this->belongsTo(Brand::class);
-    }
-
-    /**
-     * Scope a query to search by name, slug, or SKU.
-     */
-    public function scopeSearch(Builder $query, ?string $search): void
-    {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%");
-            });
-        });
-    }
-
-    /**
-     * Filter by status values.
-     *
-     * @param list<string> $statuses
-     */
-    public function scopeFilterStatus(Builder $query, array $statuses): void
-    {
-        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
-    }
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -157,5 +122,53 @@ class Product extends TenantModel
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Brand this product belongs to.
+     */
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    /**
+     * Staff user who created this product.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Staff user who last updated this product.
+     */
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Scope a query to search by name, slug, or SKU.
+     */
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        $query->when($search, function (Builder $q, string $search) {
+            $q->where(function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    /**
+     * Filter by status values.
+     *
+     * @param  list<string>  $statuses
+     */
+    public function scopeFilterStatus(Builder $query, array $statuses): void
+    {
+        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
     }
 }

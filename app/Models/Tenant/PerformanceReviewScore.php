@@ -36,6 +36,11 @@ class PerformanceReviewScore extends TenantModel
         'weight',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

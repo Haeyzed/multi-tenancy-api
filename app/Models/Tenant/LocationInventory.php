@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Store location inventory stored in the tenant database.
+ * Per-store inventory levels stored in the tenant database.
  *
  * @property int $id
- * @property string $location_id
+ * @property string $store_id
  * @property string $product_id
  * @property string|null $variant_id
  * @property int $quantity
@@ -32,7 +32,7 @@ class LocationInventory extends TenantModel
      * @var list<string>
      */
     protected $fillable = [
-        'location_id',
+        'store_id',
         'product_id',
         'variant_id',
         'quantity',
@@ -42,7 +42,15 @@ class LocationInventory extends TenantModel
     ];
 
     /**
-     * Product at this store location.
+     * Store this inventory belongs to.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * Product at this store.
      */
     public function product(): BelongsTo
     {
