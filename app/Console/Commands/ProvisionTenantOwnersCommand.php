@@ -39,7 +39,21 @@ class ProvisionTenantOwnersCommand extends Command
         }
 
         foreach ($tenants as $tenant) {
-            $result = $provisioning->provision($tenant);
+            $database = $tenant->database()->getName();
+
+            if (! $tenant->database()->manager()->databaseExists($database)) {
+                $this->warn("Skipping {$tenant->name} ({$tenant->id}): database does not exist.");
+
+                continue;
+            }
+
+            try {
+                $result = $provisioning->provision($tenant);
+            } catch (\Throwable $exception) {
+                $this->error("Failed to provision {$tenant->name} ({$tenant->id}): {$exception->getMessage()}");
+
+                continue;
+            }
 
             if ($result->created) {
                 $this->info("Provisioned owner for {$tenant->name} ({$tenant->id}).");

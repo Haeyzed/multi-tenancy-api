@@ -13,8 +13,10 @@ use App\Services\Tenant\TenantBootstrapService;
 use App\Support\TenantUrl;
 use Database\Seeders\Tenant\TenantRolePermissionSeeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Create the tenant owner user and baseline store configuration.
@@ -33,13 +35,14 @@ class TenantOwnerProvisioningService
         /** @var TenantOwnerProvisioningResult $result */
         $result = $tenant->run(function () use ($tenant, $ownerPassword) {
             $this->ensureRolesAndPermissions();
-            $this->bootstrapService->bootstrap($tenant);
 
             $existingOwner = User::query()
                 ->where('email', $tenant->owner_email)
                 ->first();
 
             if ($existingOwner !== null) {
+                $this->bootstrapTenant($tenant);
+
                 return TenantOwnerProvisioningResult::alreadyProvisioned($existingOwner);
             }
 
@@ -61,7 +64,17 @@ class TenantOwnerProvisioningService
                 ->where('guard_name', TenantUserRole::GUARD)
                 ->firstOrFail();
 
-            $user->assignRole($ownerRole);
+            try {
+                $user->assignRole($ownerRole);
+            } catch (Throwable $exception) {
+                Log::warning('Failed to assign store owner role during provisioning.', [
+                    'tenant_id' => $tenant->id,
+                    'user_id' => $user->id,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+
+            $this->bootstrapTenant($tenant);
 
             $passwordSetupUrl = null;
 
@@ -92,6 +105,18 @@ class TenantOwnerProvisioningService
         (new TenantRolePermissionSeeder)->run();
     }
 
+    private function bootstrapTenant(Tenant $tenant): void
+    {
+        try {
+            $this->bootstrapService->bootstrap($tenant);
+        } catch (Throwable $exception) {
+            Log::warning('Tenant bootstrap failed during owner provisioning.', [
+                'tenant_id' => $tenant->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * @return array{password: string, requires_setup: bool}
      */
@@ -99,9 +124,7 @@ class TenantOwnerProvisioningService
     {
         if ($explicitPassword !== null && $explicitPassword !== '') {
             return [
-                'password' => Hash::isHashed($explicitPassword)
-                    ? $explicitPassword
-                    : Hash::make($explicitPassword),
+                'password' => $explicitPassword,
                 'requires_setup' => false,
             ];
         }
@@ -116,7 +139,7 @@ class TenantOwnerProvisioningService
         }
 
         return [
-            'password' => Hash::make(Str::password(16)),
+            'password' => Str::password(16),
             'requires_setup' => true,
         ];
     }

@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('store_settings', function (Blueprint $table) {
-            $table->foreignUuid('store_id')->nullable()->after('id')->constrained('stores')->cascadeOnDelete();
-        });
+        if (! Schema::hasColumn('store_settings', 'store_id')) {
+            Schema::table('store_settings', function (Blueprint $table) {
+                $table->foreignUuid('store_id')->nullable()->after('id')->constrained('stores')->cascadeOnDelete();
+            });
+        }
 
         if (Schema::hasTable('store_settings') && Schema::hasTable('stores')) {
             $legacyRows = DB::table('store_settings')->get();
