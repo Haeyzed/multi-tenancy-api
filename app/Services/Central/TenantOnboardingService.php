@@ -13,6 +13,7 @@ use App\Events\Central\TenantOnboarded;
 use App\Models\Central\Plan;
 use App\Models\Central\Tenant;
 use App\Support\SafeBroadcast;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -37,6 +38,16 @@ class TenantOnboardingService
         $domain = $data['domain'];
         $plan = Plan::query()->findOrFail($data['plan_id']);
         $billingCycle = BillingCycle::from($data['billing_cycle']);
+        $ownerFirstName = trim((string) $data['owner_first_name']);
+        $ownerLastName = trim((string) $data['owner_last_name']);
+        $ownerName = trim($ownerFirstName . ' ' . $ownerLastName);
+        $meta = $data['meta'] ?? [];
+        $meta['owner_first_name'] = $ownerFirstName;
+        $meta['owner_last_name'] = $ownerLastName;
+
+        if (! empty($data['owner_password'])) {
+            $meta['pending_owner_password_hash'] = Hash::make($data['owner_password']);
+        }
 
         $tenant = Tenant::query()->create([
             'name' => $data['name'],
@@ -47,9 +58,9 @@ class TenantOnboardingService
             'plan_id' => $plan->id,
             'billing_cycle' => $billingCycle,
             'owner_email' => $data['owner_email'],
-            'owner_name' => $data['owner_name'],
+            'owner_name' => $ownerName,
             'settings' => $data['settings'] ?? [],
-            'meta' => $data['meta'] ?? [],
+            'meta' => $meta,
         ]);
 
         $tenant->createDomain([

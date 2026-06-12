@@ -12,10 +12,9 @@ use App\Models\Tenant\User;
 use App\Services\Tenant\TenantBootstrapService;
 use App\Support\TenantUrl;
 use Database\Seeders\Tenant\TenantRolePermissionSeeder;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 /**
  * Create the tenant owner user and baseline store configuration.
@@ -46,7 +45,7 @@ class TenantOwnerProvisioningService
 
             $passwordResolution = $this->resolveOwnerPassword($tenant, $ownerPassword);
 
-            [$firstName, $lastName] = $this->parseOwnerName($tenant->owner_name);
+            [$firstName, $lastName] = $this->resolveOwnerNames($tenant);
 
             $user = User::query()->create([
                 'email' => $tenant->owner_email,
@@ -100,28 +99,42 @@ class TenantOwnerProvisioningService
     {
         if ($explicitPassword !== null && $explicitPassword !== '') {
             return [
-                'password' => $explicitPassword,
+                'password' => Hash::isHashed($explicitPassword)
+                    ? $explicitPassword
+                    : Hash::make($explicitPassword),
                 'requires_setup' => false,
             ];
         }
 
-        $encrypted = $tenant->meta['pending_owner_password'] ?? null;
+        $hashedPassword = $tenant->meta['pending_owner_password_hash'] ?? null;
 
-        if (is_string($encrypted) && $encrypted !== '') {
-            try {
-                return [
-                    'password' => Crypt::decryptString($encrypted),
-                    'requires_setup' => false,
-                ];
-            } catch (RuntimeException) {
-                // Fall through to generated setup flow.
-            }
+        if (is_string($hashedPassword) && $hashedPassword !== '' && Hash::isHashed($hashedPassword)) {
+            return [
+                'password' => $hashedPassword,
+                'requires_setup' => false,
+            ];
         }
 
         return [
-            'password' => Str::password(16),
+            'password' => Hash::make(Str::password(16)),
             'requires_setup' => true,
         ];
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function resolveOwnerNames(Tenant $tenant): array
+    {
+        $meta = $tenant->meta ?? [];
+        $firstName = trim((string) ($meta['owner_first_name'] ?? ''));
+        $lastName = trim((string) ($meta['owner_last_name'] ?? ''));
+
+        if ($firstName !== '') {
+            return [$firstName, $lastName];
+        }
+
+        return $this->parseOwnerName($tenant->owner_name);
     }
 
     /**
@@ -144,7 +157,7 @@ class TenantOwnerProvisioningService
     {
         $meta = $tenant->meta ?? [];
 
-        unset($meta['pending_owner_password']);
+        unset($meta['pending_owner_password'], $meta['pending_owner_password_hash']);
 
         $meta['owner_user_id'] = $result->user->id;
         $meta['owner_provisioned_at'] = now()->toIso8601String();

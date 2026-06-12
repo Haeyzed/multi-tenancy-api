@@ -84,13 +84,22 @@ class OnboardTenantRequest extends BaseRequest
             'owner_email' => 'required|email',
 
             /**
-             * Owner display name.
+             * Owner first name.
              *
-             * @var string $owner_name
+             * @var string $owner_first_name
              *
-             * @example "John Doe"
+             * @example "John"
              */
-            'owner_name' => 'required|string|max:255',
+            'owner_first_name' => 'required|string|max:255',
+
+            /**
+             * Owner last name.
+             *
+             * @var string $owner_last_name
+             *
+             * @example "Doe"
+             */
+            'owner_last_name' => 'required|string|max:255',
 
             /**
              * Owner account password for the tenant store admin.

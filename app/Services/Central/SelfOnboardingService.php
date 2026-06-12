@@ -19,7 +19,7 @@ use App\Models\Central\Tenant;
 use App\Services\Payment\PaymentGatewayManager;
 use App\Support\OnboardingNotes;
 use App\Support\SafeBroadcast;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -61,6 +61,9 @@ class SelfOnboardingService
         $paymentProvider = PaymentProvider::from($data['payment_provider']);
 
         $meta = $data['meta'] ?? [];
+        $ownerFirstName = trim((string) $data['owner_first_name']);
+        $ownerLastName = trim((string) $data['owner_last_name']);
+        $ownerName = trim($ownerFirstName . ' ' . $ownerLastName);
         $userNotes = isset($data['notes']) ? trim((string)$data['notes']) : '';
         $onboardingNotes = OnboardingNotes::compose(
             $userNotes !== '' ? $userNotes : null,
@@ -71,9 +74,11 @@ class SelfOnboardingService
             ),
         );
         $meta['onboarding_notes'] = $onboardingNotes;
+        $meta['owner_first_name'] = $ownerFirstName;
+        $meta['owner_last_name'] = $ownerLastName;
 
         if (!empty($data['owner_password'])) {
-            $meta['pending_owner_password'] = Crypt::encryptString($data['owner_password']);
+            $meta['pending_owner_password_hash'] = Hash::make($data['owner_password']);
         }
 
         $tenant = Tenant::query()->create([
@@ -85,7 +90,7 @@ class SelfOnboardingService
             'plan_id' => $plan->id,
             'billing_cycle' => $billingCycle,
             'owner_email' => $data['owner_email'],
-            'owner_name' => $data['owner_name'],
+            'owner_name' => $ownerName,
             'settings' => $data['settings'] ?? [],
             'meta' => $meta,
         ]);
