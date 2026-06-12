@@ -78,6 +78,13 @@ class ProductResource extends JsonResource
             'brand_id' => $this->brand_id,
 
             /**
+             * Primary category ID.
+             *
+             * @default null
+             */
+            'category_id' => $this->category_id,
+
+            /**
              * Product type.
              *
              * @example "simple"
@@ -212,6 +219,13 @@ class ProductResource extends JsonResource
              * @default null
              */
             'brand' => new BrandResource($this->whenLoaded('brand')),
+
+            /**
+             * Category when eager loaded.
+             *
+             * @default null
+             */
+            'category' => new CategoryResource($this->whenLoaded('category')),
         ];
     }
 }

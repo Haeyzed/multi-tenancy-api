@@ -83,6 +83,13 @@ class StoreProductRequest extends BaseRequest
             'brand_id' => 'nullable|integer|exists:brands,id',
 
             /**
+             * Primary category ID; nullable.
+             *
+             * @var string|null $category_id
+             */
+            'category_id' => 'nullable|uuid|exists:categories,id',
+
+            /**
              * Product type.
              *
              * @var string $type

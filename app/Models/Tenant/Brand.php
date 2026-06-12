@@ -8,6 +8,7 @@ use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -52,6 +53,14 @@ class Brand extends TenantModel
     public function logoMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'logo_media_id');
+    }
+
+    /**
+     * Products assigned to this brand.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
     }
 
     /**

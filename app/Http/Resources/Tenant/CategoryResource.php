@@ -134,6 +134,13 @@ class CategoryResource extends JsonResource
             'path' => $this->path,
 
             /**
+             * Number of products linked to this category.
+             *
+             * @default 0
+             */
+            'products_count' => ($this->products_count ?? 0) + ($this->category_products_count ?? 0),
+
+            /**
              * Timestamp when the category was created.
              */
             'created_at' => $this->created_at?->toIso8601String(),

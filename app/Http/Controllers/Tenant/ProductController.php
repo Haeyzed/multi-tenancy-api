@@ -69,7 +69,7 @@ class ProductController extends Controller
         $item = $this->service->create($request->validated());
 
         return $this->created(
-            new ProductResource($item->load(['brand', 'createdBy', 'updatedBy'])),
+            new ProductResource($item->load(['brand', 'category', 'createdBy', 'updatedBy'])),
             'Product created successfully.',
         );
     }

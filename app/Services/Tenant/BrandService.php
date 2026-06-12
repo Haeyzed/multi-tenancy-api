@@ -6,6 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Models\Tenant\Brand;
 use App\Services\Concerns\DeletesManyRecords;
+use App\Services\Concerns\GuardsCatalogProductLinks;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,6 +17,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class BrandService
 {
     use DeletesManyRecords;
+    use GuardsCatalogProductLinks;
 
     /**
      * Relations eager loaded for list and detail responses.
@@ -55,7 +57,9 @@ class BrandService
      */
     private function queryWithDetails(): Builder
     {
-        return Brand::query()->with(self::DETAIL_RELATIONS);
+        return Brand::query()
+            ->with(self::DETAIL_RELATIONS)
+            ->withCount('products');
     }
 
     /**
@@ -98,6 +102,8 @@ class BrandService
      */
     public function delete(Brand $brand): bool
     {
+        $this->assertBrandNotLinkedToProducts($brand);
+
         return $brand->delete();
     }
 
@@ -108,7 +114,30 @@ class BrandService
      */
     public function deleteMany(array $ids): int
     {
+        $this->assertBrandsNotLinkedToProducts($ids);
+
         return $this->deleteManyByIds(Brand::class, $ids);
+    }
+
+    /**
+     * Unlink all products from a brand.
+     */
+    public function unlinkProducts(Brand $brand): int
+    {
+        return $brand->products()->update(['brand_id' => null]);
+    }
+
+    /**
+     * Unlink all products from multiple brands.
+     *
+     * @param list<int> $ids
+     */
+    public function bulkUnlinkProducts(array $ids): int
+    {
+        return Brand::query()
+            ->whereIn('id', $ids)
+            ->get()
+            ->sum(fn (Brand $brand): int => $this->unlinkProducts($brand));
     }
 
     /**

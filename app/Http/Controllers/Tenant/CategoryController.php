@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\BulkDeleteCategoriesRequest;
+use App\Http\Requests\Tenant\BulkUnlinkCategoriesRequest;
 use App\Http\Requests\Tenant\StoreCategoryRequest;
 use App\Http\Requests\Tenant\UpdateCategoryRequest;
 use App\Http\Resources\Tenant\CategoryResource;
@@ -123,6 +124,32 @@ class CategoryController extends Controller
         return $this->success(
             ['deleted' => $deleted],
             "{$deleted} categor(ies) deleted successfully.",
+        );
+    }
+
+    /**
+     * Unlink all products from a category.
+     */
+    public function unlink(Category $category): JsonResponse
+    {
+        $unlinked = $this->service->unlinkProducts($category);
+
+        return $this->success(
+            ['unlinked' => $unlinked],
+            "{$unlinked} product(s) unlinked from category successfully.",
+        );
+    }
+
+    /**
+     * Unlink all products from multiple categories.
+     */
+    public function bulkUnlink(BulkUnlinkCategoriesRequest $request): JsonResponse
+    {
+        $unlinked = $this->service->bulkUnlinkProducts($request->validated('ids'));
+
+        return $this->success(
+            ['unlinked' => $unlinked],
+            "{$unlinked} product(s) unlinked from selected categor(ies) successfully.",
         );
     }
 }

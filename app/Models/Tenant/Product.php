@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property string|null $short_description
  * @property int|null $brand_id
+ * @property string|null $category_id
  * @property string $type
  * @property string $status
  * @property string $visibility
@@ -73,6 +74,7 @@ class Product extends TenantModel
         'description',
         'short_description',
         'brand_id',
+        'category_id',
         'type',
         'status',
         'visibility',
@@ -130,6 +132,14 @@ class Product extends TenantModel
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    /**
+     * Primary category this product belongs to.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     /**

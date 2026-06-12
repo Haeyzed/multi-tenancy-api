@@ -103,6 +103,22 @@ class Category extends TenantModel
     }
 
     /**
+     * Products with this category as primary assignment.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Pivot rows linking additional products to this category.
+     */
+    public function categoryProducts(): HasMany
+    {
+        return $this->hasMany(CategoryProduct::class);
+    }
+
+    /**
      * Scope a query to search by name, slug, or description.
      */
     public function scopeSearch(Builder $query, ?string $search): void

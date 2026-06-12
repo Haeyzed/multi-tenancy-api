@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\BulkDeleteBrandsRequest;
+use App\Http\Requests\Tenant\BulkUnlinkBrandsRequest;
 use App\Http\Requests\Tenant\StoreBrandRequest;
 use App\Http\Requests\Tenant\UpdateBrandRequest;
 use App\Http\Resources\Tenant\BrandResource;
@@ -118,6 +119,32 @@ class BrandController extends Controller
         return $this->success(
             ['deleted' => $deleted],
             "{$deleted} brand(s) deleted successfully.",
+        );
+    }
+
+    /**
+     * Unlink all products from a brand.
+     */
+    public function unlink(Brand $brand): JsonResponse
+    {
+        $unlinked = $this->service->unlinkProducts($brand);
+
+        return $this->success(
+            ['unlinked' => $unlinked],
+            "{$unlinked} product(s) unlinked from brand successfully.",
+        );
+    }
+
+    /**
+     * Unlink all products from multiple brands.
+     */
+    public function bulkUnlink(BulkUnlinkBrandsRequest $request): JsonResponse
+    {
+        $unlinked = $this->service->bulkUnlinkProducts($request->validated('ids'));
+
+        return $this->success(
+            ['unlinked' => $unlinked],
+            "{$unlinked} product(s) unlinked from selected brand(s) successfully.",
         );
     }
 }

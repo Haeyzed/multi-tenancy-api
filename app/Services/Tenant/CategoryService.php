@@ -6,6 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Models\Tenant\Category;
 use App\Services\Concerns\DeletesManyRecords;
+use App\Services\Concerns\GuardsCatalogProductLinks;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -17,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 class CategoryService
 {
     use DeletesManyRecords;
+    use GuardsCatalogProductLinks;
 
     /**
      * Relations eager loaded for list and detail responses.
@@ -64,7 +66,9 @@ class CategoryService
      */
     private function queryWithDetails(): Builder
     {
-        return Category::query()->with(self::DETAIL_RELATIONS);
+        return Category::query()
+            ->with(self::DETAIL_RELATIONS)
+            ->withCount(['products', 'categoryProducts']);
     }
 
     /**
@@ -155,6 +159,8 @@ class CategoryService
      */
     public function delete(Category $category): bool
     {
+        $this->assertCategoryNotLinkedToProducts($category);
+
         return $category->delete();
     }
 
@@ -165,7 +171,30 @@ class CategoryService
      */
     public function deleteMany(array $ids): int
     {
+        $this->assertCategoriesNotLinkedToProducts($ids);
+
         return $this->deleteManyByIds(Category::class, $ids);
+    }
+
+    /**
+     * Unlink all products from a category.
+     */
+    public function unlinkProducts(Category $category): int
+    {
+        return $this->unlinkCategoryProducts($category);
+    }
+
+    /**
+     * Unlink all products from multiple categories.
+     *
+     * @param list<string> $ids
+     */
+    public function bulkUnlinkProducts(array $ids): int
+    {
+        return Category::query()
+            ->whereIn('id', $ids)
+            ->get()
+            ->sum(fn (Category $category): int => $this->unlinkProducts($category));
     }
 
     /**
@@ -219,9 +248,9 @@ class CategoryService
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
-            ->map(fn(Category $category): array => [
+            ->map(fn (Category $category): array => [
                 'value' => $category->id,
-                'label' => $category->name,
+                'label' => ($category->depth > 0 ? str_repeat('— ', $category->depth) : '') . $category->name,
             ])
             ->values()
             ->all();

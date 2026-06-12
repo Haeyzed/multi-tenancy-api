@@ -88,6 +88,13 @@ class BrandResource extends JsonResource
             'sort_order' => $this->sort_order,
 
             /**
+             * Number of products linked to this brand.
+             *
+             * @default 0
+             */
+            'products_count' => $this->products_count ?? 0,
+
+            /**
              * Timestamp when the brand was created.
              *
              * @example "2026-01-01T00:00:00+00:00"

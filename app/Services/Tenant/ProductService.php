@@ -25,6 +25,7 @@ class ProductService
      */
     private const DETAIL_RELATIONS = [
         'brand',
+        'category',
         'createdBy',
         'updatedBy',
     ];
@@ -202,6 +203,7 @@ class ProductService
         $draft = Product::query()->where('status', 'draft')->count();
         $featured = Product::query()->where('is_featured', true)->count();
         $withBrand = Product::query()->whereNotNull('brand_id')->count();
+        $withCategory = Product::query()->whereNotNull('category_id')->count();
 
         return [
             ['key' => 'total', 'label' => 'Total Products', 'value' => $total],
@@ -209,6 +211,7 @@ class ProductService
             ['key' => 'draft', 'label' => 'Draft', 'value' => $draft],
             ['key' => 'featured', 'label' => 'Featured', 'value' => $featured],
             ['key' => 'with_brand', 'label' => 'With Brand', 'value' => $withBrand],
+            ['key' => 'with_category', 'label' => 'With Category', 'value' => $withCategory],
         ];
     }
 }
