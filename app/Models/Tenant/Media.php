@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\MediaLibrary\TenantMediaUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -100,7 +101,37 @@ class Media extends SpatieMedia
      */
     public function getUrlAttribute(): string
     {
+        if (tenancy()->initialized) {
+            return TenantMediaUrl::forPath($this->getPathRelativeToRoot());
+        }
+
         return Storage::disk($this->disk)->url($this->getPathRelativeToRoot());
+    }
+
+    /**
+     * Resolve URL via the tenant asset route (used by Spatie helpers/resources).
+     */
+    public function getUrl(string $conversionName = ''): string
+    {
+        if (tenancy()->initialized) {
+            return TenantMediaUrl::forPath($this->getPathRelativeToRoot($conversionName));
+        }
+
+        return parent::getUrl($conversionName);
+    }
+
+    /**
+     * Resolve the storage path for library files (folder-based layout).
+     */
+    public function getPathRelativeToRoot(string $conversionName = ''): string
+    {
+        if ($this->collection_name === 'library') {
+            $folderSegment = $this->folder_id ?? 'root';
+
+            return "media/library/{$folderSegment}/{$this->file_name}";
+        }
+
+        return parent::getPathRelativeToRoot($conversionName);
     }
 
     /**

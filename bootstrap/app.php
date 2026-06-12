@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant.active' => EnsureTenantIsActive::class,
+            'tenant.auth' => \App\Http\Middleware\UseTenantAuthGuard::class,
             'subscription.active' => EnsureSubscriptionIsActive::class,
             'plan.feature' => EnsurePlanFeature::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

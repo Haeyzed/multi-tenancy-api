@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MediaLibrary;
 
+use App\MediaLibrary\TenantMediaUrl;
 use Spatie\MediaLibrary\Support\UrlGenerator\DefaultUrlGenerator;
 
 /**
@@ -16,7 +17,7 @@ class TenantAwareUrlGenerator extends DefaultUrlGenerator
 {
     public function getUrl(): string
     {
-        $url = asset($this->getPathRelativeToRoot());
+        $url = TenantMediaUrl::forPath($this->getPathRelativeToRoot());
 
         return $this->versionUrl($url);
     }

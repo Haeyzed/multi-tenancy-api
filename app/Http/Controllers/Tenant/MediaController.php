@@ -6,6 +6,10 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\BulkDeleteMediaRequest;
+use App\Http\Requests\Tenant\BulkUpdateMediaRequest;
+use App\Http\Requests\Tenant\BulkUploadMediaRequest;
+use App\Http\Requests\Tenant\CopyMediaRequest;
+use App\Http\Requests\Tenant\MoveMediaRequest;
 use App\Http\Requests\Tenant\UpdateMediaRequest;
 use App\Http\Requests\Tenant\UploadMediaRequest;
 use App\Http\Resources\Tenant\MediaResource;
@@ -13,6 +17,7 @@ use App\Models\Tenant\Media;
 use App\Services\Tenant\MediaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * Media library files for the tenant store.
@@ -74,6 +79,97 @@ class MediaController extends Controller
     }
 
     /**
+     * Upload multiple files to the media library.
+     */
+    public function bulkUpload(BulkUploadMediaRequest $request): JsonResponse
+    {
+        /** @var list<\Illuminate\Http\UploadedFile> $files */
+        $files = $request->file('files', []);
+        $items = $this->service->uploadMany($files, $request->safe()->except(['files']));
+
+        return $this->created(
+            [
+                'uploaded' => count($items),
+                'items' => MediaResource::collection(collect($items)),
+            ],
+            count($items).' media file(s) uploaded successfully.',
+        );
+    }
+
+    /**
+     * Move multiple media items into a folder.
+     */
+    public function move(MoveMediaRequest $request): JsonResponse
+    {
+        try {
+            $items = $this->service->moveMany(
+                $request->validated('ids'),
+                $request->validated('folder_id'),
+            );
+        } catch (RuntimeException $exception) {
+            return $this->success(
+                ['moved' => 0, 'items' => []],
+                $exception->getMessage(),
+                422,
+            );
+        }
+
+        return $this->success(
+            [
+                'moved' => count($items),
+                'items' => MediaResource::collection(collect($items)),
+            ],
+            count($items).' media file(s) moved successfully.',
+        );
+    }
+
+    /**
+     * Copy multiple media items into a folder.
+     */
+    public function copy(CopyMediaRequest $request): JsonResponse
+    {
+        try {
+            $items = $this->service->copyMany(
+                $request->validated('ids'),
+                $request->validated('folder_id'),
+            );
+        } catch (RuntimeException $exception) {
+            return $this->success(
+                ['copied' => 0, 'items' => []],
+                $exception->getMessage(),
+                422,
+            );
+        }
+
+        return $this->created(
+            [
+                'copied' => count($items),
+                'items' => MediaResource::collection(collect($items)),
+            ],
+            count($items).' media file(s) copied successfully.',
+        );
+    }
+
+    /**
+     * Update metadata for multiple media items.
+     */
+    public function bulkUpdate(BulkUpdateMediaRequest $request): JsonResponse
+    {
+        $items = $this->service->updateMany(
+            $request->validated('ids'),
+            $request->safe()->except(['ids']),
+        );
+
+        return $this->success(
+            [
+                'updated' => count($items),
+                'items' => MediaResource::collection(collect($items)),
+            ],
+            count($items).' media file(s) updated successfully.',
+        );
+    }
+
+    /**
      * Find media by route binding.
      *
      * @param  Media  $media  Media instance.
@@ -93,7 +189,11 @@ class MediaController extends Controller
      */
     public function update(UpdateMediaRequest $request, Media $media): JsonResponse
     {
-        $item = $this->service->update($media, $request->validated());
+        try {
+            $item = $this->service->update($media, $request->validated());
+        } catch (RuntimeException $exception) {
+            return $this->success(null, $exception->getMessage(), 422);
+        }
 
         return $this->updated(new MediaResource($item), 'Media updated successfully.');
     }
@@ -105,7 +205,11 @@ class MediaController extends Controller
      */
     public function destroy(Media $media): JsonResponse
     {
-        $this->service->delete($media);
+        try {
+            $this->service->delete($media);
+        } catch (RuntimeException $exception) {
+            return $this->success(null, $exception->getMessage(), 422);
+        }
 
         return $this->deleted('Media deleted successfully.');
     }

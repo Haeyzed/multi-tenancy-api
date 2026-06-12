@@ -44,6 +44,10 @@ return [
             'provider' => 'users',
         ],
 
+        /*
+         * Tenant staff session guard checked before bearer tokens (see config/sanctum.php).
+         * Bearer auth is synced onto this guard by UseTenantAuthGuard middleware.
+         */
         'tenant' => [
             'driver' => 'session',
             'provider' => 'tenant_users',

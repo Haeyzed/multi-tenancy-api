@@ -52,7 +52,7 @@ Route::middleware(config('tenancy.middleware'))
         Route::post('auth/verify-otp', [AuthController::class, 'verifyOtp'])->name('tenant.auth.verify-otp');
         Route::post('auth/reset-password', [AuthController::class, 'resetPassword'])->name('tenant.auth.reset-password');
 
-        Route::middleware(['auth:sanctum'])->group(function (): void {
+        Route::middleware(['auth:sanctum', 'tenant.auth'])->group(function (): void {
             Route::post('auth/logout', [AuthController::class, 'logout'])->name('tenant.auth.logout');
             Route::get('auth/me', [AuthController::class, 'me'])->name('tenant.auth.me');
             Route::post('auth/change-password/otp', [AuthController::class, 'requestPasswordChangeOtp'])
@@ -260,6 +260,10 @@ Route::middleware(config('tenancy.middleware'))
             });
 
             Route::middleware('permission:settings.manage,tenant')->group(function (): void {
+                Route::post('media/bulk-upload', [MediaController::class, 'bulkUpload'])->name('tenant.media.bulk-upload');
+                Route::post('media/move', [MediaController::class, 'move'])->name('tenant.media.move');
+                Route::post('media/copy', [MediaController::class, 'copy'])->name('tenant.media.copy');
+                Route::patch('media/bulk', [MediaController::class, 'bulkUpdate'])->name('tenant.media.bulk-update');
                 Route::post('media', [MediaController::class, 'store'])->name('tenant.media.store');
                 Route::put('media/{media}', [MediaController::class, 'update'])->name('tenant.media.update');
                 Route::delete('media/bulk', [MediaController::class, 'bulkDestroy'])->name('tenant.media.bulk-destroy');

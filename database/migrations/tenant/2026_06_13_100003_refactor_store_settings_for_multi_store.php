@@ -20,9 +20,18 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('store_settings') && Schema::hasTable('stores')) {
-            $legacyRows = DB::table('store_settings')->get();
+            $legacyRows = DB::table('store_settings')
+                ->when(
+                    Schema::hasColumn('store_settings', 'store_id'),
+                    fn ($query) => $query->whereNull('store_id'),
+                )
+                ->get();
 
             foreach ($legacyRows as $row) {
+                if (Schema::hasColumn('store_settings', 'store_id') && $row->store_id !== null) {
+                    continue;
+                }
+
                 $slug = $row->store_slug ?: Str::slug($row->store_name ?: 'default-store');
                 $storeId = (string) Str::uuid();
 
@@ -48,15 +57,54 @@ return new class extends Migration
         }
 
         Schema::table('store_settings', function (Blueprint $table) {
-            $table->uuid('store_id')->nullable(false)->change();
-            $table->unique('store_id');
-            $table->dropColumn(['store_name', 'store_slug', 'tagline', 'description', 'logo_media_id', 'favicon_media_id']);
-            $table->boolean('catalog_visible')->default(true)->after('maintenance_message');
-            $table->boolean('checkout_enabled')->default(true)->after('catalog_visible');
-            $table->boolean('guest_checkout_allowed')->default(true)->after('checkout_enabled');
-            $table->boolean('shipping_enabled')->default(true)->after('guest_checkout_allowed');
-            $table->boolean('cod_enabled')->default(true)->after('shipping_enabled');
-            $table->boolean('card_payment_enabled')->default(false)->after('cod_enabled');
+            if (Schema::hasColumn('store_settings', 'store_id')) {
+                $table->uuid('store_id')->nullable(false)->change();
+            }
+
+            $indexes = collect(Schema::getIndexes('store_settings'))->pluck('name');
+
+            if (! $indexes->contains('store_settings_store_id_unique')) {
+                $table->unique('store_id');
+            }
+
+            $columnsToDrop = array_values(array_filter(
+                ['store_name', 'store_slug', 'tagline', 'description', 'logo_media_id', 'favicon_media_id'],
+                fn (string $column): bool => Schema::hasColumn('store_settings', $column),
+            ));
+
+            foreach (['logo_media_id', 'favicon_media_id'] as $mediaColumn) {
+                if (Schema::hasColumn('store_settings', $mediaColumn)) {
+                    $table->dropForeign([$mediaColumn]);
+                }
+            }
+
+            if ($columnsToDrop !== []) {
+                $table->dropColumn($columnsToDrop);
+            }
+
+            if (! Schema::hasColumn('store_settings', 'catalog_visible')) {
+                $table->boolean('catalog_visible')->default(true)->after('maintenance_message');
+            }
+
+            if (! Schema::hasColumn('store_settings', 'checkout_enabled')) {
+                $table->boolean('checkout_enabled')->default(true)->after('catalog_visible');
+            }
+
+            if (! Schema::hasColumn('store_settings', 'guest_checkout_allowed')) {
+                $table->boolean('guest_checkout_allowed')->default(true)->after('checkout_enabled');
+            }
+
+            if (! Schema::hasColumn('store_settings', 'shipping_enabled')) {
+                $table->boolean('shipping_enabled')->default(true)->after('guest_checkout_allowed');
+            }
+
+            if (! Schema::hasColumn('store_settings', 'cod_enabled')) {
+                $table->boolean('cod_enabled')->default(true)->after('shipping_enabled');
+            }
+
+            if (! Schema::hasColumn('store_settings', 'card_payment_enabled')) {
+                $table->boolean('card_payment_enabled')->default(false)->after('cod_enabled');
+            }
         });
     }
 

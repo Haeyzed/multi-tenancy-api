@@ -12,10 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('media', function (Blueprint $table) {
-            $table->foreignId('folder_id')->nullable()->after('id')->constrained('media_library_folders')->nullOnDelete();
-            $table->string('title')->nullable()->after('name');
-            $table->string('alt_text')->nullable()->after('title');
-            $table->foreignUuid('uploaded_by')->nullable()->after('alt_text')->constrained('users')->nullOnDelete();
+            if (! Schema::hasColumn('media', 'folder_id')) {
+                $table->foreignId('folder_id')->nullable()->after('id')->constrained('media_library_folders')->nullOnDelete();
+            }
+
+            if (! Schema::hasColumn('media', 'title')) {
+                $table->string('title')->nullable()->after('name');
+            }
+
+            if (! Schema::hasColumn('media', 'alt_text')) {
+                $table->string('alt_text')->nullable()->after('title');
+            }
+
+            if (! Schema::hasColumn('media', 'uploaded_by')) {
+                $table->foreignUuid('uploaded_by')->nullable()->after('alt_text')->constrained('users')->nullOnDelete();
+            }
         });
     }
 
