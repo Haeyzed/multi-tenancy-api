@@ -120,7 +120,7 @@ class StoreService
     /**
      * Find store by ID or fail.
      */
-    public function findOrFail(string $id): Store
+    public function findOrFail(int $id): Store
     {
         return $this->queryWithDetails()->findOrFail($id);
     }

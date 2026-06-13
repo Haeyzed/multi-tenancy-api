@@ -11,6 +11,6 @@ class BulkDeleteStoresRequest extends BulkDeleteRequest
 {
     protected function idRule(): string
     {
-        return 'uuid|exists:stores,id';
+        return 'integer|exists:stores,id';
     }
 }

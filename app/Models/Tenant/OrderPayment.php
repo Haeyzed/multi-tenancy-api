@@ -13,11 +13,11 @@ use Illuminate\Support\Carbon;
  * Order payments stored in the tenant database.
  *
  * @property int $id
- * @property string $order_id
+ * @property int $order_id
  * @property string $amount
  * @property string|null $currency
  * @property string $provider
- * @property string|null $provider_payment_id
+ * @property int|null $provider_payment_id
  * @property string $payment_method
  * @property string|null $card_last4
  * @property string|null $card_brand
@@ -54,6 +54,8 @@ class OrderPayment extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -75,8 +77,6 @@ class OrderPayment extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

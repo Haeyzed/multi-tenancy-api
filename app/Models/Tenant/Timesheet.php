@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Timesheets stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property int|null $project_id
  * @property int|null $task_id
  * @property string|null $description
@@ -53,6 +53,8 @@ class Timesheet extends TenantModel
 
     /**
      * Related Employee.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {

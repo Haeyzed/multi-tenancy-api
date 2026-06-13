@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $stats
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|EmailCampaign search(?string $search)
  * @method static Builder|EmailCampaign filterStatus(array $statuses)
  */
@@ -46,7 +47,10 @@ class EmailCampaign extends TenantModel
     ];
 
     /**
-     * Scope a query to search by name.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<EmailCampaign> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('store_locations', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('name');
             $table->string('code')->unique();
             $table->enum('type', ['retail', 'warehouse', 'office', 'popup', 'franchise', 'kiosk'])->default('retail');
             $table->json('address')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
-            $table->foreignUuid('manager_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('manager_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->string('timezone')->default('UTC');
             $table->string('currency')->default('USD');
             $table->decimal('tax_rate', 5, 2)->default(0);

@@ -68,6 +68,8 @@ class Media extends SpatieMedia
 
     /**
      * Folder this media item is organized under.
+     *
+     * @return BelongsTo<MediaLibraryFolder, $this>
      */
     public function folder(): BelongsTo
     {
@@ -76,6 +78,8 @@ class Media extends SpatieMedia
 
     /**
      * Staff user who uploaded the file.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function uploader(): BelongsTo
     {
@@ -83,7 +87,10 @@ class Media extends SpatieMedia
     }
 
     /**
-     * Scope a query to search by name, title, or file name.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Media> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

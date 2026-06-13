@@ -6,6 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Models\Tenant\Category;
 use App\Models\Tenant\CategoryProduct;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -28,82 +29,26 @@ class CategoryService
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
-     * @param list<string> $isActive Active/inactive filter tokens.
-     * @param list<string> $isFeatured Featured/unfeatured filter tokens.
-     * @param list<string> $showInMenu Menu visibility filter tokens.
+     * @param mixed $isActive Active/inactive filter tokens.
+     * @param mixed $isFeatured Featured/unfeatured filter tokens.
+     * @param mixed $showInMenu Menu visibility filter tokens.
      *
      * @return LengthAwarePaginator<int, Category>
      */
     public function getPaginated(
         int $perPage = 15,
         ?string $search = null,
-        array $isActive = [],
-        array $isFeatured = [],
-        array $showInMenu = [],
+        mixed $isActive = null,
+        mixed $isFeatured = null,
+        mixed $showInMenu = null,
     ): LengthAwarePaginator {
-        $query = Category::query()
+        return Category::query()
             ->with(['parent', 'bannerMedia', 'iconMedia'])
-            ->withCount(['products', 'categoryProducts']);
-
-        if ($search !== null && $search !== '') {
-            $query->search($search);
-        }
-
-        if ($isActive !== []) {
-            $values = [];
-            foreach ($isActive as $status) {
-                $values[] = match ($status) {
-                    'active' => true,
-                    'inactive' => false,
-                    default => null,
-                };
-            }
-            $values = array_values(array_unique(array_filter(
-                $values,
-                static fn(?bool $value): bool => $value !== null,
-            )));
-            if ($values !== []) {
-                $query->whereIn('is_active', $values);
-            }
-        }
-
-        if ($isFeatured !== []) {
-            $mapped = [];
-            foreach ($isFeatured as $value) {
-                $mapped[] = match ($value) {
-                    'featured' => true,
-                    'unfeatured' => false,
-                    default => null,
-                };
-            }
-            $mapped = array_values(array_unique(array_filter(
-                $mapped,
-                static fn(?bool $value): bool => $value !== null,
-            )));
-            if ($mapped !== []) {
-                $query->whereIn('is_featured', $mapped);
-            }
-        }
-
-        if ($showInMenu !== []) {
-            $mapped = [];
-            foreach ($showInMenu as $value) {
-                $mapped[] = match ($value) {
-                    'in_menu' => true,
-                    'hidden' => false,
-                    default => null,
-                };
-            }
-            $mapped = array_values(array_unique(array_filter(
-                $mapped,
-                static fn(?bool $value): bool => $value !== null,
-            )));
-            if ($mapped !== []) {
-                $query->whereIn('show_in_menu', $mapped);
-            }
-        }
-
-        return $query
+            ->withCount(['products', 'categoryProducts'])
+            ->search($search)
+            ->filterIsActive(QueryFilter::filterList($isActive))
+            ->filterIsFeatured(QueryFilter::filterList($isFeatured))
+            ->filterShowInMenu(QueryFilter::filterList($showInMenu))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate($perPage);

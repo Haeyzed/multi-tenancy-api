@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('query');
             $table->integer('results_count')->default(0);
-            $table->foreignUuid('clicked_product_id')->nullable()->constrained('products')->nullOnDelete();
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('clicked_product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('occurred_at')->useCurrent();
             $table->timestamps();
             $table->index(['query', 'occurred_at']);

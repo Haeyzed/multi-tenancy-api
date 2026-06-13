@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Salary advances stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property string $type
  * @property string $amount
  * @property string|null $approved_amount
@@ -54,6 +54,8 @@ class SalaryAdvance extends TenantModel
 
     /**
      * Related Employee.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -75,8 +77,6 @@ class SalaryAdvance extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

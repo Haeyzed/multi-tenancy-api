@@ -12,8 +12,8 @@ use Illuminate\Support\Carbon;
  * Product relations stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
- * @property string $related_product_id
+ * @property int $product_id
+ * @property int $related_product_id
  * @property string $type
  * @property int $sort_order
  * @property Carbon|null $created_at
@@ -37,6 +37,8 @@ class ProductRelation extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

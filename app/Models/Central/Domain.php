@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Models\Concerns\FilterableByTenant;
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,7 +50,20 @@ class Domain extends BaseDomain
      */
     public function scopeFilterVerified(Builder $query, array $values): void
     {
-        $mapped = QueryFilter::booleanVerified($values);
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'verified' => true,
+                'unverified' => false,
+                default => null,
+            };
+        }
+
+        $mapped = array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('verified', $mapped));
     }

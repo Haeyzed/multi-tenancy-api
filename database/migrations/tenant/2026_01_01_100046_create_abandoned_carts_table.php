@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('abandoned_carts', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('cart_id')->constrained('carts')->cascadeOnDelete();
+            $table->foreignId('cart_id')->constrained('carts')->cascadeOnDelete();
             $table->timestamp('email_sent_at')->nullable();
             $table->boolean('email_opened')->default(false);
             $table->boolean('email_clicked')->default(false);

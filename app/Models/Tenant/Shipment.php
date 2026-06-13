@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Shipments stored in the tenant database.
  *
  * @property int $id
- * @property string $order_id
+ * @property int $order_id
  * @property string|null $carrier
  * @property string|null $tracking_number
  * @property string|null $tracking_url
@@ -54,6 +54,8 @@ class Shipment extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -75,8 +77,6 @@ class Shipment extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

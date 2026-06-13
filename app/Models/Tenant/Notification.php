@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Notifications stored in the tenant database.
  *
- * @property string $id
- * @property string $user_id
+ * @property int $id
+ * @property int $user_id
  * @property string|null $type
  * @property string|null $title
  * @property string|null $body
@@ -25,16 +24,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|Notification search(?string $search)
  */
 class Notification extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'notifications';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -52,6 +49,8 @@ class Notification extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -59,7 +58,10 @@ class Notification extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Notification> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

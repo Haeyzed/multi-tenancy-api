@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -14,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * Subscription plans stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $name
  * @property string|null $description
  * @property string $billing_interval
@@ -27,17 +25,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|SubscriptionPlan search(?string $search)
  * @method static Builder|SubscriptionPlan filterIsActive(array $statuses)
  */
 class SubscriptionPlan extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
-    public $incrementing = false;
     protected $table = 'subscription_plans';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -54,7 +51,10 @@ class SubscriptionPlan extends TenantModel
     ];
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<SubscriptionPlan> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -68,13 +68,27 @@ class SubscriptionPlan extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<SubscriptionPlan> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
@@ -82,8 +96,6 @@ class SubscriptionPlan extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

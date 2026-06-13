@@ -30,7 +30,10 @@ class Role extends SpatieRole
     ];
 
     /**
-     * Scope a query to search by name or guard.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Role> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

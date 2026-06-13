@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('currency', 3)->default('USD')->after('timezone');
             $table->decimal('tax_rate', 5, 2)->default(0)->after('currency');
             $table->json('opening_hours')->nullable()->after('tax_rate');
-            $table->foreignUuid('manager_id')->nullable()->after('opening_hours')->constrained('employees')->nullOnDelete();
+            $table->foreignId('manager_id')->nullable()->after('opening_hours')->constrained('employees')->nullOnDelete();
         });
     }
 

@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 
 /**
  * Inventory transfer between warehouses stored in the tenant database.
  *
- * @property string $id
- * @property string $from_warehouse_id
- * @property string $to_warehouse_id
+ * @property int $id
+ * @property int $from_warehouse_id
+ * @property int $to_warehouse_id
  * @property string $status
  * @property Carbon|null $transfer_date
  * @property Carbon|null $received_date
@@ -23,16 +22,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $received_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|InventoryTransfer filterStatus(array $statuses)
  */
 class InventoryTransfer extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'inventory_transfers';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */

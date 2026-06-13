@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,9 +12,9 @@ use Illuminate\Support\Carbon;
 /**
  * Performance reviews stored in the tenant database.
  *
- * @property string $id
- * @property string $employee_id
- * @property string $reviewer_id
+ * @property int $id
+ * @property int $employee_id
+ * @property int $reviewer_id
  * @property Carbon|null $review_period_start
  * @property Carbon|null $review_period_end
  * @property string $type
@@ -31,12 +30,9 @@ use Illuminate\Support\Carbon;
  */
 class PerformanceReview extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'performance_reviews';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -57,6 +53,8 @@ class PerformanceReview extends TenantModel
 
     /**
      * Related Employee.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -78,8 +76,6 @@ class PerformanceReview extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

@@ -11,6 +11,6 @@ class BulkDeleteProductsRequest extends BulkDeleteRequest
 {
     protected function idRule(): string
     {
-        return 'uuid|exists:products,id';
+        return 'integer|exists:products,id';
     }
 }

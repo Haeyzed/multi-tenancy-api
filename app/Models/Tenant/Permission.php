@@ -32,7 +32,10 @@ class Permission extends SpatiePermission
     ];
 
     /**
-     * Scope a query to search by name, guard, or module.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Permission> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,9 +12,9 @@ use Illuminate\Support\Carbon;
 /**
  * Shopping cart stored in the tenant database.
  *
- * @property string $id
- * @property string|null $user_id
- * @property string|null $session_id
+ * @property int $id
+ * @property int|null $user_id
+ * @property int|null $session_id
  * @property string|null $email
  * @property string|null $currency
  * @property string $subtotal
@@ -31,19 +30,17 @@ use Illuminate\Support\Carbon;
  * @property bool $abandoned_cart_email_sent
  * @property Carbon|null $last_activity_at
  * @property Carbon|null $expires_at
- * @property string|null $converted_to_order_id
+ * @property int|null $converted_to_order_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|Cart search(?string $search)
  */
 class Cart extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'carts';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -70,6 +67,8 @@ class Cart extends TenantModel
 
     /**
      * Registered user who owns this cart, if any.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -77,7 +76,10 @@ class Cart extends TenantModel
     }
 
     /**
-     * Scope a query to search by email.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Cart> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

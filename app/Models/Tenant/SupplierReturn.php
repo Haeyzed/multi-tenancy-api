@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 
 /**
  * Supplier returns stored in the tenant database.
  *
- * @property string $id
- * @property string $po_id
- * @property string $grn_id
+ * @property int $id
+ * @property int $po_id
+ * @property int $grn_id
  * @property string|null $return_number
  * @property string $status
  * @property Carbon|null $return_date
@@ -25,12 +24,9 @@ use Illuminate\Support\Carbon;
  */
 class SupplierReturn extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'supplier_returns';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -59,8 +55,6 @@ class SupplierReturn extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

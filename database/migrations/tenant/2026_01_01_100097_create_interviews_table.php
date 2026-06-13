@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('interviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('application_id')->constrained('job_applications')->cascadeOnDelete();
+            $table->foreignId('application_id')->constrained('job_applications')->cascadeOnDelete();
             $table->foreignId('stage_id')->constrained('application_stages');
             $table->timestamp('scheduled_at');
             $table->integer('duration_minutes')->default(60);

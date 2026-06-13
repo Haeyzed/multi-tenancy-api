@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Supplier payments stored in the tenant database.
  *
  * @property int $id
- * @property string $supplier_invoice_id
+ * @property int $supplier_invoice_id
  * @property string $amount
  * @property Carbon|null $payment_date
  * @property string $payment_method
@@ -41,6 +41,8 @@ class SupplierPayment extends TenantModel
 
     /**
      * Related SupplierInvoice.
+     *
+     * @return BelongsTo<SupplierInvoice, $this>
      */
     public function supplierInvoice(): BelongsTo
     {

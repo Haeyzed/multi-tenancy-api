@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Offboarding records stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property Carbon|null $resignation_date
  * @property Carbon|null $last_working_date
  * @property string $reason
@@ -43,6 +43,8 @@ class OffboardingRecord extends TenantModel
 
     /**
      * Related Employee.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {

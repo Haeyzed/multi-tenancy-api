@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -12,9 +11,9 @@ use Illuminate\Support\Carbon;
 /**
  * Customer loyalty account stored in the tenant database.
  *
- * @property string $id
- * @property string $user_id
- * @property string $program_id
+ * @property int $id
+ * @property int $user_id
+ * @property int $program_id
  * @property int|null $tier_id
  * @property int $total_points
  * @property int $available_points
@@ -26,12 +25,9 @@ use Illuminate\Support\Carbon;
  */
 class CustomerLoyaltyAccount extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'customer_loyalty_accounts';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -48,6 +44,8 @@ class CustomerLoyaltyAccount extends TenantModel
 
     /**
      * Customer who owns this loyalty account.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

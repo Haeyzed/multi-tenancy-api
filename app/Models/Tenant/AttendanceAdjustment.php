@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
  * Attendance adjustment stored in the tenant database.
  *
  * @property int $id
- * @property string $attendance_id
+ * @property int $attendance_id
  * @property string|null $field_changed
  * @property string|null $old_value
  * @property string|null $new_value

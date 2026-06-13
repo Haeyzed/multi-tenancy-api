@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -12,10 +11,10 @@ use Illuminate\Support\Carbon;
 /**
  * Inventory adjustment stored in the tenant database.
  *
- * @property string $id
- * @property string $product_id
- * @property string|null $variant_id
- * @property string $warehouse_id
+ * @property int $id
+ * @property int $product_id
+ * @property int|null $variant_id
+ * @property int $warehouse_id
  * @property string $type
  * @property int $quantity
  * @property string|null $reason
@@ -26,12 +25,9 @@ use Illuminate\Support\Carbon;
  */
 class InventoryAdjustment extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'inventory_adjustments';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -48,6 +44,8 @@ class InventoryAdjustment extends TenantModel
 
     /**
      * Product being adjusted.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -56,6 +54,8 @@ class InventoryAdjustment extends TenantModel
 
     /**
      * Warehouse where the adjustment occurred.
+     *
+     * @return BelongsTo<Warehouse, $this>
      */
     public function warehouse(): BelongsTo
     {

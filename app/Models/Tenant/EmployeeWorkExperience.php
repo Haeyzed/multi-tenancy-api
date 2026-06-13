@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Employee work experience record stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property string|null $company_name
  * @property string|null $job_title
  * @property string|null $description
@@ -45,6 +45,8 @@ class EmployeeWorkExperience extends TenantModel
 
     /**
      * Employee this work experience belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {

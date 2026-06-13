@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('product_option_combinations', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('combination_key');
             $table->string('sku')->unique();
             $table->decimal('price', 12, 2)->nullable();

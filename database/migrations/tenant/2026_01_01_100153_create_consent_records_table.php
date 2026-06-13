@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('consent_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->enum('consent_type', ['marketing', 'analytics', 'cookies', 'terms_of_service', 'privacy_policy', 'data_sharing', 'sms', 'email'])->default('terms_of_service');
             $table->string('version');
             $table->string('ip_address', 45)->nullable();

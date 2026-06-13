@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Product views stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
+ * @property int $product_id
  * @property Carbon|null $date
  * @property int $views
  * @property int $unique_views
@@ -43,6 +43,8 @@ class ProductView extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

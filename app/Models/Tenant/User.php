@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Database\Factories\Tenant\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -20,7 +18,7 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * Store staff or customer account inside a tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string $email
  * @property string $password
  * @property string $first_name
@@ -41,17 +39,21 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read string $name
+ *
  * @method static Builder|User search(?string $search)
  * @method static Builder|User filterIsActive(array $statuses)
  */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable, SoftDeletes;
+    use HasApiTokens;
+    use HasFactory;
+    use HasRoles;
+    use Notifiable;
+    use SoftDeletes;
 
-    public $incrementing = false;
     protected $guard_name = 'tenant';
-    protected $keyType = 'string';
 
     /**
      * @var list<string>
@@ -84,6 +86,11 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    /**
+     * Full display name derived from first and last name.
+     *
+     * @return BelongsTo<Media, $this>
+     */
     public function getNameAttribute(): string
     {
         return trim($this->first_name . ' ' . $this->last_name);
@@ -91,6 +98,8 @@ class User extends Authenticatable
 
     /**
      * Avatar media file for this user.
+     *
+     * @return BelongsTo<Media, $this>
      */
     public function avatarMedia(): BelongsTo
     {
@@ -99,11 +108,14 @@ class User extends Authenticatable
 
     /**
      * Scope a query to search by name or email.
+     *
+     * @param Builder<User> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('email', 'like', "%{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
@@ -114,13 +126,27 @@ class User extends Authenticatable
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<User> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
@@ -138,6 +164,9 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'is_marketing_opt_in' => 'boolean',
             'password' => 'hashed',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 }

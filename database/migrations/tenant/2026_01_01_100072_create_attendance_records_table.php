@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('attendance_records', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->date('date');
             $table->foreignId('shift_id')->nullable();
             $table->timestamp('check_in')->nullable();
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->integer('early_leave_minutes')->default(0);
             $table->enum('status', ['present', 'absent', 'late', 'half_day', 'on_leave', 'holiday', 'remote', 'field_work'])->default('present');
             $table->text('notes')->nullable();
-            $table->foreignUuid('approved_by')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('employees')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
             $table->boolean('is_manual_entry')->default(false);
             $table->text('manual_entry_reason')->nullable();

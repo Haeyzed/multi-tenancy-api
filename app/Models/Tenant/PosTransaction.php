@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -12,10 +11,10 @@ use Illuminate\Support\Carbon;
 /**
  * Pos transactions stored in the tenant database.
  *
- * @property string $id
- * @property string $session_id
+ * @property int $id
+ * @property int $session_id
  * @property string $type
- * @property string|null $order_id
+ * @property int|null $order_id
  * @property string $amount
  * @property string $payment_method
  * @property string|null $reference
@@ -25,12 +24,9 @@ use Illuminate\Support\Carbon;
  */
 class PosTransaction extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'pos_transactions';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -46,6 +42,8 @@ class PosTransaction extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {

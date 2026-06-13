@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Employee leave balance stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property int $leave_type_id
  * @property int $year
  * @property string $entitled_days
@@ -45,6 +45,8 @@ class LeaveBalance extends TenantModel
 
     /**
      * Employee this balance belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -53,6 +55,8 @@ class LeaveBalance extends TenantModel
 
     /**
      * Leave type for this balance.
+     *
+     * @return BelongsTo<LeaveType, $this>
      */
     public function leaveType(): BelongsTo
     {

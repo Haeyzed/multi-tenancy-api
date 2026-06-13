@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('product_relations', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignUuid('related_product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('related_product_id')->constrained('products')->cascadeOnDelete();
             $table->enum('type', ['upsell', 'cross_sell', 'related', 'bundle'])->default('related');
             $table->integer('sort_order')->default(0);
             $table->timestamps();

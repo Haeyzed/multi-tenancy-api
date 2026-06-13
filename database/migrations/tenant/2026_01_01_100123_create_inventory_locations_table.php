@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('inventory_locations', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
-            $table->foreignUuid('warehouse_id')->constrained('warehouses')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('warehouse_id')->constrained('warehouses')->cascadeOnDelete();
             $table->foreignId('zone_id')->nullable()->constrained('warehouse_zones')->nullOnDelete();
             $table->foreignId('bin_id')->nullable()->constrained('warehouse_bins')->nullOnDelete();
             $table->integer('quantity')->default(0);

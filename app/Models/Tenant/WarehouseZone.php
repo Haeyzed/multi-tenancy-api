@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,13 +13,14 @@ use Illuminate\Support\Carbon;
  * Warehouse zones stored in the tenant database.
  *
  * @property int $id
- * @property string $warehouse_id
+ * @property int $warehouse_id
  * @property string|null $name
  * @property string|null $code
  * @property string $type
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|WarehouseZone search(?string $search)
  * @method static Builder|WarehouseZone filterIsActive(array $statuses)
  */
@@ -43,6 +43,8 @@ class WarehouseZone extends TenantModel
 
     /**
      * Related Warehouse.
+     *
+     * @return BelongsTo<Warehouse, $this>
      */
     public function warehouse(): BelongsTo
     {
@@ -50,7 +52,10 @@ class WarehouseZone extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<WarehouseZone> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -65,13 +70,27 @@ class WarehouseZone extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<WarehouseZone> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
@@ -79,8 +98,6 @@ class WarehouseZone extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

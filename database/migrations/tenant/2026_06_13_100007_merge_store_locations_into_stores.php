@@ -93,7 +93,7 @@ return new class extends Migration
             }
 
             Schema::table($tableName, function (Blueprint $table) {
-                $table->foreignUuid('store_id')->nullable()->after('id');
+                $table->foreignId('store_id')->nullable()->after('id');
             });
 
             DB::table($tableName)->update(['store_id' => DB::raw('location_id')]);

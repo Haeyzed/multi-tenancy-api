@@ -11,9 +11,9 @@ use Illuminate\Support\Carbon;
  * Live chat message stored in the tenant database.
  *
  * @property int $id
- * @property string $session_id
+ * @property int $session_id
  * @property string $sender_type
- * @property string|null $sender_id
+ * @property int|null $sender_id
  * @property string|null $message
  * @property int|null $attachment_media_id
  * @property Carbon|null $created_at

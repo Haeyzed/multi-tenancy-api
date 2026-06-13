@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('attendance_adjustments', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('attendance_id')->constrained('attendance_records')->cascadeOnDelete();
+            $table->foreignId('attendance_id')->constrained('attendance_records')->cascadeOnDelete();
             $table->string('field_changed');
             $table->string('old_value')->nullable();
             $table->string('new_value');
             $table->text('reason');
-            $table->foreignUuid('adjusted_by')->constrained('users');
+            $table->foreignId('adjusted_by')->constrained('users');
             $table->timestamp('adjusted_at')->useCurrent();
-            $table->foreignUuid('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
             $table->boolean('is_approved')->default(false);
             $table->timestamps();

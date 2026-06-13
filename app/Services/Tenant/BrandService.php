@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Tenant;
 
 use App\Models\Tenant\Brand;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -26,42 +27,20 @@ class BrandService
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
-     * @param list<string> $isActive Active/inactive filter tokens.
+     * @param mixed $isActive Active/inactive filter tokens.
      *
      * @return LengthAwarePaginator<int, Brand>
      */
     public function getPaginated(
         int $perPage = 15,
         ?string $search = null,
-        array $isActive = [],
+        mixed $isActive = null,
     ): LengthAwarePaginator {
-        $query = Brand::query()
+        return Brand::query()
             ->with(['logoMedia'])
-            ->withCount('products');
-
-        if ($search !== null && $search !== '') {
-            $query->search($search);
-        }
-
-        if ($isActive !== []) {
-            $values = [];
-            foreach ($isActive as $status) {
-                $values[] = match ($status) {
-                    'active' => true,
-                    'inactive' => false,
-                    default => null,
-                };
-            }
-            $values = array_values(array_unique(array_filter(
-                $values,
-                static fn(?bool $value): bool => $value !== null,
-            )));
-            if ($values !== []) {
-                $query->whereIn('is_active', $values);
-            }
-        }
-
-        return $query
+            ->withCount('products')
+            ->search($search)
+            ->filterIsActive(QueryFilter::filterList($isActive))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate($perPage);
@@ -161,6 +140,44 @@ class BrandService
     }
 
     /**
+     * Restore a soft-deleted brand.
+     *
+     * @param int $id Trashed record identifier.
+     *
+     * @return Brand
+     */
+    public function restore(int $id): Brand
+    {
+        $model = Brand::withTrashed()->findOrFail($id);
+        $model->restore();
+
+        return $model->load(['logoMedia']);
+    }
+
+    /**
+     * Restore multiple soft-deleted brands by ID.
+     *
+     * @param list<int> $ids
+     *
+     * @return int Number of restored records.
+     */
+    public function restoreMany(array $ids): int
+    {
+        return DB::transaction(function () use ($ids): int {
+            $records = Brand::withTrashed()->whereIn('id', $ids)->get();
+            $restored = 0;
+
+            foreach ($records as $record) {
+                if ($record->restore()) {
+                    $restored++;
+                }
+            }
+
+            return $restored;
+        });
+    }
+
+    /**
      * Unlink all products from a brand.
      *
      * @param Brand $brand The brand to unlink products from.
@@ -218,7 +235,7 @@ class BrandService
     /**
      * Get active brands as value/label pairs for select inputs.
      *
-     * @return list<<array{value: int, label: string}>
+     * @return list<array{value: int, label: string}>
      */
     public function getOptions(): array
     {
@@ -238,7 +255,7 @@ class BrandService
     /**
      * KPI card metrics for brands.
      *
-     * @return list<<array{key: string, label: string, value: int}>
+     * @return list<array{key: string, label: string, value: int}>
      */
     public function getMetrics(): array
     {

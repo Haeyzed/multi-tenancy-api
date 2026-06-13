@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('subscription_plans', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('billing_interval', ['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'biannual', 'yearly'])->default('monthly');

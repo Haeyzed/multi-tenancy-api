@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('loyalty_tiers', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('program_id')->constrained('loyalty_programs')->cascadeOnDelete();
+            $table->foreignId('program_id')->constrained('loyalty_programs')->cascadeOnDelete();
             $table->string('name');
             $table->integer('min_points')->default(0);
             $table->integer('max_points')->nullable();

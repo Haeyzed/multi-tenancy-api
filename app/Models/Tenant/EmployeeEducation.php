@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Employee education record stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property string|null $institution
  * @property string|null $degree
  * @property string|null $field_of_study
@@ -47,6 +47,8 @@ class EmployeeEducation extends TenantModel
 
     /**
      * Employee this education record belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,9 +13,9 @@ use Illuminate\Support\Carbon;
 /**
  * Orders stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $order_number
- * @property string|null $user_id
+ * @property int|null $user_id
  * @property string|null $guest_email
  * @property string $status
  * @property string $payment_status
@@ -47,17 +46,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|Order search(?string $search)
  * @method static Builder|Order filterStatus(array $statuses)
  */
 class Order extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
-    public $incrementing = false;
     protected $table = 'orders';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -95,6 +93,8 @@ class Order extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -102,7 +102,10 @@ class Order extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Order> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -128,8 +131,6 @@ class Order extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

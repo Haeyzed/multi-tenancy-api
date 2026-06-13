@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Employee dependent stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property string|null $name
  * @property string $relationship
  * @property Carbon|null $date_of_birth
@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property bool $is_beneficiary
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|EmployeeDependent search(?string $search)
  */
 class EmployeeDependent extends TenantModel
@@ -43,6 +44,8 @@ class EmployeeDependent extends TenantModel
 
     /**
      * Employee this dependent belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -50,7 +53,10 @@ class EmployeeDependent extends TenantModel
     }
 
     /**
-     * Scope a query to search by name.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<EmployeeDependent> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

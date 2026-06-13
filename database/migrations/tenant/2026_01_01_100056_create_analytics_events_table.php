@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('analytics_events', function (Blueprint $table) {
             $table->id();
             $table->enum('event_type', ['page_view', 'product_view', 'add_to_cart', 'remove_from_cart', 'purchase', 'search', 'wishlist_add', 'review_submit', 'checkout_start', 'checkout_complete', 'login', 'register'])->default('page_view');
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('session_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->string('url')->nullable();

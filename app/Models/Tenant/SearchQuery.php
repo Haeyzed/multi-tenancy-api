@@ -14,8 +14,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string|null $query
  * @property int $results_count
- * @property string|null $clicked_product_id
- * @property string|null $user_id
+ * @property int|null $clicked_product_id
+ * @property int|null $user_id
  * @property Carbon|null $occurred_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -39,6 +39,8 @@ class SearchQuery extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

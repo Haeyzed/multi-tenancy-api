@@ -100,7 +100,7 @@ class Product extends TenantModel
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return BelongsTo<Brand, $this>
      */
     protected function casts(): array
     {
@@ -126,7 +126,7 @@ class Product extends TenantModel
     /**
      * Brand this product belongs to.
      *
-     * @return BelongsTo<<Brand, $this>
+     * @return BelongsTo<Brand, $this>
      */
     public function brand(): BelongsTo
     {
@@ -136,7 +136,7 @@ class Product extends TenantModel
     /**
      * Categories this product belongs to via pivot.
      *
-     * @return BelongsToMany<<Category, $this>
+     * @return BelongsToMany<Category, $this>
      */
     public function categories(): BelongsToMany
     {

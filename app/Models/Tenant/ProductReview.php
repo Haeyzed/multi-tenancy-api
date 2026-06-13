@@ -13,9 +13,9 @@ use Illuminate\Support\Carbon;
  * Product reviews stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
- * @property string|null $user_id
- * @property string|null $order_id
+ * @property int $product_id
+ * @property int|null $user_id
+ * @property int|null $order_id
  * @property int $rating
  * @property string|null $title
  * @property string|null $body
@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $images
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|ProductReview search(?string $search)
  */
 class ProductReview extends TenantModel
@@ -51,6 +52,8 @@ class ProductReview extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -59,6 +62,8 @@ class ProductReview extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -67,6 +72,8 @@ class ProductReview extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -74,7 +81,10 @@ class ProductReview extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<ProductReview> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

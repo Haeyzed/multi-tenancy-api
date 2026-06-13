@@ -11,6 +11,6 @@ class BulkDeleteUsersRequest extends BulkDeleteRequest
 {
     protected function idRule(): string
     {
-        return 'uuid|exists:users,id';
+        return 'integer|exists:users,id';
     }
 }

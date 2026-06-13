@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -12,11 +11,11 @@ use Illuminate\Support\Carbon;
 /**
  * Audit log entry stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $auditable_type
- * @property string $auditable_id
+ * @property int $auditable_id
  * @property string $action
- * @property string|null $user_id
+ * @property int|null $user_id
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string|null $url
@@ -28,12 +27,9 @@ use Illuminate\Support\Carbon;
  */
 class AuditLog extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'audit_logs';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -52,6 +48,8 @@ class AuditLog extends TenantModel
 
     /**
      * User who performed this action.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

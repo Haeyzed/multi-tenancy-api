@@ -12,7 +12,6 @@ use App\Models\Tenant\Brand;
 use App\Services\Tenant\BrandService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Support\QueryFilter;
 
 /**
  * Product brands for the tenant catalog.
@@ -42,7 +41,7 @@ class BrandController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $isActive = QueryFilter::parseList($request->query('is_active'));
+        $isActive = $request->query('is_active');
 
         $items = $this->service->getPaginated($perPage, $search, $isActive);
 
@@ -150,6 +149,41 @@ class BrandController extends Controller
         return $this->success(
             ['deleted' => $deleted],
             "{$deleted} brand(s) deleted successfully.",
+        );
+    }
+
+    /**
+     * Restore a soft-deleted brand.
+     *
+     * @param int $id Trashed record identifier.
+     *
+     * @return JsonResponse
+     */
+    public function restore(int $id): JsonResponse
+    {
+        $item = $this->service->restore($id);
+
+        return $this->success(
+            new BrandResource($item),
+            'Brand restored successfully.',
+        );
+    }
+
+    /**
+     * Restore multiple soft-deleted brands.
+     *
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $restored = $this->service->restoreMany($ids);
+
+        return $this->success(
+            ['restored' => $restored],
+            "{$restored} brand(s) restored successfully.",
         );
     }
 

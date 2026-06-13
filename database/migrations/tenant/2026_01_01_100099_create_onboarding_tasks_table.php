@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('checklist_id')->constrained('onboarding_checklists')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->foreignUuid('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
             $table->date('due_date')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->boolean('is_required')->default(true);

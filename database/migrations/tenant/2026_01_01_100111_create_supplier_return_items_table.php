@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('supplier_return_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('return_id')->constrained('supplier_returns')->cascadeOnDelete();
+            $table->foreignId('return_id')->constrained('supplier_returns')->cascadeOnDelete();
             $table->foreignId('po_item_id')->constrained('purchase_order_items');
             $table->integer('returned_qty');
             $table->decimal('refund_amount', 12, 2);

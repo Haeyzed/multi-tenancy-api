@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * User addresses stored in the tenant database.
  *
  * @property int $id
- * @property string $user_id
+ * @property int $user_id
  * @property string $type
  * @property string|null $label
  * @property string|null $first_name
@@ -61,6 +61,8 @@ class UserAddress extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

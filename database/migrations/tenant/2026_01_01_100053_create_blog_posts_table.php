@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('excerpt')->nullable();
             $table->longText('body');
             $table->foreignId('featured_media_id')->nullable();
-            $table->foreignUuid('author_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('author_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('category_id')->nullable();
             $table->json('tags')->nullable();
             $table->json('meta')->nullable();

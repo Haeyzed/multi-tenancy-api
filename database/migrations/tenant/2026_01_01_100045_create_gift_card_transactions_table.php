@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('gift_card_transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('gift_card_id')->constrained('gift_cards')->cascadeOnDelete();
-            $table->foreignUuid('order_id')->nullable()->constrained('orders')->nullOnDelete();
+            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->decimal('amount', 12, 2);
             $table->enum('type', ['debit', 'credit', 'activation', 'expiry'])->default('debit');
             $table->decimal('balance_after', 12, 2);

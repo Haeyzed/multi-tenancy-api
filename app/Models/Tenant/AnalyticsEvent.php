@@ -13,8 +13,8 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property string $event_type
- * @property string|null $user_id
- * @property string|null $session_id
+ * @property int|null $user_id
+ * @property int|null $session_id
  * @property string|null $ip_address
  * @property string|null $url
  * @property string|null $referrer
@@ -47,6 +47,8 @@ class AnalyticsEvent extends TenantModel
 
     /**
      * User associated with this event, if any.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

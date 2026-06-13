@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pick_list_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('pick_list_id')->constrained('pick_lists')->cascadeOnDelete();
+            $table->foreignId('pick_list_id')->constrained('pick_lists')->cascadeOnDelete();
             $table->foreignId('order_item_id')->constrained('order_items');
             $table->integer('quantity');
             $table->integer('picked_qty')->default(0);

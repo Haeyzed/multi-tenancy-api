@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payroll_entries', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('payroll_period_id')->constrained('payroll_periods')->cascadeOnDelete();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('payroll_period_id')->constrained('payroll_periods')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->decimal('base_salary', 12, 2)->default(0);
             $table->integer('working_days')->default(0);
             $table->integer('present_days')->default(0);

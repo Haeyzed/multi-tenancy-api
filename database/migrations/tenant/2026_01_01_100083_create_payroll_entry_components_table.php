@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payroll_entry_components', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('payroll_entry_id')->constrained('payroll_entries')->cascadeOnDelete();
+            $table->foreignId('payroll_entry_id')->constrained('payroll_entries')->cascadeOnDelete();
             $table->foreignId('component_id')->constrained('salary_components')->cascadeOnDelete();
             $table->decimal('amount', 12, 2);
             $table->decimal('calculated_amount', 12, 2);

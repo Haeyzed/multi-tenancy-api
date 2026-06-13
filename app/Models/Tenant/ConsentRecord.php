@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * User consent record stored in the tenant database.
  *
  * @property int $id
- * @property string $user_id
+ * @property int $user_id
  * @property string $consent_type
  * @property string|null $version
  * @property string|null $ip_address
@@ -43,6 +43,8 @@ class ConsentRecord extends TenantModel
 
     /**
      * User who gave or withdrew consent.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

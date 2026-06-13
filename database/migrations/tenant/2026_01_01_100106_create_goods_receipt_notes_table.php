@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('goods_receipt_notes', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('po_id')->constrained('purchase_orders')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('po_id')->constrained('purchase_orders')->cascadeOnDelete();
             $table->string('grn_number')->unique();
             $table->date('received_date');
-            $table->foreignUuid('received_by')->constrained('employees');
+            $table->foreignId('received_by')->constrained('employees');
             $table->enum('status', ['pending', 'partial', 'complete', 'rejected'])->default('pending');
             $table->text('notes')->nullable();
             $table->timestamps();

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('onboarding_checklists', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->foreignId('template_id')->nullable();
             $table->enum('status', ['in_progress', 'completed', 'overdue'])->default('in_progress');
             $table->timestamp('completed_at')->nullable();

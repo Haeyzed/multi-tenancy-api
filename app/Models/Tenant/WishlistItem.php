@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Wishlist items stored in the tenant database.
  *
  * @property int $id
- * @property string $wishlist_id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $wishlist_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property Carbon|null $added_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -37,6 +37,8 @@ class WishlistItem extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

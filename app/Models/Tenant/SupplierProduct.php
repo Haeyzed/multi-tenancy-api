@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,8 +13,8 @@ use Illuminate\Support\Carbon;
  * Supplier products stored in the tenant database.
  *
  * @property int $id
- * @property string $supplier_id
- * @property string|null $product_id
+ * @property int $supplier_id
+ * @property int|null $product_id
  * @property string|null $sku
  * @property string|null $supplier_sku
  * @property string $cost_price
@@ -25,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|SupplierProduct search(?string $search)
  * @method static Builder|SupplierProduct filterIsActive(array $statuses)
  */
@@ -51,6 +51,8 @@ class SupplierProduct extends TenantModel
 
     /**
      * Related Supplier.
+     *
+     * @return BelongsTo<Supplier, $this>
      */
     public function supplier(): BelongsTo
     {
@@ -59,6 +61,8 @@ class SupplierProduct extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -66,7 +70,10 @@ class SupplierProduct extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<SupplierProduct> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -80,13 +87,27 @@ class SupplierProduct extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<SupplierProduct> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
@@ -94,8 +115,6 @@ class SupplierProduct extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Stage progression history for a job application stored in the tenant database.
  *
  * @property int $id
- * @property string $application_id
+ * @property int $application_id
  * @property int $stage_id
  * @property string $status
  * @property Carbon|null $scheduled_at
@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|ApplicationStageHistory filterStatus(array $statuses)
  */
 class ApplicationStageHistory extends TenantModel

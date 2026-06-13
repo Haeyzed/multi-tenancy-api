@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 
 /**
  * Goods receipt note stored in the tenant database.
  *
- * @property string $id
- * @property string $po_id
+ * @property int $id
+ * @property int $po_id
  * @property string|null $grn_number
  * @property Carbon|null $received_date
  * @property string $received_by
@@ -21,16 +20,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|GoodsReceiptNote filterStatus(array $statuses)
  */
 class GoodsReceiptNote extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'goods_receipt_notes';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */

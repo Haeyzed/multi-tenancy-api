@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Job application stored in the tenant database.
  *
- * @property string $id
- * @property string $job_posting_id
+ * @property int $id
+ * @property int $job_posting_id
  * @property string|null $first_name
  * @property string|null $last_name
  * @property string|null $email
@@ -35,17 +34,15 @@ use Illuminate\Support\Carbon;
  * @property string|null $assigned_to
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|JobApplication search(?string $search)
  * @method static Builder|JobApplication filterStatus(array $statuses)
  */
 class JobApplication extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'job_applications';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -73,6 +70,8 @@ class JobApplication extends TenantModel
 
     /**
      * Job posting this application is for.
+     *
+     * @return BelongsTo<JobPosting, $this>
      */
     public function jobPosting(): BelongsTo
     {
@@ -80,7 +79,10 @@ class JobApplication extends TenantModel
     }
 
     /**
-     * Scope a query to search by email.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<JobApplication> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

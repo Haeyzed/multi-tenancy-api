@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('performance_reviews', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
-            $table->foreignUuid('reviewer_id')->constrained('employees');
+            $table->id();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('reviewer_id')->constrained('employees');
             $table->date('review_period_start');
             $table->date('review_period_end');
             $table->enum('type', ['annual', 'quarterly', 'probation', 'adhoc'])->default('annual');

@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Employee document stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property string $document_type
  * @property string|null $title
  * @property int|null $media_id
@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|EmployeeDocument search(?string $search)
  */
 class EmployeeDocument extends TenantModel
@@ -49,6 +50,8 @@ class EmployeeDocument extends TenantModel
 
     /**
      * Employee this document belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -56,7 +59,10 @@ class EmployeeDocument extends TenantModel
     }
 
     /**
-     * Scope a query to search by title.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<EmployeeDocument> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

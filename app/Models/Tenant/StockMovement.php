@@ -12,15 +12,15 @@ use Illuminate\Support\Carbon;
  * Stock movements stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int|null $location_id
  * @property string $type
  * @property int $quantity
  * @property int $before_quantity
  * @property int $after_quantity
  * @property string|null $reference_type
- * @property string|null $reference_id
+ * @property int|null $reference_id
  * @property string|null $reason
  * @property string|null $performed_by
  * @property Carbon|null $created_at
@@ -51,6 +51,8 @@ class StockMovement extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

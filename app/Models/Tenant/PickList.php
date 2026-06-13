@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,23 +12,20 @@ use Illuminate\Support\Carbon;
 /**
  * Pick lists stored in the tenant database.
  *
- * @property string $id
- * @property string $warehouse_id
+ * @property int $id
+ * @property int $warehouse_id
  * @property string $status
  * @property Carbon|null $completed_at
- * @property string|null $picker_id
- * @property string|null $packer_id
+ * @property int|null $picker_id
+ * @property int|null $packer_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 class PickList extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'pick_lists';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -43,6 +39,8 @@ class PickList extends TenantModel
 
     /**
      * Related Warehouse.
+     *
+     * @return BelongsTo<Warehouse, $this>
      */
     public function warehouse(): BelongsTo
     {
@@ -64,8 +62,6 @@ class PickList extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

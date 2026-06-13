@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('recipient_email')->nullable();
             $table->string('recipient_name')->nullable();
             $table->text('message')->nullable();
-            $table->foreignUuid('sender_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('sender_id')->nullable()->constrained('users')->nullOnDelete();
             $table->date('expiry_date')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

@@ -30,7 +30,7 @@ class StoreWarehouseRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'store_id' => 'nullable|uuid|exists:stores,id',
+            'store_id' => 'nullable|integer|exists:stores,id',
             'name' => 'required|string|max:255',
             'code' => 'required|string|unique:warehouses,code|max:50',
             'type' => ['required', 'string', Rule::in(self::typeOptions())],
@@ -38,7 +38,7 @@ class StoreWarehouseRequest extends BaseRequest
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'timezone' => 'sometimes|string|max:64',
-            'manager_id' => 'nullable|uuid|exists:employees,id',
+            'manager_id' => 'nullable|integer|exists:employees,id',
             'is_active' => 'sometimes|boolean',
         ];
     }

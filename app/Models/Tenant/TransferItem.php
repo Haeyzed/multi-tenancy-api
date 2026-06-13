@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Transfer items stored in the tenant database.
  *
  * @property int $id
- * @property string $transfer_id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $transfer_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int $quantity
  * @property int $received_qty
  * @property string|null $notes
@@ -41,6 +41,8 @@ class TransferItem extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

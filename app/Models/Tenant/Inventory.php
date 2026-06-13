@@ -12,8 +12,8 @@ use Illuminate\Support\Carbon;
  * Product inventory level stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int|null $location_id
  * @property int $quantity
  * @property int $reserved_quantity
@@ -47,6 +47,8 @@ class Inventory extends TenantModel
 
     /**
      * Product being tracked.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

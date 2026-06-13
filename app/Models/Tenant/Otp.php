@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * One-time password issued for tenant authentication flows.
  *
  * @property int $id
- * @property string|null $user_id
+ * @property int|null $user_id
  * @property string $email
  * @property string $otp
  * @property OtpPurpose $purpose
@@ -48,6 +48,8 @@ class Otp extends Model
 
     /**
      * User associated with this OTP, when known.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

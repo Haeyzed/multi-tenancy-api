@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Inventory count line item stored in the tenant database.
  *
  * @property int $id
- * @property string $count_id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $count_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int $expected_qty
  * @property int $counted_qty
  * @property int $difference
@@ -45,6 +45,8 @@ class InventoryCountItem extends TenantModel
 
     /**
      * Product being counted.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

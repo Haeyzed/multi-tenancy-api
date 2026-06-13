@@ -15,7 +15,7 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('store_settings', 'store_id')) {
             Schema::table('store_settings', function (Blueprint $table) {
-                $table->foreignUuid('store_id')->nullable()->after('id')->constrained('stores')->cascadeOnDelete();
+                $table->foreignId('store_id')->nullable()->after('id')->constrained('stores')->cascadeOnDelete();
             });
         }
 
@@ -33,10 +33,8 @@ return new class extends Migration
                 }
 
                 $slug = $row->store_slug ?: Str::slug($row->store_name ?: 'default-store');
-                $storeId = (string) Str::uuid();
 
-                DB::table('stores')->insert([
-                    'id' => $storeId,
+                $storeId = DB::table('stores')->insertGetId([
                     'name' => $row->store_name ?: 'Default Store',
                     'slug' => $slug,
                     'tagline' => $row->tagline,
@@ -58,7 +56,7 @@ return new class extends Migration
 
         Schema::table('store_settings', function (Blueprint $table) {
             if (Schema::hasColumn('store_settings', 'store_id')) {
-                $table->uuid('store_id')->nullable(false)->change();
+                $table->unsignedBigInteger('store_id')->nullable(false)->change();
             }
 
             $indexes = collect(Schema::getIndexes('store_settings'))->pluck('name');

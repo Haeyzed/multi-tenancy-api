@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
  * Supplier return items stored in the tenant database.
  *
  * @property int $id
- * @property string $return_id
+ * @property int $return_id
  * @property int $po_item_id
  * @property int $returned_qty
  * @property string $refund_amount

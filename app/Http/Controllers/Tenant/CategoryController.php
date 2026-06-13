@@ -12,7 +12,6 @@ use App\Models\Tenant\Category;
 use App\Services\Tenant\CategoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Support\QueryFilter;
 
 /**
  * Product categories for the tenant catalog.
@@ -42,9 +41,9 @@ class CategoryController extends Controller
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $isActive = QueryFilter::parseList($request->query('is_active'));
-        $isFeatured = QueryFilter::parseList($request->query('is_featured'));
-        $showInMenu = QueryFilter::parseList($request->query('show_in_menu'));
+        $isActive = $request->query('is_active');
+        $isFeatured = $request->query('is_featured');
+        $showInMenu = $request->query('show_in_menu');
 
         $items = $this->service->getPaginated($perPage, $search, $isActive, $isFeatured, $showInMenu);
 

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('product_views', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->date('date');
             $table->integer('views')->default(0);
             $table->integer('unique_views')->default(0);

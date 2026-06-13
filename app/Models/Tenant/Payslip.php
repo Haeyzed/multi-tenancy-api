@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Payslips stored in the tenant database.
  *
  * @property int $id
- * @property string $payroll_entry_id
+ * @property int $payroll_entry_id
  * @property int|null $media_id
  * @property Carbon|null $generated_at
  * @property Carbon|null $sent_at
@@ -39,6 +39,8 @@ class Payslip extends TenantModel
 
     /**
      * Related PayrollEntry.
+     *
+     * @return BelongsTo<PayrollEntry, $this>
      */
     public function payrollEntry(): BelongsTo
     {

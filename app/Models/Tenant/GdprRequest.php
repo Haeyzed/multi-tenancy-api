@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * GDPR data subject request stored in the tenant database.
  *
- * @property string $id
- * @property string $user_id
+ * @property int $id
+ * @property int $user_id
  * @property string $type
  * @property string $status
  * @property array<string, mixed>|null $request_data
@@ -24,16 +23,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $rejection_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|GdprRequest filterStatus(array $statuses)
  */
 class GdprRequest extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'gdpr_requests';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -50,6 +47,8 @@ class GdprRequest extends TenantModel
 
     /**
      * User who submitted this request.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

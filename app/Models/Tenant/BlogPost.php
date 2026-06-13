@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $excerpt
  * @property string|null $body
  * @property int|null $featured_media_id
- * @property string|null $author_id
+ * @property int|null $author_id
  * @property int|null $category_id
  * @property array<string, mixed>|null $tags
  * @property array<string, mixed>|null $meta
@@ -28,12 +28,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|BlogPost search(?string $search)
  * @method static Builder|BlogPost filterStatus(array $statuses)
  */
 class BlogPost extends TenantModel
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'blog_posts';
 
@@ -56,6 +58,8 @@ class BlogPost extends TenantModel
 
     /**
      * Product category assigned to this post.
+     *
+     * @return BelongsTo<Category, $this>
      */
     public function category(): BelongsTo
     {
@@ -63,7 +67,10 @@ class BlogPost extends TenantModel
     }
 
     /**
-     * Scope a query to search by title or slug.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<BlogPost> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

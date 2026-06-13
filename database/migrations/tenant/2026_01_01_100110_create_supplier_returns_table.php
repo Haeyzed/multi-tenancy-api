@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('supplier_returns', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('po_id')->constrained('purchase_orders');
-            $table->foreignUuid('grn_id')->constrained('goods_receipt_notes');
+            $table->id();
+            $table->foreignId('po_id')->constrained('purchase_orders');
+            $table->foreignId('grn_id')->constrained('goods_receipt_notes');
             $table->string('return_number')->unique();
             $table->enum('status', ['draft', 'sent', 'received', 'refunded', 'cancelled'])->default('draft');
             $table->date('return_date');

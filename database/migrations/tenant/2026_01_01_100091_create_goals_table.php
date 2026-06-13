@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('goals', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('type', ['individual', 'team', 'company'])->default('individual');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('target_date');
             $table->integer('completion_percentage')->default(0);
-            $table->foreignUuid('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

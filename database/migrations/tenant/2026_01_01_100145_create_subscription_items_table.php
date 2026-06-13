@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('subscription_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('subscription_id')->constrained('customer_subscriptions')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('products');
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('subscription_id')->constrained('customer_subscriptions')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->integer('quantity')->default(1);
             $table->decimal('unit_price', 12, 2);
             $table->decimal('line_total', 12, 2);

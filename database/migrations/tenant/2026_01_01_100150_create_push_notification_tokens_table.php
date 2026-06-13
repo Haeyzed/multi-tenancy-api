@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('push_notification_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->enum('device_type', ['ios', 'android', 'web'])->default('web');
             $table->string('device_token', 512);
             $table->boolean('is_active')->default(true);

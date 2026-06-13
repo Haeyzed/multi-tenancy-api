@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,17 +13,17 @@ use Illuminate\Support\Carbon;
 /**
  * Support tickets stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $ticket_number
- * @property string|null $user_id
+ * @property int|null $user_id
  * @property string|null $email
  * @property string|null $subject
  * @property string $category
  * @property string $priority
  * @property string $status
  * @property string|null $assigned_to
- * @property string|null $order_id
- * @property string|null $product_id
+ * @property int|null $order_id
+ * @property int|null $product_id
  * @property string $source
  * @property int|null $satisfaction_rating
  * @property Carbon|null $resolved_at
@@ -32,17 +31,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|SupportTicket search(?string $search)
  * @method static Builder|SupportTicket filterStatus(array $statuses)
  */
 class SupportTicket extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
-    public $incrementing = false;
     protected $table = 'support_tickets';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -65,6 +63,8 @@ class SupportTicket extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -73,6 +73,8 @@ class SupportTicket extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -81,6 +83,8 @@ class SupportTicket extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -88,7 +92,10 @@ class SupportTicket extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<SupportTicket> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -114,8 +121,6 @@ class SupportTicket extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

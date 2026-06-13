@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * Physical address belonging to a store (billing, shipping, pickup, return, etc.).
  *
  * @property int $id
- * @property string $store_id
+ * @property int $store_id
  * @property string $type
  * @property string $name
  * @property string $address_line_1
@@ -37,7 +37,8 @@ use Illuminate\Support\Carbon;
  */
 class StoreAddress extends TenantModel
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'store_addresses';
 
@@ -64,6 +65,8 @@ class StoreAddress extends TenantModel
 
     /**
      * Store this address belongs to.
+     *
+     * @return BelongsTo<Store, $this>
      */
     public function store(): BelongsTo
     {
@@ -71,7 +74,10 @@ class StoreAddress extends TenantModel
     }
 
     /**
-     * Scope a query to search by name, city, or email.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<StoreAddress> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

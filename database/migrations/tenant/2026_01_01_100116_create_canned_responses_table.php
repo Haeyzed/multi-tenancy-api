@@ -18,7 +18,7 @@ return new class extends Migration
             $table->longText('body');
             $table->string('category')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->foreignUuid('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

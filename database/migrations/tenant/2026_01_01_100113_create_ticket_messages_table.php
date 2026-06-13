@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('ticket_messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('ticket_id')->constrained('support_tickets')->cascadeOnDelete();
+            $table->foreignId('ticket_id')->constrained('support_tickets')->cascadeOnDelete();
             $table->enum('sender_type', ['customer', 'staff', 'system'])->default('customer');
-            $table->foreignUuid('sender_id')->nullable();
+            $table->foreignId('sender_id')->nullable();
             $table->longText('body');
             $table->boolean('is_internal')->default(false);
             $table->boolean('is_read')->default(false);

@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('application_stage_history', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('application_id')->constrained('job_applications')->cascadeOnDelete();
+            $table->foreignId('application_id')->constrained('job_applications')->cascadeOnDelete();
             $table->foreignId('stage_id')->constrained('application_stages')->cascadeOnDelete();
             $table->enum('status', ['pending', 'passed', 'failed', 'skipped'])->default('pending');
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('completed_at')->nullable();
-            $table->foreignUuid('conducted_by')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('conducted_by')->nullable()->constrained('employees')->nullOnDelete();
             $table->decimal('score', 5, 2)->nullable();
             $table->text('feedback')->nullable();
             $table->text('notes')->nullable();

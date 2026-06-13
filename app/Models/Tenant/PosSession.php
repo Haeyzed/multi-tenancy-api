@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 
 /**
  * Pos sessions stored in the tenant database.
  *
- * @property string $id
- * @property string $register_id
- * @property string $cashier_id
+ * @property int $id
+ * @property int $register_id
+ * @property int $cashier_id
  * @property string $opening_amount
  * @property string|null $expected_closing
  * @property string|null $actual_closing
@@ -28,12 +27,9 @@ use Illuminate\Support\Carbon;
  */
 class PosSession extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'pos_sessions';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -65,8 +61,6 @@ class PosSession extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

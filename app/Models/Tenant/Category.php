@@ -86,7 +86,7 @@ class Category extends TenantModel
     /**
      * Parent category in the tree.
      *
-     * @return BelongsTo<<Category, $this>
+     * @return BelongsTo<Category, $this>
      */
     public function parent(): BelongsTo
     {
@@ -96,7 +96,7 @@ class Category extends TenantModel
     /**
      * Direct child categories.
      *
-     * @return HasMany<<Category, $this>
+     * @return HasMany<Category, $this>
      */
     public function children(): HasMany
     {
@@ -106,7 +106,7 @@ class Category extends TenantModel
     /**
      * Banner image for this category.
      *
-     * @return BelongsTo<<Media, $this>
+     * @return BelongsTo<Media, $this>
      */
     public function bannerMedia(): BelongsTo
     {
@@ -116,7 +116,7 @@ class Category extends TenantModel
     /**
      * Icon image for this category.
      *
-     * @return BelongsTo<<Media, $this>
+     * @return BelongsTo<Media, $this>
      */
     public function iconMedia(): BelongsTo
     {
@@ -138,7 +138,7 @@ class Category extends TenantModel
     /**
      * Pivot rows linking products to this category.
      *
-     * @return HasMany<<CategoryProduct, $this>
+     * @return HasMany<CategoryProduct, $this>
      */
     public function categoryProducts(): HasMany
     {
@@ -148,7 +148,7 @@ class Category extends TenantModel
     /**
      * Scope a query to search by name, slug, or description.
      *
-     * @param Builder<<Category> $query
+     * @param Builder<Category> $query
      * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -165,7 +165,7 @@ class Category extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
-     * @param Builder<<Category> $query
+     * @param Builder<Category> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
@@ -182,7 +182,7 @@ class Category extends TenantModel
 
         $values = array_values(array_unique(array_filter(
             $values,
-            static fn(?bool $value): bool => $value !== null,
+            static fn (?bool $value): bool => $value !== null,
         )));
 
         $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
@@ -191,7 +191,7 @@ class Category extends TenantModel
     /**
      * Filter by featured/unfeatured tokens.
      *
-     * @param Builder<<Category> $query
+     * @param Builder<Category> $query
      * @param list<string> $values
      */
     public function scopeFilterIsFeatured(Builder $query, array $values): void
@@ -208,7 +208,7 @@ class Category extends TenantModel
 
         $mapped = array_values(array_unique(array_filter(
             $mapped,
-            static fn(?bool $value): bool => $value !== null,
+            static fn (?bool $value): bool => $value !== null,
         )));
 
         $query->when($mapped !== [], fn (Builder $q): Builder => $q->whereIn('is_featured', $mapped));
@@ -217,7 +217,7 @@ class Category extends TenantModel
     /**
      * Filter by menu visibility tokens (in_menu, hidden).
      *
-     * @param Builder<<Category> $query
+     * @param Builder<Category> $query
      * @param list<string> $values
      */
     public function scopeFilterShowInMenu(Builder $query, array $values): void
@@ -234,7 +234,7 @@ class Category extends TenantModel
 
         $mapped = array_values(array_unique(array_filter(
             $mapped,
-            static fn(?bool $value): bool => $value !== null,
+            static fn (?bool $value): bool => $value !== null,
         )));
 
         $query->when($mapped !== [], fn (Builder $q): Builder => $q->whereIn('show_in_menu', $mapped));

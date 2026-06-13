@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,7 +19,7 @@ use Illuminate\Support\Carbon;
  * Use {@see StoreAddress} for additional addresses (billing, pickup, return).
  * Use {@see Warehouse} for inventory fulfillment centers.
  *
- * @property string $id
+ * @property int $id
  * @property string $name
  * @property string $slug
  * @property string|null $code
@@ -37,7 +35,7 @@ use Illuminate\Support\Carbon;
  * @property string $currency
  * @property string $tax_rate
  * @property array<string, mixed>|null $opening_hours
- * @property string|null $manager_id
+ * @property int|null $manager_id
  * @property int|null $logo_media_id
  * @property int|null $favicon_media_id
  * @property bool $is_primary
@@ -53,11 +51,8 @@ use Illuminate\Support\Carbon;
  */
 class Store extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
+    use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'stores';
 
@@ -90,6 +85,8 @@ class Store extends TenantModel
 
     /**
      * Logo media file for this store.
+     *
+     * @return BelongsTo<Media, $this>
      */
     public function logoMedia(): BelongsTo
     {
@@ -98,6 +95,8 @@ class Store extends TenantModel
 
     /**
      * Favicon media file for this store.
+     *
+     * @return BelongsTo<Media, $this>
      */
     public function faviconMedia(): BelongsTo
     {
@@ -106,6 +105,8 @@ class Store extends TenantModel
 
     /**
      * Operational settings scoped to this store.
+     *
+     * @return HasOne<StoreSetting, $this>
      */
     public function settings(): HasOne
     {
@@ -124,6 +125,8 @@ class Store extends TenantModel
 
     /**
      * Default address used for display and checkout defaults.
+     *
+     * @return HasOne<StoreAddress, $this>
      */
     public function primaryAddress(): HasOne
     {
@@ -141,7 +144,10 @@ class Store extends TenantModel
     }
 
     /**
-     * Scope a query to search by name, slug, or code.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Store> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -161,7 +167,20 @@ class Store extends TenantModel
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
+
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
     }

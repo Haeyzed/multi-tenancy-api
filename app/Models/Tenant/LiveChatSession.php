@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Live chat session stored in the tenant database.
  *
- * @property string $id
- * @property string|null $user_id
+ * @property int $id
+ * @property int|null $user_id
  * @property string|null $guest_email
  * @property string|null $guest_name
  * @property string|null $assigned_to
@@ -25,16 +24,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $ip_address
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|LiveChatSession filterStatus(array $statuses)
  */
 class LiveChatSession extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'live_chat_sessions';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -52,6 +49,8 @@ class LiveChatSession extends TenantModel
 
     /**
      * Registered user in this chat session, if any.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

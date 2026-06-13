@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,9 +12,9 @@ use Illuminate\Support\Carbon;
 /**
  * Customer subscription to a plan stored in the tenant database.
  *
- * @property string $id
- * @property string $user_id
- * @property string $plan_id
+ * @property int $id
+ * @property int $user_id
+ * @property int $plan_id
  * @property string $status
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
@@ -26,16 +25,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $cancelled_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|CustomerSubscription filterStatus(array $statuses)
  */
 class CustomerSubscription extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'customer_subscriptions';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -54,6 +51,8 @@ class CustomerSubscription extends TenantModel
 
     /**
      * Customer who owns this subscription.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

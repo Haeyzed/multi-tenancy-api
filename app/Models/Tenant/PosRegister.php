@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,30 +12,28 @@ use Illuminate\Support\Carbon;
 /**
  * Pos registers stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $name
  * @property string|null $code
- * @property string|null $warehouse_id
+ * @property int|null $warehouse_id
  * @property int|null $location_id
  * @property string $status
- * @property string|null $current_cashier_id
+ * @property int|null $current_cashier_id
  * @property string $opening_amount
  * @property string|null $closing_amount
  * @property Carbon|null $opened_at
  * @property Carbon|null $closed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|PosRegister search(?string $search)
  * @method static Builder|PosRegister filterStatus(array $statuses)
  */
 class PosRegister extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'pos_registers';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -55,6 +52,8 @@ class PosRegister extends TenantModel
 
     /**
      * Related Warehouse.
+     *
+     * @return BelongsTo<Warehouse, $this>
      */
     public function warehouse(): BelongsTo
     {
@@ -62,7 +61,10 @@ class PosRegister extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<PosRegister> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -89,8 +91,6 @@ class PosRegister extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

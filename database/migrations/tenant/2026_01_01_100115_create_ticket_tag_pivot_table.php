@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('ticket_tag_pivot', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('ticket_id')->constrained('support_tickets')->cascadeOnDelete();
+            $table->foreignId('ticket_id')->constrained('support_tickets')->cascadeOnDelete();
             $table->foreignId('tag_id')->constrained('ticket_tags')->cascadeOnDelete();
             $table->timestamps();
             $table->unique(['ticket_id', 'tag_id']);

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Employee attendance record stored in the tenant database.
  *
- * @property string $id
- * @property string $employee_id
+ * @property int $id
+ * @property int $employee_id
  * @property Carbon|null $date
  * @property int|null $shift_id
  * @property Carbon|null $check_in
@@ -40,16 +39,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $manual_entry_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|AttendanceRecord filterStatus(array $statuses)
  */
 class AttendanceRecord extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'attendance_records';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -82,6 +79,8 @@ class AttendanceRecord extends TenantModel
 
     /**
      * Employee this attendance record belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -90,6 +89,8 @@ class AttendanceRecord extends TenantModel
 
     /**
      * Shift assigned for this attendance day.
+     *
+     * @return BelongsTo<Shift, $this>
      */
     public function shift(): BelongsTo
     {

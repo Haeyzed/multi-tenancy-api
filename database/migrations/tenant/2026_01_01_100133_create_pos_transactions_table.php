@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pos_transactions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('session_id')->constrained('pos_sessions')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('session_id')->constrained('pos_sessions')->cascadeOnDelete();
             $table->enum('type', ['sale', 'refund', 'float', 'withdrawal', 'opening_balance', 'closing_balance'])->default('sale');
-            $table->foreignUuid('order_id')->nullable()->constrained('orders')->nullOnDelete();
+            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->decimal('amount', 12, 2);
             $table->enum('payment_method', ['cash', 'card', 'mobile_money', 'gift_card', 'split'])->default('cash');
             $table->string('reference')->nullable();

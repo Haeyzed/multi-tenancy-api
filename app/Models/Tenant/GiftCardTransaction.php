@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $gift_card_id
- * @property string|null $order_id
+ * @property int|null $order_id
  * @property string $amount
  * @property string $type
  * @property string $balance_after
@@ -39,6 +39,8 @@ class GiftCardTransaction extends TenantModel
 
     /**
      * Gift card this transaction applies to.
+     *
+     * @return BelongsTo<GiftCard, $this>
      */
     public function giftCard(): BelongsTo
     {
@@ -47,6 +49,8 @@ class GiftCardTransaction extends TenantModel
 
     /**
      * Order associated with this transaction, if any.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {

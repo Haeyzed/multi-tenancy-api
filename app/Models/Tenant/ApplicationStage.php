@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Hiring pipeline stage for a job posting stored in the tenant database.
  *
  * @property int $id
- * @property string $job_posting_id
+ * @property int $job_posting_id
  * @property string|null $name
  * @property int $order
  * @property bool $is_required
@@ -22,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|ApplicationStage search(?string $search)
  * @method static Builder|ApplicationStage filterIsActive(array $statuses)
  */
@@ -45,6 +45,8 @@ class ApplicationStage extends TenantModel
 
     /**
      * Job posting this stage belongs to.
+     *
+     * @return BelongsTo<JobPosting, $this>
      */
     public function jobPosting(): BelongsTo
     {
@@ -52,7 +54,10 @@ class ApplicationStage extends TenantModel
     }
 
     /**
-     * Scope a query to search by name.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<ApplicationStage> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -66,13 +71,27 @@ class ApplicationStage extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<ApplicationStage> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**

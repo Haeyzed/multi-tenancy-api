@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,9 +12,9 @@ use Illuminate\Support\Carbon;
 /**
  * Purchase orders stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $po_number
- * @property string $supplier_id
+ * @property int $supplier_id
  * @property string $status
  * @property Carbon|null $order_date
  * @property Carbon|null $expected_delivery_date
@@ -33,12 +32,9 @@ use Illuminate\Support\Carbon;
  */
 class PurchaseOrder extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'purchase_orders';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -61,6 +57,8 @@ class PurchaseOrder extends TenantModel
 
     /**
      * Related Supplier.
+     *
+     * @return BelongsTo<Supplier, $this>
      */
     public function supplier(): BelongsTo
     {
@@ -82,8 +80,6 @@ class PurchaseOrder extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

@@ -13,9 +13,9 @@ use Illuminate\Support\Carbon;
  * Order items stored in the tenant database.
  *
  * @property int $id
- * @property string $order_id
- * @property string|null $product_id
- * @property string|null $variant_id
+ * @property int $order_id
+ * @property int|null $product_id
+ * @property int|null $variant_id
  * @property array<string, mixed>|null $product_snapshot
  * @property array<string, mixed>|null $variant_snapshot
  * @property string|null $sku
@@ -34,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $metadata
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|OrderItem search(?string $search)
  */
 class OrderItem extends TenantModel
@@ -69,6 +70,8 @@ class OrderItem extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -77,6 +80,8 @@ class OrderItem extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -84,7 +89,10 @@ class OrderItem extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<OrderItem> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('employee_salary_components', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->foreignId('component_id')->constrained('salary_components')->cascadeOnDelete();
             $table->decimal('amount', 12, 2);
             $table->boolean('is_percentage')->default(false);

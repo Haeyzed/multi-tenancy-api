@@ -76,6 +76,8 @@ Route::middleware(config('tenancy.middleware'))
                 Route::post('brands', [BrandController::class, 'store'])->name('tenant.brands.store');
                 Route::put('brands/{brand}', [BrandController::class, 'update'])->name('tenant.brands.update');
                 Route::post('brands/bulk/unlink', [BrandController::class, 'bulkUnlink'])->name('tenant.brands.bulk-unlink');
+                Route::post('brands/bulk/restore', [BrandController::class, 'bulkRestore'])->name('tenant.brands.bulk-restore');
+                Route::post('brands/{id}/restore', [BrandController::class, 'restore'])->name('tenant.brands.restore');
                 Route::post('brands/{brand}/unlink', [BrandController::class, 'unlink'])->name('tenant.brands.unlink');
                 Route::delete('brands/bulk', [BrandController::class, 'bulkDestroy'])->name('tenant.brands.bulk-destroy');
                 Route::delete('brands/{brand}', [BrandController::class, 'destroy'])->name('tenant.brands.destroy');
@@ -97,6 +99,8 @@ Route::middleware(config('tenancy.middleware'))
                 Route::post('categories', [CategoryController::class, 'store'])->name('tenant.categories.store');
                 Route::put('categories/{category}', [CategoryController::class, 'update'])->name('tenant.categories.update');
                 Route::post('categories/bulk/unlink', [CategoryController::class, 'bulkUnlink'])->name('tenant.categories.bulk-unlink');
+                Route::post('categories/bulk/restore', [CategoryController::class, 'bulkRestore'])->name('tenant.categories.bulk-restore');
+                Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('tenant.categories.restore');
                 Route::post('categories/{category}/unlink', [CategoryController::class, 'unlink'])->name('tenant.categories.unlink');
                 Route::delete('categories/bulk', [CategoryController::class, 'bulkDestroy'])->name('tenant.categories.bulk-destroy');
                 Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('tenant.categories.destroy');
@@ -138,6 +142,8 @@ Route::middleware(config('tenancy.middleware'))
                 Route::put('users/{user}/roles', [UserController::class, 'syncRoles'])->name('tenant.users.roles.sync');
                 Route::put('users/{user}/permissions', [UserController::class, 'syncPermissions'])->name('tenant.users.permissions.sync');
                 Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('tenant.users.toggle-active');
+                Route::post('users/bulk/restore', [UserController::class, 'bulkRestore'])->name('tenant.users.bulk-restore');
+                Route::post('users/{id}/restore', [UserController::class, 'restore'])->name('tenant.users.restore');
                 Route::delete('users/bulk', [UserController::class, 'bulkDestroy'])->name('tenant.users.bulk-destroy');
                 Route::delete('users/{user}', [UserController::class, 'destroy'])->name('tenant.users.destroy');
                 Route::delete('users/{user}/roles/{role}', [UserController::class, 'detachRole'])->name('tenant.users.roles.detach');

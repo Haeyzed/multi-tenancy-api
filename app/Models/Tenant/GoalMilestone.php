@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $completion_date
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|GoalMilestone search(?string $search)
  * @method static Builder|GoalMilestone filterStatus(array $statuses)
  */
@@ -42,6 +43,8 @@ class GoalMilestone extends TenantModel
 
     /**
      * Goal this milestone belongs to.
+     *
+     * @return BelongsTo<Goal, $this>
      */
     public function goal(): BelongsTo
     {
@@ -49,7 +52,10 @@ class GoalMilestone extends TenantModel
     }
 
     /**
-     * Scope a query to search by title.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<GoalMilestone> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

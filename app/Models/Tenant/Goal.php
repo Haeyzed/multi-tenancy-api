@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Employee performance goal stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property string|null $title
  * @property string|null $description
  * @property string $type
@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $created_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|Goal search(?string $search)
  * @method static Builder|Goal filterStatus(array $statuses)
  */
@@ -50,6 +51,8 @@ class Goal extends TenantModel
 
     /**
      * Employee this goal belongs to.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -57,7 +60,10 @@ class Goal extends TenantModel
     }
 
     /**
-     * Scope a query to search by title.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Goal> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

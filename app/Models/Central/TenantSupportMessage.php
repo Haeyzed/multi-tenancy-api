@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\MessageSenderType;
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -76,7 +75,20 @@ class TenantSupportMessage extends Model
      */
     public function scopeFilterIsRead(Builder $query, array $values): void
     {
-        $mapped = QueryFilter::booleanRead($values);
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'read' => true,
+                'unread' => false,
+                default => null,
+            };
+        }
+
+        $mapped = array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         if ($mapped === []) {
             return;

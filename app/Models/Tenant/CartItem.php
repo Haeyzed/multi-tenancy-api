@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Cart line item stored in the tenant database.
  *
  * @property int $id
- * @property string $cart_id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $cart_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int $quantity
  * @property string $unit_price
  * @property string|null $unit_compare_price
@@ -49,6 +49,8 @@ class CartItem extends TenantModel
 
     /**
      * Cart this line item belongs to.
+     *
+     * @return BelongsTo<Cart, $this>
      */
     public function cart(): BelongsTo
     {
@@ -57,6 +59,8 @@ class CartItem extends TenantModel
 
     /**
      * Product in this cart line.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

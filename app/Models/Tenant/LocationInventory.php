@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Per-store inventory levels stored in the tenant database.
  *
  * @property int $id
- * @property string $store_id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $store_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int $quantity
  * @property int $reserved_qty
  * @property int $reorder_point
@@ -43,6 +43,8 @@ class LocationInventory extends TenantModel
 
     /**
      * Store this inventory belongs to.
+     *
+     * @return BelongsTo<Store, $this>
      */
     public function store(): BelongsTo
     {
@@ -51,6 +53,8 @@ class LocationInventory extends TenantModel
 
     /**
      * Product at this store.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

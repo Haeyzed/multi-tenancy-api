@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Product attribute values stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
+ * @property int $product_id
  * @property int $attribute_id
  * @property string|null $value
  * @property string|null $display_value
@@ -37,6 +37,8 @@ class ProductAttributeValue extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

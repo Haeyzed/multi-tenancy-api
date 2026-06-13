@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $message
  * @property string $status
  * @property string|null $provider
- * @property string|null $provider_message_id
+ * @property int|null $provider_message_id
  * @property string|null $cost
  * @property Carbon|null $sent_at
  * @property Carbon|null $delivered_at
@@ -60,8 +60,6 @@ class SmsLog extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

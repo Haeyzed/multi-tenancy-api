@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +13,7 @@ use Illuminate\Support\Carbon;
 /**
  * Job posting stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $title
  * @property string|null $slug
  * @property int|null $department_id
@@ -35,17 +34,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
  * @method static Builder|JobPosting search(?string $search)
  * @method static Builder|JobPosting filterStatus(array $statuses)
  */
 class JobPosting extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
-    public $incrementing = false;
     protected $table = 'job_postings';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -71,6 +69,8 @@ class JobPosting extends TenantModel
 
     /**
      * Department this job posting belongs to.
+     *
+     * @return BelongsTo<Department, $this>
      */
     public function department(): BelongsTo
     {
@@ -79,6 +79,8 @@ class JobPosting extends TenantModel
 
     /**
      * Designation for this job posting.
+     *
+     * @return BelongsTo<Designation, $this>
      */
     public function designation(): BelongsTo
     {
@@ -86,7 +88,10 @@ class JobPosting extends TenantModel
     }
 
     /**
-     * Scope a query to search by title or slug.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<JobPosting> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

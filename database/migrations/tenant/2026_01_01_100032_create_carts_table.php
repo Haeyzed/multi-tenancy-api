@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('session_id')->nullable()->index();
             $table->string('email')->nullable();
             $table->string('currency')->default('USD');
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->boolean('abandoned_cart_email_sent')->default(false);
             $table->timestamp('last_activity_at')->useCurrent();
             $table->timestamp('expires_at')->nullable();
-            $table->foreignUuid('converted_to_order_id')->nullable();
+            $table->foreignId('converted_to_order_id')->nullable();
             $table->timestamps();
             $table->index(['user_id', 'session_id']);
             $table->index(['expires_at']);

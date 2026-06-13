@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Warehouse inventory count stored in the tenant database.
  *
- * @property string $id
- * @property string $warehouse_id
+ * @property int $id
+ * @property int $warehouse_id
  * @property string $status
  * @property Carbon|null $started_at
  * @property Carbon|null $completed_at
@@ -23,16 +22,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|InventoryCount filterStatus(array $statuses)
  */
 class InventoryCount extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'inventory_counts';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -48,6 +45,8 @@ class InventoryCount extends TenantModel
 
     /**
      * Warehouse being counted.
+     *
+     * @return BelongsTo<Warehouse, $this>
      */
     public function warehouse(): BelongsTo
     {

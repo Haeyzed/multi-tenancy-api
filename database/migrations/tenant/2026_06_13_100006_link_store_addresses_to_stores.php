@@ -14,7 +14,7 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('store_addresses', 'store_id')) {
             Schema::table('store_addresses', function (Blueprint $table) {
-                $table->foreignUuid('store_id')->nullable()->after('id')->constrained('stores')->cascadeOnDelete();
+                $table->foreignId('store_id')->nullable()->after('id')->constrained('stores')->cascadeOnDelete();
             });
         }
 

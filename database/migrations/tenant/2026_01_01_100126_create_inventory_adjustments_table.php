@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('inventory_adjustments', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')->constrained('products');
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
-            $table->foreignUuid('warehouse_id')->constrained('warehouses');
+            $table->id();
+            $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->enum('type', ['damage', 'expiry', 'theft', 'found', 'correction', 'transfer_in', 'transfer_out', 'initial_stock'])->default('correction');
             $table->integer('quantity');
             $table->text('reason');
-            $table->foreignUuid('approved_by')->constrained('employees');
-            $table->foreignUuid('created_by')->constrained('users');
+            $table->foreignId('approved_by')->constrained('employees');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

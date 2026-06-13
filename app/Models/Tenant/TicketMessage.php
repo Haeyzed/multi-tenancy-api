@@ -11,9 +11,9 @@ use Illuminate\Support\Carbon;
  * Ticket messages stored in the tenant database.
  *
  * @property int $id
- * @property string $ticket_id
+ * @property int $ticket_id
  * @property string $sender_type
- * @property string|null $sender_id
+ * @property int|null $sender_id
  * @property string|null $body
  * @property bool $is_internal
  * @property bool $is_read

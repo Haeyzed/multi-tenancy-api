@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('job_postings', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('title');
             $table->string('slug')->unique();
             $table->foreignId('department_id')->nullable()->constrained('departments')->nullOnDelete();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'open', 'paused', 'closed', 'filled'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->date('closing_date')->nullable();
-            $table->foreignUuid('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
             $table->softDeletes();
         });

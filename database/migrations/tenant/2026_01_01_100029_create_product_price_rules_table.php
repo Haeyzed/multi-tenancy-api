@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('product_price_rules', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->enum('type', ['fixed', 'percentage', 'buy_x_get_y', 'tiered'])->default('fixed');
             $table->decimal('value', 12, 2);
             $table->date('start_date')->nullable();

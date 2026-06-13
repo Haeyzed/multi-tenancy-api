@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
@@ -25,6 +26,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property int $sort_order
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  *
  * @method static Builder|Brand search(?string $search)
  * @method static Builder|Brand filterIsActive(array $statuses)
@@ -33,6 +35,7 @@ class Brand extends TenantModel
 {
     use HasFactory;
     use HasSlug;
+    use SoftDeletes;
 
     protected $table = 'brands';
 
@@ -64,7 +67,7 @@ class Brand extends TenantModel
     /**
      * Logo media file for this brand.
      *
-     * @return BelongsTo<<Media, $this>
+     * @return BelongsTo<Media, $this>
      */
     public function logoMedia(): BelongsTo
     {
@@ -84,7 +87,7 @@ class Brand extends TenantModel
     /**
      * Scope a query to search by name, slug, or description.
      *
-     * @param Builder<<Brand> $query
+     * @param Builder<Brand> $query
      * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
@@ -101,7 +104,7 @@ class Brand extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
-     * @param Builder<<Brand> $query
+     * @param Builder<Brand> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
@@ -135,6 +138,7 @@ class Brand extends TenantModel
             'is_active' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 }

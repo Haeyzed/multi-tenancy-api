@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * User sessions stored in the tenant database.
  *
  * @property int $id
- * @property string $user_id
+ * @property int $user_id
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property array<string, mixed>|null $device_info
@@ -43,6 +43,8 @@ class UserSession extends TenantModel
 
     /**
      * Related User.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

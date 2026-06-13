@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('location_staff', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('location_id')->constrained('store_locations')->cascadeOnDelete();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('location_id')->constrained('store_locations')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->string('role_at_location')->nullable();
             $table->boolean('is_primary_location')->default(true);
             $table->date('started_at');

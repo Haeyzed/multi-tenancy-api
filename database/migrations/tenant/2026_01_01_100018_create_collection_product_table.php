@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('collection_product', function (Blueprint $table) {
             $table->id();
             $table->foreignId('collection_id')->constrained('collections')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });

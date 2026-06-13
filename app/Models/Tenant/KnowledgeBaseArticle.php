@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $created_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|KnowledgeBaseArticle search(?string $search)
  */
 class KnowledgeBaseArticle extends TenantModel
@@ -43,7 +44,10 @@ class KnowledgeBaseArticle extends TenantModel
     ];
 
     /**
-     * Scope a query to search by title or slug.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<KnowledgeBaseArticle> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

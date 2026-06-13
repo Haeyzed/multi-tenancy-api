@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('transfer_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('transfer_id')->constrained('inventory_transfers')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('products');
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('transfer_id')->constrained('inventory_transfers')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->integer('quantity');
             $table->integer('received_qty')->default(0);
             $table->text('notes')->nullable();

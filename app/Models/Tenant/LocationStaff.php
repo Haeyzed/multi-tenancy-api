@@ -12,8 +12,8 @@ use Illuminate\Support\Carbon;
  * Staff assignment at a store stored in the tenant database.
  *
  * @property int $id
- * @property string $store_id
- * @property string $employee_id
+ * @property int $store_id
+ * @property int $employee_id
  * @property string|null $role_at_location
  * @property bool $is_primary_location
  * @property Carbon|null $started_at
@@ -41,6 +41,8 @@ class LocationStaff extends TenantModel
 
     /**
      * Store this assignment belongs to.
+     *
+     * @return BelongsTo<Store, $this>
      */
     public function store(): BelongsTo
     {
@@ -49,6 +51,8 @@ class LocationStaff extends TenantModel
 
     /**
      * Employee assigned to this store.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {

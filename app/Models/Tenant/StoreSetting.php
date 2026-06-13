@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * Linked 1:1 to a {@see Store}. Tenant-wide defaults live in {@see GeneralSetting}.
  *
  * @property int $id
- * @property string $store_id
+ * @property int $store_id
  * @property string|null $primary_color
  * @property string|null $secondary_color
  * @property string $currency
@@ -28,8 +28,8 @@ use Illuminate\Support\Carbon;
  * @property int $order_number_start
  * @property string|null $meta_title_template
  * @property string|null $meta_description_template
- * @property string|null $google_analytics_id
- * @property string|null $facebook_pixel_id
+ * @property int|null $google_analytics_id
+ * @property int|null $facebook_pixel_id
  * @property string|null $custom_scripts
  * @property bool $maintenance_mode
  * @property string|null $maintenance_message
@@ -81,6 +81,8 @@ class StoreSetting extends TenantModel
 
     /**
      * Store this settings row belongs to.
+     *
+     * @return BelongsTo<Store, $this>
      */
     public function store(): BelongsTo
     {

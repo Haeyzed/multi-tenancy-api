@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Subscription items stored in the tenant database.
  *
  * @property int $id
- * @property string $subscription_id
- * @property string $product_id
- * @property string|null $variant_id
+ * @property int $subscription_id
+ * @property int $product_id
+ * @property int|null $variant_id
  * @property int $quantity
  * @property string $unit_price
  * @property string $line_total
@@ -41,6 +41,8 @@ class SubscriptionItem extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

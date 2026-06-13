@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employees', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('employee_code')->unique();
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email');
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->text('termination_reason')->nullable();
             $table->foreignId('department_id')->nullable();
             $table->foreignId('designation_id')->nullable();
-            $table->foreignUuid('manager_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('manager_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->enum('employment_type', ['full_time', 'part_time', 'contract', 'internship', 'freelance', 'remote'])->default('full_time');
             $table->foreignId('work_location_id')->nullable();
             $table->foreignId('shift_id')->nullable();
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->enum('education_level', ['high_school', 'bachelor', 'master', 'phd', 'diploma', 'other'])->nullable();
             $table->text('bio')->nullable();
             $table->text('notes')->nullable();
-            $table->foreignUuid('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
             $table->index(['status', 'department_id']);

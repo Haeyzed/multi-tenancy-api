@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Pick list items stored in the tenant database.
  *
  * @property int $id
- * @property string $pick_list_id
+ * @property int $pick_list_id
  * @property int $order_item_id
  * @property int $quantity
  * @property int $picked_qty
@@ -44,6 +44,8 @@ class PickListItem extends TenantModel
 
     /**
      * Related PickList.
+     *
+     * @return BelongsTo<PickList, $this>
      */
     public function pickList(): BelongsTo
     {
@@ -52,6 +54,8 @@ class PickListItem extends TenantModel
 
     /**
      * Related OrderItem.
+     *
+     * @return BelongsTo<OrderItem, $this>
      */
     public function orderItem(): BelongsTo
     {
@@ -73,8 +77,6 @@ class PickListItem extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

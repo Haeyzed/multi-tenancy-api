@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Daily sales summary for a store stored in the tenant database.
  *
  * @property int $id
- * @property string $store_id
+ * @property int $store_id
  * @property Carbon|null $date
  * @property string $total_sales
  * @property int $order_count
@@ -45,6 +45,8 @@ class LocationSale extends TenantModel
 
     /**
      * Store this sales summary belongs to.
+     *
+     * @return BelongsTo<Store, $this>
      */
     public function store(): BelongsTo
     {

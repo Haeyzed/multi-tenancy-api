@@ -65,7 +65,7 @@ class ProductService
      *
      * @param  string  $id  Record identifier.
      */
-    public function findOrFail(string $id): Product
+    public function findOrFail(int $id): Product
     {
         return $this->queryWithDetails()->findOrFail($id);
     }
@@ -139,7 +139,7 @@ class ProductService
      *
      * @param  string  $id  Trashed record identifier.
      */
-    public function restore(string $id): Product
+    public function restore(int $id): Product
     {
         $model = Product::withTrashed()->findOrFail($id);
         $model->restore();
@@ -152,7 +152,7 @@ class ProductService
      *
      * @param  string  $id  Trashed record identifier.
      */
-    public function forceDelete(string $id): bool
+    public function forceDelete(int $id): bool
     {
         $model = Product::withTrashed()->findOrFail($id);
 

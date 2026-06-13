@@ -58,7 +58,7 @@ class WarehouseService
     /**
      * Find warehouse by ID or fail.
      */
-    public function findOrFail(string $id): Warehouse
+    public function findOrFail(int $id): Warehouse
     {
         return $this->queryWithDetails()->findOrFail($id);
     }

@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $accepted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|StaffInvitation search(?string $search)
  */
 class StaffInvitation extends TenantModel
@@ -43,6 +44,8 @@ class StaffInvitation extends TenantModel
 
     /**
      * Related Role.
+     *
+     * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
     {
@@ -50,7 +53,10 @@ class StaffInvitation extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<StaffInvitation> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

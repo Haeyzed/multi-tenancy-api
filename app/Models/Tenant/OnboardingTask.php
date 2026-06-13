@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property int $sort_order
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|OnboardingTask search(?string $search)
  */
 class OnboardingTask extends TenantModel
@@ -45,7 +46,10 @@ class OnboardingTask extends TenantModel
     ];
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<OnboardingTask> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

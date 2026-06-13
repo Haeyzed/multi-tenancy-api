@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('loyalty_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('account_id')->constrained('customer_loyalty_accounts')->cascadeOnDelete();
+            $table->foreignId('account_id')->constrained('customer_loyalty_accounts')->cascadeOnDelete();
             $table->enum('type', ['earn', 'redeem', 'expire', 'adjust', 'bonus', 'referral'])->default('earn');
             $table->integer('points');
-            $table->foreignUuid('order_id')->nullable()->constrained('orders')->nullOnDelete();
+            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->string('description')->nullable();
             $table->timestamps();
             $table->index(['account_id', 'type']);

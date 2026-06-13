@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('application_stages', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('job_posting_id')->constrained('job_postings')->cascadeOnDelete();
+            $table->foreignId('job_posting_id')->constrained('job_postings')->cascadeOnDelete();
             $table->string('name');
             $table->integer('order');
             $table->boolean('is_required')->default(true);

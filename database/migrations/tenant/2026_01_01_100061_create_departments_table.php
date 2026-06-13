@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('code')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('departments')->nullOnDelete();
-            $table->foreignUuid('manager_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('manager_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->foreignId('location_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);

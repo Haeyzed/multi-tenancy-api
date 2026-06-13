@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
  * Performance review scores stored in the tenant database.
  *
  * @property int $id
- * @property string $review_id
+ * @property int $review_id
  * @property int $criteria_id
  * @property string $score
  * @property string|null $comments

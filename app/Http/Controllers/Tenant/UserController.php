@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Tenant\BulkDeleteUsersRequest;
 use App\Http\Requests\Tenant\StoreUserRequest;
 use App\Http\Requests\Tenant\SyncUserPermissionsRequest;
 use App\Http\Requests\Tenant\SyncUserRolesRequest;
@@ -15,15 +14,22 @@ use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
 use App\Models\Tenant\User;
 use App\Services\Tenant\UserService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Store staff users for the tenant.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the UserService layer.
  */
 class UserController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param UserService $service
+     */
     public function __construct(
         private readonly UserService $service,
     ) {}
@@ -31,13 +37,15 @@ class UserController extends Controller
     /**
      * Get paginated user records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $isActive = QueryFilter::parseList($request->query('is_active'));
+        $isActive = $request->query('is_active');
 
         $items = $this->service->getPaginated($perPage, $search, $isActive);
 
@@ -46,6 +54,8 @@ class UserController extends Controller
 
     /**
      * KPI card metrics for users.
+     *
+     * @return JsonResponse
      */
     public function metrics(): JsonResponse
     {
@@ -58,7 +68,9 @@ class UserController extends Controller
     /**
      * Create a new user.
      *
-     * @param  StoreUserRequest  $request  Validated request payload.
+     * @param StoreUserRequest $request Validated request payload.
+     *
+     * @return JsonResponse
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
@@ -70,7 +82,9 @@ class UserController extends Controller
     /**
      * Find user by route binding.
      *
-     * @param  User  $user  User instance.
+     * @param User $user User instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(User $user): JsonResponse
     {
@@ -82,8 +96,10 @@ class UserController extends Controller
     /**
      * Update user.
      *
-     * @param  UpdateUserRequest  $request  Validated request payload.
-     * @param  User  $user  User instance.
+     * @param UpdateUserRequest $request Validated request payload.
+     * @param User $user User instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
@@ -95,7 +111,9 @@ class UserController extends Controller
     /**
      * Delete user.
      *
-     * @param  User  $user  User instance.
+     * @param User $user User instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function destroy(User $user): JsonResponse
     {
@@ -106,10 +124,15 @@ class UserController extends Controller
 
     /**
      * Delete multiple users in one request.
+     *
+     * @param Request $request
+     *
+     * @return JsonResponse
      */
-    public function bulkDestroy(BulkDeleteUsersRequest $request): JsonResponse
+    public function bulkDestroy(Request $request): JsonResponse
     {
-        $deleted = $this->service->deleteMany($request->validated('ids'));
+        $ids = $request->input('ids', []);
+        $deleted = $this->service->deleteMany($ids);
 
         return $this->success(
             ['deleted' => $deleted],
@@ -118,17 +141,64 @@ class UserController extends Controller
     }
 
     /**
-     * Toggle the user's active flag.
+     * Restore a soft-deleted user.
+     *
+     * @param int $id Trashed record identifier.
+     *
+     * @return JsonResponse
+     */
+    public function restore(int $id): JsonResponse
+    {
+        $item = $this->service->restore($id);
+
+        return $this->success(
+            new UserResource($item),
+            'User restored successfully.',
+        );
+    }
+
+    /**
+     * Restore multiple soft-deleted users.
+     *
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $restored = $this->service->restoreMany($ids);
+
+        return $this->success(
+            ['restored' => $restored],
+            "{$restored} user(s) restored successfully.",
+        );
+    }
+
+    /**
+     * Toggle the active status of a user.
+     *
+     * @param User $user User instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function toggleActive(User $user): JsonResponse
     {
         $item = $this->service->toggleActive($user);
 
-        return $this->success(new UserResource($item), 'User active status toggled.');
+        return $this->success(
+            new UserResource($item),
+            'User active status toggled successfully.',
+        );
     }
 
     /**
      * Replace all Spatie roles assigned to the user.
+     *
+     * @param SyncUserRolesRequest $request Validated request payload.
+     * @param User $user User instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function syncRoles(SyncUserRolesRequest $request, User $user): JsonResponse
     {
@@ -139,6 +209,11 @@ class UserController extends Controller
 
     /**
      * Replace all direct Spatie permissions assigned to the user.
+     *
+     * @param SyncUserPermissionsRequest $request Validated request payload.
+     * @param User $user User instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function syncPermissions(SyncUserPermissionsRequest $request, User $user): JsonResponse
     {
@@ -149,6 +224,11 @@ class UserController extends Controller
 
     /**
      * Remove a Spatie role from the user.
+     *
+     * @param User $user User instance resolved via route model binding.
+     * @param Role $role Role instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function detachRole(User $user, Role $role): JsonResponse
     {
@@ -159,6 +239,11 @@ class UserController extends Controller
 
     /**
      * Remove a direct Spatie permission from the user.
+     *
+     * @param User $user User instance resolved via route model binding.
+     * @param Permission $permission Permission instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function detachPermission(User $user, Permission $permission): JsonResponse
     {

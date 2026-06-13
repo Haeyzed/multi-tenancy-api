@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
  * Goods receipt line item stored in the tenant database.
  *
  * @property int $id
- * @property string $grn_id
+ * @property int $grn_id
  * @property int $po_item_id
  * @property int $received_qty
  * @property int $accepted_qty

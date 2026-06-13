@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -14,8 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Product variants stored in the tenant database.
  *
- * @property string $id
- * @property string $product_id
+ * @property int $id
+ * @property int $product_id
  * @property string|null $sku
  * @property string|null $barcode
  * @property string|null $variant_name
@@ -28,17 +26,15 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $option_values
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|ProductVariant search(?string $search)
  * @method static Builder|ProductVariant filterIsActive(array $statuses)
  */
 class ProductVariant extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'product_variants';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -58,6 +54,8 @@ class ProductVariant extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -65,7 +63,10 @@ class ProductVariant extends TenantModel
     }
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<ProductVariant> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -79,13 +80,27 @@ class ProductVariant extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<ProductVariant> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
@@ -93,8 +108,6 @@ class ProductVariant extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

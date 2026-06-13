@@ -26,7 +26,7 @@ class UpdateWarehouseRequest extends BaseRequest
         $warehouse = $this->route('warehouse');
 
         return [
-            'store_id' => 'nullable|uuid|exists:stores,id',
+            'store_id' => 'nullable|integer|exists:stores,id',
             'name' => 'sometimes|string|max:255',
             'code' => [
                 'sometimes',
@@ -39,7 +39,7 @@ class UpdateWarehouseRequest extends BaseRequest
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'timezone' => 'sometimes|string|max:64',
-            'manager_id' => 'nullable|uuid|exists:employees,id',
+            'manager_id' => 'nullable|integer|exists:employees,id',
             'is_active' => 'sometimes|boolean',
         ];
     }

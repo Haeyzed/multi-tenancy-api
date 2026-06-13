@@ -40,7 +40,7 @@ class CategoryProduct extends TenantModel
     /**
      * Category in this assignment.
      *
-     * @return BelongsTo<<Category, $this>
+     * @return BelongsTo<Category, $this>
      */
     public function category(): BelongsTo
     {

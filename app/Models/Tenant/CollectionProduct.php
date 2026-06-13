@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $collection_id
- * @property string $product_id
+ * @property int $product_id
  * @property int $sort_order
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -35,6 +35,8 @@ class CollectionProduct extends TenantModel
 
     /**
      * Collection in this assignment.
+     *
+     * @return BelongsTo<Collection, $this>
      */
     public function collection(): BelongsTo
     {
@@ -43,6 +45,8 @@ class CollectionProduct extends TenantModel
 
     /**
      * Product in this assignment.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

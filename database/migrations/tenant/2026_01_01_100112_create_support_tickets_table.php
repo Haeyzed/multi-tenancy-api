@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('support_tickets', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('ticket_number')->unique();
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('email');
             $table->string('subject');
             $table->enum('category', ['order_issue', 'product_question', 'refund_request', 'technical', 'general', 'billing'])->default('general');
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->enum('status', ['open', 'pending', 'resolved', 'closed', 'escalated'])->default('open');
-            $table->foreignUuid('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
-            $table->foreignUuid('order_id')->nullable()->constrained('orders')->nullOnDelete();
-            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignId('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
+            $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->enum('source', ['email', 'chat', 'phone', 'web', 'social', 'api'])->default('web');
             $table->tinyInteger('satisfaction_rating')->unsigned()->nullable(); // 1-5
             $table->timestamp('resolved_at')->nullable();

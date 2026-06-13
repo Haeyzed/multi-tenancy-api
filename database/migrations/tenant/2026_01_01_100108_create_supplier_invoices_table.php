@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('supplier_invoices', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('supplier_id')->constrained('suppliers');
-            $table->foreignUuid('po_id')->nullable()->constrained('purchase_orders')->nullOnDelete();
+            $table->id();
+            $table->foreignId('supplier_id')->constrained('suppliers');
+            $table->foreignId('po_id')->nullable()->constrained('purchase_orders')->nullOnDelete();
             $table->string('invoice_number');
             $table->date('invoice_date');
             $table->date('due_date');

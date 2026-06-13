@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Warehouse inventory location stored in the tenant database.
  *
  * @property int $id
- * @property string $product_id
- * @property string|null $variant_id
- * @property string $warehouse_id
+ * @property int $product_id
+ * @property int|null $variant_id
+ * @property int $warehouse_id
  * @property int|null $zone_id
  * @property int|null $bin_id
  * @property int $quantity
@@ -49,6 +49,8 @@ class InventoryLocation extends TenantModel
 
     /**
      * Product at this location.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
@@ -57,6 +59,8 @@ class InventoryLocation extends TenantModel
 
     /**
      * Warehouse for this inventory location.
+     *
+     * @return BelongsTo<Warehouse, $this>
      */
     public function warehouse(): BelongsTo
     {

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customer_loyalty_accounts', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignUuid('program_id')->constrained('loyalty_programs')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('program_id')->constrained('loyalty_programs')->cascadeOnDelete();
             $table->foreignId('tier_id')->nullable()->constrained('loyalty_tiers')->nullOnDelete();
             $table->integer('total_points')->default(0);
             $table->integer('available_points')->default(0);

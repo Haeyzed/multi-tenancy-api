@@ -6,7 +6,6 @@ namespace App\Models\Central;
 
 use App\Enums\Central\ErrorLogSeverity;
 use App\Models\Concerns\FilterableByTenant;
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -79,7 +78,20 @@ class ErrorLog extends Model
      */
     public function scopeFilterResolution(Builder $query, array $values): void
     {
-        $mapped = QueryFilter::booleanResolved($values);
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'resolved' => true,
+                'unresolved' => false,
+                default => null,
+            };
+        }
+
+        $mapped = array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         if ($mapped === []) {
             return;

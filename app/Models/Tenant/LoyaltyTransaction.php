@@ -12,10 +12,10 @@ use Illuminate\Support\Carbon;
  * Loyalty points transaction stored in the tenant database.
  *
  * @property int $id
- * @property string $account_id
+ * @property int $account_id
  * @property string $type
  * @property int $points
- * @property string|null $order_id
+ * @property int|null $order_id
  * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -39,6 +39,8 @@ class LoyaltyTransaction extends TenantModel
 
     /**
      * Order associated with this points transaction, if any.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {

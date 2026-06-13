@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('salary_advance_repayments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('advance_id')->constrained('salary_advances')->cascadeOnDelete();
-            $table->foreignUuid('payroll_entry_id')->nullable()->constrained('payroll_entries')->nullOnDelete();
+            $table->foreignId('payroll_entry_id')->nullable()->constrained('payroll_entries')->nullOnDelete();
             $table->decimal('amount', 12, 2);
             $table->date('date');
             $table->timestamps();

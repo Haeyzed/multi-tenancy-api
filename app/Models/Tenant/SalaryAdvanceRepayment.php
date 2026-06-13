@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $advance_id
- * @property string|null $payroll_entry_id
+ * @property int|null $payroll_entry_id
  * @property string $amount
  * @property Carbon|null $date
  * @property Carbon|null $created_at
@@ -37,6 +37,8 @@ class SalaryAdvanceRepayment extends TenantModel
 
     /**
      * Related PayrollEntry.
+     *
+     * @return BelongsTo<PayrollEntry, $this>
      */
     public function payrollEntry(): BelongsTo
     {

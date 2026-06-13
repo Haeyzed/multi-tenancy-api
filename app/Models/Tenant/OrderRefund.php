@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Order refunds stored in the tenant database.
  *
  * @property int $id
- * @property string $order_id
+ * @property int $order_id
  * @property int|null $order_item_id
  * @property string $amount
  * @property string|null $reason
@@ -46,6 +46,8 @@ class OrderRefund extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -54,6 +56,8 @@ class OrderRefund extends TenantModel
 
     /**
      * Related OrderItem.
+     *
+     * @return BelongsTo<OrderItem, $this>
      */
     public function orderItem(): BelongsTo
     {
@@ -75,8 +79,6 @@ class OrderRefund extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

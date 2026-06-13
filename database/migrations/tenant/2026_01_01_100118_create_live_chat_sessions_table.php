@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('live_chat_sessions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('guest_email')->nullable();
             $table->string('guest_name')->nullable();
-            $table->foreignUuid('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
             $table->enum('status', ['waiting', 'active', 'closed', 'missed', 'transferred'])->default('waiting');
             $table->timestamp('started_at')->useCurrent();
             $table->timestamp('ended_at')->nullable();

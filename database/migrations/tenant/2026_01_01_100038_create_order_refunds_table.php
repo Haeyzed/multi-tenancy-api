@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('order_refunds', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('order_id')->constrained('orders')->cascadeOnDelete();
+            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->foreignId('order_item_id')->nullable()->constrained('order_items')->nullOnDelete();
             $table->decimal('amount', 12, 2);
             $table->text('reason');
             $table->enum('status', ['pending', 'approved', 'rejected', 'processed'])->default('pending');
-            $table->foreignUuid('processed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('processed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('processed_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

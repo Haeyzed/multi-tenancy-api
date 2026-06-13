@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Payroll entry components stored in the tenant database.
  *
  * @property int $id
- * @property string $payroll_entry_id
+ * @property int $payroll_entry_id
  * @property int $component_id
  * @property string $amount
  * @property string $calculated_amount
@@ -39,6 +39,8 @@ class PayrollEntryComponent extends TenantModel
 
     /**
      * Related PayrollEntry.
+     *
+     * @return BelongsTo<PayrollEntry, $this>
      */
     public function payrollEntry(): BelongsTo
     {

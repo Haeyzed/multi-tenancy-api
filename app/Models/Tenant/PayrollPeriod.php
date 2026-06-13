@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 
 /**
  * Payroll periods stored in the tenant database.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $name
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
@@ -21,17 +20,15 @@ use Illuminate\Support\Carbon;
  * @property string $type
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|PayrollPeriod search(?string $search)
  * @method static Builder|PayrollPeriod filterStatus(array $statuses)
  */
 class PayrollPeriod extends TenantModel
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    public $incrementing = false;
     protected $table = 'payroll_periods';
-    protected $keyType = 'string';
-
     /**
      * @var list<string>
      */
@@ -45,7 +42,10 @@ class PayrollPeriod extends TenantModel
     ];
 
     /**
-     * Scope a query by common searchable columns.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<PayrollPeriod> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -71,8 +71,6 @@ class PayrollPeriod extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

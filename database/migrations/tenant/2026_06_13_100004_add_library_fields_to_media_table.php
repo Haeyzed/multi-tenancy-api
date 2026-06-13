@@ -25,7 +25,7 @@ return new class extends Migration
             }
 
             if (! Schema::hasColumn('media', 'uploaded_by')) {
-                $table->foreignUuid('uploaded_by')->nullable()->after('alt_text')->constrained('users')->nullOnDelete();
+                $table->foreignId('uploaded_by')->nullable()->after('alt_text')->constrained('users')->nullOnDelete();
             }
         });
     }

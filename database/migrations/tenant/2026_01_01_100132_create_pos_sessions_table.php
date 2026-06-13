@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pos_sessions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('register_id')->constrained('pos_registers')->cascadeOnDelete();
-            $table->foreignUuid('cashier_id')->constrained('employees');
+            $table->id();
+            $table->foreignId('register_id')->constrained('pos_registers')->cascadeOnDelete();
+            $table->foreignId('cashier_id')->constrained('employees');
             $table->decimal('opening_amount', 12, 2)->default(0);
             $table->decimal('expected_closing', 12, 2)->nullable();
             $table->decimal('actual_closing', 12, 2)->nullable();

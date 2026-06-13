@@ -12,11 +12,11 @@ use Illuminate\Support\Carbon;
  * Order status history stored in the tenant database.
  *
  * @property int $id
- * @property string $order_id
+ * @property int $order_id
  * @property string|null $status
  * @property string|null $previous_status
  * @property string|null $changed_by_type
- * @property string|null $changed_by_id
+ * @property int|null $changed_by_id
  * @property string|null $reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -41,6 +41,8 @@ class OrderStatusHistory extends TenantModel
 
     /**
      * Related Order.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {

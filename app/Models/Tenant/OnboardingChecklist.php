@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * Onboarding checklists stored in the tenant database.
  *
  * @property int $id
- * @property string $employee_id
+ * @property int $employee_id
  * @property int|null $template_id
  * @property string $status
  * @property Carbon|null $completed_at
@@ -38,6 +38,8 @@ class OnboardingChecklist extends TenantModel
 
     /**
      * Related Employee.
+     *
+     * @return BelongsTo<Employee, $this>
      */
     public function employee(): BelongsTo
     {
@@ -59,8 +61,6 @@ class OnboardingChecklist extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->longText('content');
             $table->boolean('is_published')->default(false);
             $table->integer('view_count')->default(0);
-            $table->foreignUuid('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

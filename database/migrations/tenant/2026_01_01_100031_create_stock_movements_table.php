@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->foreignId('location_id')->nullable();
             $table->enum('type', ['in', 'out', 'adjustment', 'reservation', 'transfer_in', 'transfer_out', 'return'])->default('in');
             $table->integer('quantity');
             $table->integer('before_quantity');
             $table->integer('after_quantity');
             $table->string('reference_type')->nullable();
-            $table->uuid('reference_id')->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
             $table->text('reason')->nullable();
-            $table->foreignUuid('performed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('performed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->index(['product_id', 'variant_id', 'created_at']);
         });

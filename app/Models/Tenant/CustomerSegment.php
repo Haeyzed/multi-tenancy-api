@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property bool $is_dynamic
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|CustomerSegment search(?string $search)
  */
 class CustomerSegment extends TenantModel
@@ -37,7 +38,10 @@ class CustomerSegment extends TenantModel
     ];
 
     /**
-     * Scope a query to search by name.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<CustomerSegment> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

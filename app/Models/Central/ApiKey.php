@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Models\Concerns\FilterableByTenant;
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -67,7 +66,20 @@ class ApiKey extends Model
      */
     public function scopeFilterIsActive(Builder $query, array $values): void
     {
-        $mapped = QueryFilter::booleanStatuses($values);
+        $mapped = [];
+
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $mapped = array_values(array_unique(array_filter(
+            $mapped,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_active', $mapped));
     }

@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $path
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|MediaLibraryFolder search(?string $search)
  */
 class MediaLibraryFolder extends TenantModel
@@ -38,6 +39,8 @@ class MediaLibraryFolder extends TenantModel
 
     /**
      * Parent folder in the hierarchy.
+     *
+     * @return BelongsTo<MediaLibraryFolder, $this>
      */
     public function parent(): BelongsTo
     {
@@ -65,7 +68,10 @@ class MediaLibraryFolder extends TenantModel
     }
 
     /**
-     * Scope a query to search by name.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<MediaLibraryFolder> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {

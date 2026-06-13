@@ -35,6 +35,8 @@ class ShipmentItem extends TenantModel
 
     /**
      * Related Shipment.
+     *
+     * @return BelongsTo<Shipment, $this>
      */
     public function shipment(): BelongsTo
     {
@@ -43,6 +45,8 @@ class ShipmentItem extends TenantModel
 
     /**
      * Related OrderItem.
+     *
+     * @return BelongsTo<OrderItem, $this>
      */
     public function orderItem(): BelongsTo
     {

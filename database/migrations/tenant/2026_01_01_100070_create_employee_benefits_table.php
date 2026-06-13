@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('employee_benefits', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->enum('benefit_type', ['health_insurance', 'life_insurance', 'dental', 'vision', 'retirement', 'transport', 'housing', 'meal', 'education', 'other'])->default('other');
             $table->string('provider')->nullable();
             $table->string('policy_number')->nullable();

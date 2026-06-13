@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('order_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('order_id')->constrained('orders')->cascadeOnDelete();
+            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->decimal('amount', 12, 2);
             $table->string('currency')->default('USD');
             $table->enum('provider', ['stripe', 'paypal', 'cod', 'bank_transfer', 'wallet', 'gift_card'])->default('stripe');

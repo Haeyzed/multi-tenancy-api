@@ -12,13 +12,13 @@ use Illuminate\Support\Carbon;
  * Subscription billing cycles stored in the tenant database.
  *
  * @property int $id
- * @property string $subscription_id
+ * @property int $subscription_id
  * @property int $cycle_number
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
  * @property string $amount
  * @property string $status
- * @property string|null $invoice_id
+ * @property int|null $invoice_id
  * @property Carbon|null $paid_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -58,8 +58,6 @@ class SubscriptionBillingCycle extends TenantModel
      *
      * @return array<string, string>
      */
-
-
     protected function casts(): array
     {
         return [

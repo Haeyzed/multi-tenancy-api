@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('warehouse_zones', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('warehouse_id')->constrained('warehouses')->cascadeOnDelete();
+            $table->foreignId('warehouse_id')->constrained('warehouses')->cascadeOnDelete();
             $table->string('name');
             $table->string('code')->nullable();
             $table->enum('type', ['receiving', 'storage', 'picking', 'shipping', 'quarantine', 'returns', 'bulk'])->default('storage');

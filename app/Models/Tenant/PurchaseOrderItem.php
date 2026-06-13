@@ -12,9 +12,9 @@ use Illuminate\Support\Carbon;
  * Purchase order items stored in the tenant database.
  *
  * @property int $id
- * @property string $po_id
+ * @property int $po_id
  * @property int|null $supplier_product_id
- * @property string|null $product_id
+ * @property int|null $product_id
  * @property int $quantity
  * @property string $unit_cost
  * @property int $received_qty
@@ -45,6 +45,8 @@ class PurchaseOrderItem extends TenantModel
 
     /**
      * Related SupplierProduct.
+     *
+     * @return BelongsTo<SupplierProduct, $this>
      */
     public function supplierProduct(): BelongsTo
     {
@@ -53,6 +55,8 @@ class PurchaseOrderItem extends TenantModel
 
     /**
      * Related Product.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

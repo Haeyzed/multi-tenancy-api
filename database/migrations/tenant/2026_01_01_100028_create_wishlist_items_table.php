@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('wishlist_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('wishlist_id')->constrained('product_wishlists')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignUuid('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            $table->foreignId('wishlist_id')->constrained('product_wishlists')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->timestamp('added_at')->useCurrent();
             $table->timestamps();
             $table->unique(['wishlist_id', 'product_id', 'variant_id']);

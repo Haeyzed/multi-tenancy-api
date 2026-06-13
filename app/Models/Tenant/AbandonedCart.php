@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * Abandoned cart recovery record stored in the tenant database.
  *
  * @property int $id
- * @property string $cart_id
+ * @property int $cart_id
  * @property Carbon|null $email_sent_at
  * @property bool $email_opened
  * @property bool $email_clicked
@@ -41,6 +41,8 @@ class AbandonedCart extends TenantModel
 
     /**
      * Cart that was abandoned.
+     *
+     * @return BelongsTo<Cart, $this>
      */
     public function cart(): BelongsTo
     {

@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pick_lists', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('warehouse_id')->constrained('warehouses');
+            $table->id();
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->enum('status', ['pending', 'picking', 'picked', 'packed', 'shipped', 'cancelled'])->default('pending');
             $table->timestamp('completed_at')->nullable();
-            $table->foreignUuid('picker_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->foreignUuid('packer_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('picker_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('packer_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('offboarding_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->date('resignation_date');
             $table->date('last_working_date');
             $table->enum('reason', ['resignation', 'termination', 'retirement', 'contract_end', 'other'])->default('resignation');

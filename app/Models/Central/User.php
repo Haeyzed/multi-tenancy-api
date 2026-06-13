@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Central;
 
-use App\Support\QueryFilter;
 use Database\Factories\Central\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -88,7 +87,20 @@ class User extends Authenticatable
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
+
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
     }

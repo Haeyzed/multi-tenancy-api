@@ -11,6 +11,6 @@ class BulkDeleteCategoriesRequest extends BulkDeleteRequest
 {
     protected function idRule(): string
     {
-        return 'uuid|exists:categories,id';
+        return 'integer|exists:categories,id';
     }
 }

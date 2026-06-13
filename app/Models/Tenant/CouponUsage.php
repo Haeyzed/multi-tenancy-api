@@ -13,8 +13,8 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $coupon_id
- * @property string $order_id
- * @property string|null $user_id
+ * @property int $order_id
+ * @property int|null $user_id
  * @property string $discount_amount
  * @property Carbon|null $used_at
  * @property Carbon|null $created_at
@@ -39,6 +39,8 @@ class CouponUsage extends TenantModel
 
     /**
      * Coupon that was redeemed.
+     *
+     * @return BelongsTo<Coupon, $this>
      */
     public function coupon(): BelongsTo
     {
@@ -47,6 +49,8 @@ class CouponUsage extends TenantModel
 
     /**
      * Order this coupon was applied to.
+     *
+     * @return BelongsTo<Order, $this>
      */
     public function order(): BelongsTo
     {
@@ -55,6 +59,8 @@ class CouponUsage extends TenantModel
 
     /**
      * Customer who used this coupon.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

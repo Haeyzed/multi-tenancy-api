@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $support_phone
  * @property string|null $support_whatsapp
  * @property string|null $billing_email
- * @property string|null $tax_id
+ * @property int|null $tax_id
  * @property string|null $registration_number
  * @property array<string, mixed>|null $headquarters_address
  * @property string|null $website_url

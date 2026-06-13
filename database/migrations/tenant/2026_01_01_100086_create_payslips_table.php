@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payslips', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('payroll_entry_id')->constrained('payroll_entries')->cascadeOnDelete();
+            $table->foreignId('payroll_entry_id')->constrained('payroll_entries')->cascadeOnDelete();
             $table->foreignId('media_id')->nullable();
             $table->timestamp('generated_at')->useCurrent();
             $table->timestamp('sent_at')->nullable();

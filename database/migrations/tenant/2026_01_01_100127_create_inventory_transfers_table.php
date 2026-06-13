@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('inventory_transfers', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('from_warehouse_id')->constrained('warehouses');
-            $table->foreignUuid('to_warehouse_id')->constrained('warehouses');
+            $table->id();
+            $table->foreignId('from_warehouse_id')->constrained('warehouses');
+            $table->foreignId('to_warehouse_id')->constrained('warehouses');
             $table->enum('status', ['draft', 'pending', 'in_transit', 'received', 'cancelled', 'partially_received'])->default('draft');
             $table->date('transfer_date');
             $table->date('received_date')->nullable();
             $table->text('notes')->nullable();
-            $table->foreignUuid('created_by')->constrained('users');
-            $table->foreignUuid('received_by')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('received_by')->nullable()->constrained('employees')->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -48,7 +48,7 @@ class StoreStoreRequest extends BaseRequest
             'currency' => 'sometimes|string|size:3',
             'tax_rate' => 'sometimes|numeric|min:0|max:100',
             'opening_hours' => 'nullable|array',
-            'manager_id' => 'nullable|uuid|exists:employees,id',
+            'manager_id' => 'nullable|integer|exists:employees,id',
             'logo_media_id' => 'nullable|integer|exists:media,id',
             'favicon_media_id' => 'nullable|integer|exists:media,id',
             /** @var bool $is_primary */

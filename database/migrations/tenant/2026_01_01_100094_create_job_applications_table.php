@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('job_applications', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('job_posting_id')->constrained('job_postings')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('job_posting_id')->constrained('job_postings')->cascadeOnDelete();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email');
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->date('available_from')->nullable();
             $table->decimal('rating', 3, 2)->nullable();
             $table->text('notes')->nullable();
-            $table->foreignUuid('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
             $table->timestamps();
             $table->index(['job_posting_id', 'status']);
         });

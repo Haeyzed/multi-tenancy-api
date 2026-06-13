@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('subscription_billing_cycles', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('subscription_id')->constrained('customer_subscriptions')->cascadeOnDelete();
+            $table->foreignId('subscription_id')->constrained('customer_subscriptions')->cascadeOnDelete();
             $table->integer('cycle_number')->default(1);
             $table->date('start_date');
             $table->date('end_date');
             $table->decimal('amount', 12, 2);
             $table->enum('status', ['pending', 'billed', 'paid', 'failed', 'skipped', 'refunded'])->default('pending');
-            $table->foreignUuid('invoice_id')->nullable()->constrained('orders')->nullOnDelete();
+            $table->foreignId('invoice_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
             $table->unique(['subscription_id', 'cycle_number']);

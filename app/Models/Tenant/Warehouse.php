@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,8 +14,8 @@ use Illuminate\Support\Carbon;
 /**
  * Inventory fulfillment warehouse; separate from customer-facing stores.
  *
- * @property string $id
- * @property string|null $store_id
+ * @property int $id
+ * @property int|null $store_id
  * @property string $name
  * @property string $code
  * @property string $type
@@ -25,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $phone
  * @property string|null $email
  * @property string $timezone
- * @property string|null $manager_id
+ * @property int|null $manager_id
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -36,11 +34,8 @@ use Illuminate\Support\Carbon;
  */
 class Warehouse extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
+    use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'warehouses';
 
@@ -62,6 +57,8 @@ class Warehouse extends TenantModel
 
     /**
      * Optional store this warehouse primarily serves.
+     *
+     * @return BelongsTo<Store, $this>
      */
     public function store(): BelongsTo
     {
@@ -79,7 +76,10 @@ class Warehouse extends TenantModel
     }
 
     /**
-     * Scope a query to search by name or code.
+     * Scope a query to search by common searchable columns.
+     *
+     * @param Builder<Warehouse> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -98,7 +98,20 @@ class Warehouse extends TenantModel
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
+
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn (?bool $value): bool => $value !== null,
+        )));
 
         $query->when($values !== [], fn (Builder $q) => $q->whereIn('is_active', $values));
     }
