@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 /**
  * Product brand stored in the tenant database.
@@ -31,6 +32,7 @@ use Illuminate\Support\Carbon;
 class Brand extends TenantModel
 {
     use HasFactory;
+    use HasSlug;
 
     protected $table = 'brands';
 
@@ -39,7 +41,6 @@ class Brand extends TenantModel
      */
     protected $fillable = [
         'name',
-        'slug',
         'description',
         'logo_media_id',
         'website_url',
@@ -48,7 +49,22 @@ class Brand extends TenantModel
     ];
 
     /**
+     * Get the options for generating the slug.
+     *
+     * @return SlugOptions
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug')
+            ->doNotGenerateSlugsOnUpdate();
+    }
+
+    /**
      * Logo media file for this brand.
+     *
+     * @return BelongsTo<<Media, $this>
      */
     public function logoMedia(): BelongsTo
     {
@@ -57,6 +73,8 @@ class Brand extends TenantModel
 
     /**
      * Products assigned to this brand.
+     *
+     * @return HasMany<Product, $this>
      */
     public function products(): HasMany
     {
@@ -65,11 +83,14 @@ class Brand extends TenantModel
 
     /**
      * Scope a query to search by name, slug, or description.
+     *
+     * @param Builder<<Brand> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
@@ -80,13 +101,27 @@ class Brand extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<<Brand> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn(?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**

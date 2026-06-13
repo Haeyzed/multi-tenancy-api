@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
  * Product stored in the tenant catalog.
  *
- * @property string $id
+ * @property int $id
  * @property string|null $name
  * @property string|null $slug
  * @property string|null $sku
@@ -22,7 +22,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property string|null $short_description
  * @property int|null $brand_id
- * @property string|null $category_id
  * @property string $type
  * @property string $status
  * @property string $visibility
@@ -44,8 +43,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $meta_keywords
  * @property string|null $canonical_url
  * @property Carbon|null $published_at
- * @property string|null $created_by
- * @property string|null $updated_by
+ * @property int|null $created_by
+ * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -55,15 +54,14 @@ use Illuminate\Support\Carbon;
  */
 class Product extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'products';
 
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
     /**
+     * The attributes that are mass assignable.
+     *
      * @var list<string>
      */
     protected $fillable = [
@@ -74,7 +72,6 @@ class Product extends TenantModel
         'description',
         'short_description',
         'brand_id',
-        'category_id',
         'type',
         'status',
         'visibility',
@@ -128,6 +125,8 @@ class Product extends TenantModel
 
     /**
      * Brand this product belongs to.
+     *
+     * @return BelongsTo<<Brand, $this>
      */
     public function brand(): BelongsTo
     {
@@ -135,15 +134,21 @@ class Product extends TenantModel
     }
 
     /**
-     * Primary category this product belongs to.
+     * Categories this product belongs to via pivot.
+     *
+     * @return BelongsToMany<<Category, $this>
      */
-    public function category(): BelongsTo
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class, 'category_product')
+            ->withPivot(['is_primary', 'sort_order'])
+            ->withTimestamps();
     }
 
     /**
      * Staff user who created this product.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function createdBy(): BelongsTo
     {
@@ -152,6 +157,8 @@ class Product extends TenantModel
 
     /**
      * Staff user who last updated this product.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function updatedBy(): BelongsTo
     {
@@ -160,11 +167,14 @@ class Product extends TenantModel
 
     /**
      * Scope a query to search by name, slug, or SKU.
+     *
+     * @param Builder<Product> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('sku', 'like', "%{$search}%");
@@ -175,10 +185,11 @@ class Product extends TenantModel
     /**
      * Filter by status values.
      *
-     * @param  list<string>  $statuses
+     * @param Builder<Product> $query
+     * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn (Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn (Builder $q): Builder => $q->whereIn('status', $statuses));
     }
 }

@@ -16,6 +16,8 @@ class CategoryResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * @param Request $request
+     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -24,7 +26,7 @@ class CategoryResource extends JsonResource
             /**
              * Unique identifier.
              *
-             * @example "9f3c2b1a-4e5d-6f7a-8b9c-0d1e2f3a4b5c"
+             * @example 1
              */
             'id' => $this->id,
 
@@ -103,21 +105,21 @@ class CategoryResource extends JsonResource
              *
              * @default true
              */
-            'is_active' => (bool)$this->is_active,
+            'is_active' => (bool) $this->is_active,
 
             /**
              * Whether the category is featured.
              *
              * @default false
              */
-            'is_featured' => (bool)$this->is_featured,
+            'is_featured' => (bool) $this->is_featured,
 
             /**
              * Whether the category appears in navigation menus.
              *
              * @default true
              */
-            'show_in_menu' => (bool)$this->show_in_menu,
+            'show_in_menu' => (bool) $this->show_in_menu,
 
             /**
              * Tree depth (0 for root categories).
@@ -138,7 +140,7 @@ class CategoryResource extends JsonResource
              *
              * @default 0
              */
-            'products_count' => ($this->products_count ?? 0) + ($this->category_products_count ?? 0),
+            'products_count' => $this->whenCounted('products', fn (): int => $this->products_count, 0),
 
             /**
              * Timestamp when the category was created.
@@ -169,7 +171,7 @@ class CategoryResource extends JsonResource
              *
              * @default null
              */
-            'banner_media' => $this->whenLoaded('bannerMedia', fn() => [
+            'banner_media' => $this->whenLoaded('bannerMedia', fn (): array => [
                 'id' => $this->bannerMedia?->id,
                 'file_name' => $this->bannerMedia?->file_name,
                 'mime_type' => $this->bannerMedia?->mime_type,
@@ -181,7 +183,7 @@ class CategoryResource extends JsonResource
              *
              * @default null
              */
-            'icon_media' => $this->whenLoaded('iconMedia', fn() => [
+            'icon_media' => $this->whenLoaded('iconMedia', fn (): array => [
                 'id' => $this->iconMedia?->id,
                 'file_name' => $this->iconMedia?->file_name,
                 'mime_type' => $this->iconMedia?->mime_type,

@@ -16,6 +16,8 @@ class BrandResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * @param Request $request
+     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -76,7 +78,7 @@ class BrandResource extends JsonResource
              *
              * @default true
              */
-            'is_active' => (bool)$this->is_active,
+            'is_active' => (bool) $this->is_active,
 
             /**
              * Display order in brand lists.
@@ -92,7 +94,7 @@ class BrandResource extends JsonResource
              *
              * @default 0
              */
-            'products_count' => $this->products_count ?? 0,
+            'products_count' => $this->whenCounted('products', fn (): int => $this->products_count, 0),
 
             /**
              * Timestamp when the brand was created.
@@ -113,7 +115,7 @@ class BrandResource extends JsonResource
              *
              * @default null
              */
-            'logo_media' => $this->whenLoaded('logoMedia', fn() => [
+            'logo_media' => $this->whenLoaded('logoMedia', fn (): array => [
                 'id' => $this->logoMedia?->id,
                 'file_name' => $this->logoMedia?->file_name,
                 'mime_type' => $this->logoMedia?->mime_type,

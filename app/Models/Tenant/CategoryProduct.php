@@ -12,8 +12,8 @@ use Illuminate\Support\Carbon;
  * Category-to-product pivot stored in the tenant database.
  *
  * @property int $id
- * @property string $category_id
- * @property string $product_id
+ * @property int $category_id
+ * @property int $product_id
  * @property bool $is_primary
  * @property int $sort_order
  * @property Carbon|null $created_at
@@ -26,6 +26,8 @@ class CategoryProduct extends TenantModel
     protected $table = 'category_product';
 
     /**
+     * The attributes that are mass assignable.
+     *
      * @var list<string>
      */
     protected $fillable = [
@@ -37,6 +39,8 @@ class CategoryProduct extends TenantModel
 
     /**
      * Category in this assignment.
+     *
+     * @return BelongsTo<<Category, $this>
      */
     public function category(): BelongsTo
     {
@@ -45,6 +49,8 @@ class CategoryProduct extends TenantModel
 
     /**
      * Product in this assignment.
+     *
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {

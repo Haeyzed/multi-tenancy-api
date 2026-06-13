@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
-use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 /**
  * Product category stored in the tenant database.
  *
- * @property string $id
- * @property string|null $parent_id
+ * @property int $id
+ * @property int|null $parent_id
  * @property string $name
  * @property string $slug
  * @property string|null $description
@@ -43,11 +44,11 @@ use Illuminate\Support\Carbon;
  */
 class Category extends TenantModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasSlug;
+    use SoftDeletes;
 
-    public $incrementing = false;
     protected $table = 'categories';
-    protected $keyType = 'string';
 
     /**
      * @var list<string>
@@ -55,7 +56,6 @@ class Category extends TenantModel
     protected $fillable = [
         'parent_id',
         'name',
-        'slug',
         'description',
         'meta_title',
         'meta_description',
@@ -71,7 +71,22 @@ class Category extends TenantModel
     ];
 
     /**
+     * Get the options for generating the slug.
+     *
+     * @return SlugOptions
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug')
+            ->doNotGenerateSlugsOnUpdate();
+    }
+
+    /**
      * Parent category in the tree.
+     *
+     * @return BelongsTo<<Category, $this>
      */
     public function parent(): BelongsTo
     {
@@ -80,6 +95,8 @@ class Category extends TenantModel
 
     /**
      * Direct child categories.
+     *
+     * @return HasMany<<Category, $this>
      */
     public function children(): HasMany
     {
@@ -88,6 +105,8 @@ class Category extends TenantModel
 
     /**
      * Banner image for this category.
+     *
+     * @return BelongsTo<<Media, $this>
      */
     public function bannerMedia(): BelongsTo
     {
@@ -96,6 +115,8 @@ class Category extends TenantModel
 
     /**
      * Icon image for this category.
+     *
+     * @return BelongsTo<<Media, $this>
      */
     public function iconMedia(): BelongsTo
     {
@@ -103,15 +124,21 @@ class Category extends TenantModel
     }
 
     /**
-     * Products with this category as primary assignment.
+     * Products linked to this category via pivot table.
+     *
+     * @return BelongsToMany<Product, $this>
      */
-    public function products(): HasMany
+    public function products(): BelongsToMany
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsToMany(Product::class, 'category_product')
+            ->withPivot(['is_primary', 'sort_order'])
+            ->withTimestamps();
     }
 
     /**
-     * Pivot rows linking additional products to this category.
+     * Pivot rows linking products to this category.
+     *
+     * @return HasMany<<CategoryProduct, $this>
      */
     public function categoryProducts(): HasMany
     {
@@ -120,11 +147,14 @@ class Category extends TenantModel
 
     /**
      * Scope a query to search by name, slug, or description.
+     *
+     * @param Builder<<Category> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
@@ -135,37 +165,79 @@ class Category extends TenantModel
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<<Category> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
     {
-        $values = QueryFilter::booleanStatuses($statuses);
+        $values = [];
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        foreach ($statuses as $status) {
+            $values[] = match ($status) {
+                'active' => true,
+                'inactive' => false,
+                default => null,
+            };
+        }
+
+        $values = array_values(array_unique(array_filter(
+            $values,
+            static fn(?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
      * Filter by featured/unfeatured tokens.
      *
+     * @param Builder<<Category> $query
      * @param list<string> $values
      */
     public function scopeFilterIsFeatured(Builder $query, array $values): void
     {
-        $mapped = QueryFilter::booleanFeatured($values);
+        $mapped = [];
 
-        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_featured', $mapped));
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'featured' => true,
+                'unfeatured' => false,
+                default => null,
+            };
+        }
+
+        $mapped = array_values(array_unique(array_filter(
+            $mapped,
+            static fn(?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($mapped !== [], fn (Builder $q): Builder => $q->whereIn('is_featured', $mapped));
     }
 
     /**
      * Filter by menu visibility tokens (in_menu, hidden).
      *
+     * @param Builder<<Category> $query
      * @param list<string> $values
      */
     public function scopeFilterShowInMenu(Builder $query, array $values): void
     {
-        $mapped = QueryFilter::booleanShowInMenu($values);
+        $mapped = [];
 
-        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('show_in_menu', $mapped));
+        foreach ($values as $value) {
+            $mapped[] = match ($value) {
+                'in_menu' => true,
+                'hidden' => false,
+                default => null,
+            };
+        }
+
+        $mapped = array_values(array_unique(array_filter(
+            $mapped,
+            static fn(?bool $value): bool => $value !== null,
+        )));
+
+        $query->when($mapped !== [], fn (Builder $q): Builder => $q->whereIn('show_in_menu', $mapped));
     }
 
     /**

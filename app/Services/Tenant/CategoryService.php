@@ -5,76 +5,134 @@ declare(strict_types=1);
 namespace App\Services\Tenant;
 
 use App\Models\Tenant\Category;
-use App\Services\Concerns\DeletesManyRecords;
-use App\Services\Concerns\GuardsCatalogProductLinks;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Tenant\CategoryProduct;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Tenant product category records and queries.
+ *
+ * Encapsulates all business logic for category management, including
+ * creation, updates, tree field computation, pagination, filtering,
+ * deletion, restoration, product unlinking, and KPI metrics.
+ *
+ * Deletion is blocked when the category is active.
+ * Products are linked exclusively via the category_product pivot table.
  */
 class CategoryService
 {
-    use DeletesManyRecords;
-    use GuardsCatalogProductLinks;
-
     /**
-     * Relations eager loaded for list and detail responses.
-     *
-     * @var list<string>
-     */
-    private const DETAIL_RELATIONS = [
-        'parent',
-        'bannerMedia',
-        'iconMedia',
-    ];
-
-    /**
-     * Get paginated category records.
+     * Get paginated category records with eager loaded relations.
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
      * @param list<string> $isActive Active/inactive filter tokens.
      * @param list<string> $isFeatured Featured/unfeatured filter tokens.
      * @param list<string> $showInMenu Menu visibility filter tokens.
+     *
      * @return LengthAwarePaginator<int, Category>
      */
     public function getPaginated(
-        int     $perPage = 15,
+        int $perPage = 15,
         ?string $search = null,
-        array   $isActive = [],
-        array   $isFeatured = [],
-        array   $showInMenu = [],
-    ): LengthAwarePaginator
-    {
-        return $this->queryWithDetails()
-            ->search($search)
-            ->filterIsActive($isActive)
-            ->filterIsFeatured($isFeatured)
-            ->filterShowInMenu($showInMenu)
+        array $isActive = [],
+        array $isFeatured = [],
+        array $showInMenu = [],
+    ): LengthAwarePaginator {
+        $query = Category::query()
+            ->with(['parent', 'bannerMedia', 'iconMedia'])
+            ->withCount(['products', 'categoryProducts']);
+
+        if ($search !== null && $search !== '') {
+            $query->search($search);
+        }
+
+        if ($isActive !== []) {
+            $values = [];
+            foreach ($isActive as $status) {
+                $values[] = match ($status) {
+                    'active' => true,
+                    'inactive' => false,
+                    default => null,
+                };
+            }
+            $values = array_values(array_unique(array_filter(
+                $values,
+                static fn(?bool $value): bool => $value !== null,
+            )));
+            if ($values !== []) {
+                $query->whereIn('is_active', $values);
+            }
+        }
+
+        if ($isFeatured !== []) {
+            $mapped = [];
+            foreach ($isFeatured as $value) {
+                $mapped[] = match ($value) {
+                    'featured' => true,
+                    'unfeatured' => false,
+                    default => null,
+                };
+            }
+            $mapped = array_values(array_unique(array_filter(
+                $mapped,
+                static fn(?bool $value): bool => $value !== null,
+            )));
+            if ($mapped !== []) {
+                $query->whereIn('is_featured', $mapped);
+            }
+        }
+
+        if ($showInMenu !== []) {
+            $mapped = [];
+            foreach ($showInMenu as $value) {
+                $mapped[] = match ($value) {
+                    'in_menu' => true,
+                    'hidden' => false,
+                    default => null,
+                };
+            }
+            $mapped = array_values(array_unique(array_filter(
+                $mapped,
+                static fn(?bool $value): bool => $value !== null,
+            )));
+            if ($mapped !== []) {
+                $query->whereIn('show_in_menu', $mapped);
+            }
+        }
+
+        return $query
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate($perPage);
     }
 
     /**
-     * Base query with category detail relations.
+     * Find category by ID or fail with eager loaded relations.
      *
-     * @return Builder<Category>
+     * @param int $id Record identifier.
+     *
+     * @return Category
      */
-    private function queryWithDetails(): Builder
+    public function findOrFail(int $id): Category
     {
         return Category::query()
-            ->with(self::DETAIL_RELATIONS)
-            ->withCount(['products', 'categoryProducts']);
+            ->with(['parent', 'bannerMedia', 'iconMedia'])
+            ->withCount(['products', 'categoryProducts'])
+            ->findOrFail($id);
     }
 
     /**
      * Create a new category.
      *
+     * Slug is auto-generated by Spatie Sluggable from the name field.
+     * Tree fields (depth, path) are computed from the parent assignment.
+     *
      * @param array<string, mixed> $data
+     *
+     * @return Category
      */
     public function create(array $data): Category
     {
@@ -87,17 +145,18 @@ class CategoryService
      * Compute tree depth and path from parent assignment.
      *
      * @param array<string, mixed> $data
+     * @param Category|null $existing
      */
     private function applyTreeFields(array &$data, ?Category $existing = null): void
     {
-        if (!array_key_exists('parent_id', $data) && $existing === null) {
+        if (! array_key_exists('parent_id', $data) && $existing === null) {
             $data['depth'] = 0;
             $data['path'] = $data['slug'] ?? null;
 
             return;
         }
 
-        if (!array_key_exists('parent_id', $data) && $existing !== null) {
+        if (! array_key_exists('parent_id', $data) && $existing !== null) {
             if (array_key_exists('slug', $data) && $existing->parent_id === null) {
                 $data['path'] = $data['slug'];
             }
@@ -117,19 +176,9 @@ class CategoryService
 
         $parent = Category::query()->findOrFail($parentId);
         $data['depth'] = $parent->depth + 1;
-        $data['path'] = $parent->path !== null && $parent->path !== ''
+        $data['path'] = $parent->path !== null && $parent->path
             ? $parent->path . '/' . $slug
             : $slug;
-    }
-
-    /**
-     * Find category by ID or fail.
-     *
-     * @param string $id Record identifier.
-     */
-    public function findOrFail(string $id): Category
-    {
-        return $this->queryWithDetails()->findOrFail($id);
     }
 
     /**
@@ -137,6 +186,10 @@ class CategoryService
      *
      * @param Category $category The model instance to update.
      * @param array<string, mixed> $data Attribute data to persist.
+     *
+     * @return Category
+     *
+     * @throws ValidationException
      */
     public function update(Category $category, array $data): Category
     {
@@ -149,16 +202,23 @@ class CategoryService
         $this->applyTreeFields($data, $category);
         $category->update($data);
 
-        return $category->fresh(self::DETAIL_RELATIONS);
+        return $category->fresh(['parent', 'bannerMedia', 'iconMedia']);
     }
 
     /**
-     * Delete category.
+     * Delete a single category.
+     *
+     * Deletion is blocked if the category is active.
      *
      * @param Category $category The model instance to delete.
+     *
+     * @return bool
+     *
+     * @throws ValidationException
      */
     public function delete(Category $category): bool
     {
+        $this->assertCategoryNotActive($category);
         $this->assertCategoryNotLinkedToProducts($category);
 
         return $category->delete();
@@ -167,59 +227,141 @@ class CategoryService
     /**
      * Delete multiple categories by ID.
      *
-     * @param list<string> $ids
+     * Deletion is blocked for any active categories in the set.
+     *
+     * @param list<int> $ids
+     *
+     * @return int Number of deleted records.
+     *
+     * @throws ValidationException
      */
     public function deleteMany(array $ids): int
     {
+        $this->assertCategoriesNotActive($ids);
         $this->assertCategoriesNotLinkedToProducts($ids);
 
-        return $this->deleteManyByIds(Category::class, $ids);
+        return DB::transaction(function () use ($ids): int {
+            $records = Category::query()->whereIn('id', $ids)->get();
+            $deleted = 0;
+
+            foreach ($records as $record) {
+                if ($record->delete()) {
+                    $deleted++;
+                }
+            }
+
+            return $deleted;
+        });
+    }
+
+    /**
+     * Restore a soft-deleted category.
+     *
+     * @param int $id Trashed record identifier.
+     *
+     * @return Category
+     */
+    public function restore(int $id): Category
+    {
+        $model = Category::withTrashed()->findOrFail($id);
+        $model->restore();
+
+        return $model->load(['parent', 'bannerMedia', 'iconMedia']);
+    }
+
+    /**
+     * Restore multiple soft-deleted categories by ID.
+     *
+     * @param list<int> $ids
+     *
+     * @return int Number of restored records.
+     */
+    public function restoreMany(array $ids): int
+    {
+        return DB::transaction(function () use ($ids): int {
+            $records = Category::withTrashed()->whereIn('id', $ids)->get();
+            $restored = 0;
+
+            foreach ($records as $record) {
+                if ($record->restore()) {
+                    $restored++;
+                }
+            }
+
+            return $restored;
+        });
     }
 
     /**
      * Unlink all products from a category.
+     *
+     * Removes all pivot entries for the category.
+     *
+     * @param Category $category The category to unlink products from.
+     *
+     * @return int Number of unlinked products.
      */
     public function unlinkProducts(Category $category): int
     {
-        return $this->unlinkCategoryProducts($category);
+        return CategoryProduct::query()
+            ->where('category_id', $category->id)
+            ->delete();
     }
 
     /**
      * Unlink all products from multiple categories.
      *
-     * @param list<string> $ids
+     * @param list<int> $ids
+     *
+     * @return int Number of unlinked products.
      */
     public function bulkUnlinkProducts(array $ids): int
     {
-        return Category::query()
-            ->whereIn('id', $ids)
-            ->get()
-            ->sum(fn (Category $category): int => $this->unlinkProducts($category));
+        return CategoryProduct::query()
+            ->whereIn('category_id', $ids)
+            ->delete();
     }
 
     /**
-     * Restore soft-deleted category.
+     * Toggle the active status of a category.
      *
-     * @param string $id Trashed record identifier.
+     * @param Category $category The model instance to toggle.
+     *
+     * @return Category
      */
-    public function restore(string $id): Category
+    public function toggleActive(Category $category): Category
     {
-        $model = Category::withTrashed()->findOrFail($id);
-        $model->restore();
+        $category->update(['is_active' => ! $category->is_active]);
 
-        return $model->load(self::DETAIL_RELATIONS);
+        return $category->fresh(['parent', 'bannerMedia', 'iconMedia']);
     }
 
     /**
-     * Force delete category.
+     * Toggle the featured status of a category.
      *
-     * @param string $id Trashed record identifier.
+     * @param Category $category The model instance to toggle.
+     *
+     * @return Category
      */
-    public function forceDelete(string $id): bool
+    public function toggleFeatured(Category $category): Category
     {
-        $model = Category::withTrashed()->findOrFail($id);
+        $category->update(['is_featured' => ! $category->is_featured]);
 
-        return $model->forceDelete();
+        return $category->fresh(['parent', 'bannerMedia', 'iconMedia']);
+    }
+
+    /**
+     * Toggle the menu visibility of a category.
+     *
+     * @param Category $category The model instance to toggle.
+     *
+     * @return Category
+     */
+    public function toggleShowInMenu(Category $category): Category
+    {
+        $category->update(['show_in_menu' => ! $category->show_in_menu]);
+
+        return $category->fresh(['parent', 'bannerMedia', 'iconMedia']);
     }
 
     /**
@@ -239,7 +381,7 @@ class CategoryService
     /**
      * Get active categories as value/label pairs for select inputs.
      *
-     * @return list<array{value: string, label: string}>
+     * @return list<<array{value: int, label: string}>
      */
     public function getOptions(): array
     {
@@ -259,7 +401,7 @@ class CategoryService
     /**
      * KPI card metrics for categories.
      *
-     * @return list<array{key: string, label: string, value: int}>
+     * @return list<<array{key: string, label: string, value: int}>
      */
     public function getMetrics(): array
     {
@@ -275,4 +417,107 @@ class CategoryService
             ['key' => 'in_menu', 'label' => 'In Menu', 'value' => $inMenu],
         ];
     }
+
+    /**
+     * Ensure a category is not active before deletion.
+     *
+     * @param Category $category
+     *
+     * @throws ValidationException
+     */
+    private function assertCategoryNotActive(Category $category): void
+    {
+        if (! $category->is_active) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'category' => [
+                "Cannot delete \"{$category->name}\" because it is currently active. Deactivate it first.",
+            ],
+        ]);
+    }
+
+    /**
+     * Ensure none of the given categories are active.
+     *
+     * @param list<int> $ids
+     *
+     * @throws ValidationException
+     */
+    private function assertCategoriesNotActive(array $ids): void
+    {
+        $activeCategories = Category::query()
+            ->whereIn('id', $ids)
+            ->where('is_active', true)
+            ->get();
+
+        if ($activeCategories->isEmpty()) {
+            return;
+        }
+
+        $names = $activeCategories
+            ->map(static fn (Category $category): string => "\"{$category->name}\"")
+            ->implode(', ');
+
+        throw ValidationException::withMessages([
+            'ids' => [
+                "Cannot delete active categories: {$names}. Deactivate them first.",
+            ],
+        ]);
+    }
+
+    /**
+     * Ensure a category is not linked to any products before deletion.
+     *
+     * @param Category $category
+     *
+     * @throws ValidationException
+     */
+    private function assertCategoryNotLinkedToProducts(Category $category): void
+    {
+        $count = $category->products()->count();
+
+        if ($count === 0) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'category' => [
+                "Cannot delete \"{$category->name}\" because it is linked to {$count} product(s). Unlink products first.",
+            ],
+        ]);
+    }
+
+    /**
+     * Ensure none of the given categories are linked to products.
+     *
+     * @param list<int> $ids
+     *
+     * @throws ValidationException
+     */
+    private function assertCategoriesNotLinkedToProducts(array $ids): void
+    {
+        $categories = Category::query()
+            ->whereIn('id', $ids)
+            ->withCount('products')
+            ->get();
+
+        $linked = $categories->filter(static fn (Category $category): bool => $category->products_count > 0);
+
+        if ($linked->isEmpty()) {
+            return;
+        }
+
+        $details = $linked
+            ->map(static fn (Category $category): string => "\"{$category->name}\" ({$category->products_count})")
+            ->implode(', ');
+
+        throw ValidationException::withMessages([
+            'ids' => [
+                "Cannot delete categories linked to products: {$details}. Unlink products first.",
+            ],
+        ]);
+    }
 }
+

@@ -5,22 +5,28 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Tenant\BulkDeleteBrandsRequest;
-use App\Http\Requests\Tenant\BulkUnlinkBrandsRequest;
 use App\Http\Requests\Tenant\StoreBrandRequest;
 use App\Http\Requests\Tenant\UpdateBrandRequest;
 use App\Http\Resources\Tenant\BrandResource;
 use App\Models\Tenant\Brand;
 use App\Services\Tenant\BrandService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Support\QueryFilter;
 
 /**
  * Product brands for the tenant catalog.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the BrandService layer.
  */
 class BrandController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param BrandService $service
+     */
     public function __construct(
         private readonly BrandService $service,
     ) {}
@@ -28,7 +34,9 @@ class BrandController extends Controller
     /**
      * Get paginated brand records.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -43,6 +51,8 @@ class BrandController extends Controller
 
     /**
      * List active brands as value/label pairs for select inputs.
+     *
+     * @return JsonResponse
      */
     public function options(): JsonResponse
     {
@@ -51,6 +61,8 @@ class BrandController extends Controller
 
     /**
      * KPI card metrics for brands.
+     *
+     * @return JsonResponse
      */
     public function metrics(): JsonResponse
     {
@@ -63,19 +75,26 @@ class BrandController extends Controller
     /**
      * Create a new brand.
      *
-     * @param  StoreBrandRequest  $request  Validated request payload.
+     * @param StoreBrandRequest $request Validated request payload.
+     *
+     * @return JsonResponse
      */
     public function store(StoreBrandRequest $request): JsonResponse
     {
         $item = $this->service->create($request->validated());
 
-        return $this->created(new BrandResource($item->load('logoMedia')), 'Brand created successfully.');
+        return $this->created(
+            new BrandResource($item->load('logoMedia')),
+            'Brand created successfully.',
+        );
     }
 
     /**
      * Find brand by route binding.
      *
-     * @param  Brand  $brand  Brand instance.
+     * @param Brand $brand Brand instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(Brand $brand): JsonResponse
     {
@@ -87,20 +106,27 @@ class BrandController extends Controller
     /**
      * Update brand.
      *
-     * @param  UpdateBrandRequest  $request  Validated request payload.
-     * @param  Brand  $brand  Brand instance.
+     * @param UpdateBrandRequest $request Validated request payload.
+     * @param Brand $brand Brand instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function update(UpdateBrandRequest $request, Brand $brand): JsonResponse
     {
         $item = $this->service->update($brand, $request->validated());
 
-        return $this->updated(new BrandResource($item), 'Brand updated successfully.');
+        return $this->updated(
+            new BrandResource($item),
+            'Brand updated successfully.',
+        );
     }
 
     /**
      * Delete brand.
      *
-     * @param  Brand  $brand  Brand instance.
+     * @param Brand $brand Brand instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function destroy(Brand $brand): JsonResponse
     {
@@ -111,10 +137,15 @@ class BrandController extends Controller
 
     /**
      * Delete multiple brands in one request.
+     *
+     * @param Request $request
+     *
+     * @return JsonResponse
      */
-    public function bulkDestroy(BulkDeleteBrandsRequest $request): JsonResponse
+    public function bulkDestroy(Request $request): JsonResponse
     {
-        $deleted = $this->service->deleteMany($request->validated('ids'));
+        $ids = $request->input('ids', []);
+        $deleted = $this->service->deleteMany($ids);
 
         return $this->success(
             ['deleted' => $deleted],
@@ -124,6 +155,10 @@ class BrandController extends Controller
 
     /**
      * Unlink all products from a brand.
+     *
+     * @param Brand $brand Brand instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function unlink(Brand $brand): JsonResponse
     {
@@ -137,14 +172,36 @@ class BrandController extends Controller
 
     /**
      * Unlink all products from multiple brands.
+     *
+     * @param Request $request
+     *
+     * @return JsonResponse
      */
-    public function bulkUnlink(BulkUnlinkBrandsRequest $request): JsonResponse
+    public function bulkUnlink(Request $request): JsonResponse
     {
-        $unlinked = $this->service->bulkUnlinkProducts($request->validated('ids'));
+        $ids = $request->input('ids', []);
+        $unlinked = $this->service->bulkUnlinkProducts($ids);
 
         return $this->success(
             ['unlinked' => $unlinked],
             "{$unlinked} product(s) unlinked from selected brand(s) successfully.",
+        );
+    }
+
+    /**
+     * Toggle the active status of a brand.
+     *
+     * @param Brand $brand Brand instance resolved via route model binding.
+     *
+     * @return JsonResponse
+     */
+    public function toggleActive(Brand $brand): JsonResponse
+    {
+        $item = $this->service->toggleActive($brand);
+
+        return $this->success(
+            new BrandResource($item),
+            'Brand active status toggled successfully.',
         );
     }
 }
