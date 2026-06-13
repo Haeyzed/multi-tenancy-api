@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('store_addresses', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['warehouse', 'retail', 'return', 'billing'])->default('warehouse');
+            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+            $table->string('type', 50)->default('primary');
             $table->string('name');
             $table->string('address_line_1');
             $table->string('address_line_2')->nullable();

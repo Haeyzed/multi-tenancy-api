@@ -5,92 +5,65 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\Plan;
-use App\Services\Concerns\DeletesManyRecords;
-use Illuminate\Database\Eloquent\Builder;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Central Plan records and queries.
+ * Central subscription plan records and queries.
+ *
+ * Encapsulates all business logic for plan management, including
+ * creation, updates, pagination, filtering, deletion, restoration,
+ * and KPI metrics.
  */
 class PlanService
 {
-    use DeletesManyRecords;
-
     /**
-     * Relations eager loaded for list and detail responses.
-     *
-     * @var list<string>
-     */
-    private const DETAIL_RELATIONS = [
-        'planFeatures',
-    ];
-
-    /**
-     * Get all Plan records.
-     *
-     * @param string|null $search Optional search term.
-     * @return Collection<int, Plan>
-     */
-    public function getAll(?string $search = null): Collection
-    {
-        return $this->queryWithDetails()
-            ->search($search)
-            ->orderBy('sort_order')
-            ->get();
-    }
-
-    /**
-     * Base query with plan detail relations.
-     *
-     * @return Builder<Plan>
-     */
-    private function queryWithDetails(): Builder
-    {
-        return Plan::query()->with(self::DETAIL_RELATIONS);
-    }
-
-    /**
-     * Get paginated Plan records.
+     * Get paginated plan records with eager loaded relations.
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
+     * @param mixed $isActive Active/inactive filter tokens.
+     * @param mixed $isPublic Public/private filter tokens.
+     *
      * @return LengthAwarePaginator<int, Plan>
      */
-
-    /**
-     * @param list<string> $isActive
-     * @param list<string> $isPublic
-     */
     public function getPaginated(
-        int     $perPage = 15,
+        int $perPage = 15,
         ?string $search = null,
-        array   $isActive = [],
-        array   $isPublic = [],
-    ): LengthAwarePaginator
-    {
-        return $this->queryWithDetails()
+        mixed $isActive = null,
+        mixed $isPublic = null,
+    ): LengthAwarePaginator {
+        return Plan::query()
+            ->with(['planFeatures'])
             ->search($search)
-            ->filterIsActive($isActive)
-            ->filterIsPublic($isPublic)
+            ->filterIsActive(QueryFilter::filterList($isActive))
+            ->filterIsPublic(QueryFilter::filterList($isPublic))
             ->orderBy('sort_order')
             ->paginate($perPage);
     }
 
     /**
-     * Find Plan by ID.
+     * Find plan by ID or fail with eager loaded relations.
      *
-     * @param string $id Record identifier.
+     * @param int $id Record identifier.
+     *
+     * @return Plan
      */
-    public function find(string $id): ?Plan
+    public function findOrFail(int $id): Plan
     {
-        return $this->queryWithDetails()->find($id);
+        return Plan::query()
+            ->with(['planFeatures'])
+            ->findOrFail($id);
     }
 
     /**
-     * Create a new Plan.
+     * Create a new plan.
      *
      * @param array<string, mixed> $data
+     *
+     * @return Plan
      */
     public function create(array $data): Plan
     {
@@ -98,22 +71,26 @@ class PlanService
     }
 
     /**
-     * Update Plan.
+     * Update plan.
      *
      * @param Plan $plan The model instance to update.
      * @param array<string, mixed> $data Attribute data to persist.
+     *
+     * @return Plan
      */
     public function update(Plan $plan, array $data): Plan
     {
         $plan->update($data);
 
-        return $plan->fresh();
+        return $plan->fresh(['planFeatures']);
     }
 
     /**
-     * Delete Plan.
+     * Delete a single plan.
      *
      * @param Plan $plan The model instance to delete.
+     *
+     * @return bool
      */
     public function delete(Plan $plan): bool
     {
@@ -123,63 +100,66 @@ class PlanService
     /**
      * Delete multiple plans by ID.
      *
-     * @param list<string> $ids
+     * @param list<int> $ids
+     *
+     * @return int Number of deleted records.
      */
     public function deleteMany(array $ids): int
     {
-        return $this->deleteManyByIds(Plan::class, $ids);
+        return DB::transaction(function () use ($ids): int {
+            $records = Plan::query()->whereIn('id', $ids)->get();
+            $deleted = 0;
+
+            foreach ($records as $record) {
+                if ($record->delete()) {
+                    $deleted++;
+                }
+            }
+
+            return $deleted;
+        });
     }
 
     /**
-     * Restore soft-deleted Plan.
+     * Restore a soft-deleted plan.
      *
-     * @param string $id Trashed record identifier.
+     * @param int $id Trashed record identifier.
+     *
+     * @return Plan
      */
-    public function restore(string $id): Plan
+    public function restore(int $id): Plan
     {
         $model = Plan::withTrashed()->findOrFail($id);
         $model->restore();
 
-        return $model;
+        return $model->load(['planFeatures']);
     }
 
     /**
-     * Find Plan by ID or fail.
+     * Restore multiple soft-deleted plans by ID.
      *
-     * @param string $id Record identifier.
-     */
-    public function findOrFail(string $id): Plan
-    {
-        return $this->queryWithDetails()->findOrFail($id);
-    }
-
-    /**
-     * Force delete Plan.
+     * @param list<int> $ids
      *
-     * @param string $id Trashed record identifier.
+     * @return int Number of restored records.
      */
-    public function forceDelete(string $id): bool
+    public function restoreMany(array $ids): int
     {
-        $model = Plan::withTrashed()->findOrFail($id);
+        return DB::transaction(function () use ($ids): int {
+            $records = Plan::withTrashed()->whereIn('id', $ids)->get();
+            $restored = 0;
 
-        return $model->forceDelete();
+            foreach ($records as $record) {
+                if ($record->restore()) {
+                    $restored++;
+                }
+            }
+
+            return $restored;
+        });
     }
 
     /**
-     * Get only active records.
-     *
-     * @return Collection<int, Plan>
-     */
-    public function getActive(): Collection
-    {
-        return Plan::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get();
-    }
-
-    /**
-     * Get active public plans for pricing/signup pages (includes display + enforceable features).
+     * Get active public plans for pricing and signup pages.
      *
      * @return Collection<int, Plan>
      */
@@ -197,31 +177,22 @@ class PlanService
      * Get active plans as value/label pairs for select inputs.
      *
      * @param bool $publicOnly When true, only plans marked public (self-service signup).
-     * @return list<array{value: string, label: string}>
+     *
+     * @return list<array{value: int, label: string}>
      */
     public function getOptions(bool $publicOnly = false): array
     {
         return Plan::query()
             ->where('is_active', true)
-            ->when($publicOnly, fn($query) => $query->where('is_public', true))
+            ->when($publicOnly, fn ($query) => $query->where('is_public', true))
             ->orderBy('sort_order')
             ->get()
-            ->map(fn(Plan $plan): array => [
+            ->map(fn (Plan $plan): array => [
                 'value' => $plan->id,
                 'label' => $plan->name,
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * Load plan features onto the given plan.
-     *
-     * @param Plan $plan The plan to eager load features for.
-     */
-    public function getWithFeatures(Plan $plan): Plan
-    {
-        return $plan->load('planFeatures');
     }
 
     /**

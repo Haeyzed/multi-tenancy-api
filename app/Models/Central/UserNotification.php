@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\UserNotificationChannel;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -13,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * In-app (or multi-channel) notification stored for a platform user.
  *
- * @property string $id
+ * @property int $id
  * @property int $user_id
  * @property string $type
  * @property string $title
@@ -26,8 +25,6 @@ use Illuminate\Support\Carbon;
  */
 class UserNotification extends Model
 {
-    use HasUuids;
-
     protected $table = 'notifications';
 
     /**

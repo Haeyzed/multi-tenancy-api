@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('plan_features', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('plan_id')->constrained('plans')->cascadeOnDelete();
+            $table->foreignId('plan_id')->constrained('plans')->cascadeOnDelete();
             $table->string('feature_key');
             $table->string('feature_value');
             $table->string('feature_type')->default(FeatureType::Boolean->value);

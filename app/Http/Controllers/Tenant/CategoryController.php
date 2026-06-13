@@ -44,8 +44,9 @@ class CategoryController extends Controller
         $isActive = $request->query('is_active');
         $isFeatured = $request->query('is_featured');
         $showInMenu = $request->query('show_in_menu');
+        $trashed = $request->query('trashed');
 
-        $items = $this->service->getPaginated($perPage, $search, $isActive, $isFeatured, $showInMenu);
+        $items = $this->service->getPaginated($perPage, $search, $isActive, $isFeatured, $showInMenu, $trashed);
 
         return $this->paginated($items, CategoryResource::collection($items), 'Categories retrieved successfully.');
     }

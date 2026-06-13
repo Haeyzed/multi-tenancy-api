@@ -41,7 +41,7 @@ class UpdatePaymentRequest extends BaseRequest
              *
              * @example "770e8400-e29b-41d4-a716-446655440002"
              */
-            'invoice_id' => 'nullable|uuid|exists:invoices,id',
+            'invoice_id' => 'nullable|integer|exists:invoices,id',
 
             /**
              * Payment amount in the smallest currency unit; optional on update.

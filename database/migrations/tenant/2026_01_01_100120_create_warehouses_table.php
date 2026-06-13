@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('store_id')->nullable()->constrained('stores')->nullOnDelete();
             $table->string('name');
             $table->string('code')->unique();
             $table->enum('type', ['main', 'retail', 'return', 'dropship', 'fulfillment'])->default('main');
             $table->json('address')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('timezone')->default('UTC');
             $table->foreignId('manager_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

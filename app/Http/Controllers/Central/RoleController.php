@@ -19,32 +19,43 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Spatie role definitions.
+ * Spatie role definitions for platform administrators.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the RoleService layer.
  */
 class RoleController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param RoleService $service
+     */
     public function __construct(
         private readonly RoleService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated Role records.
+     * Get paginated role records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $items = $this->service->getPaginated($perPage, is_string($search) ? $search : null);
+
+        $items = $this->service->getPaginated($perPage, $search);
 
         return $this->paginated($items, RoleResource::collection($items), 'Roles retrieved successfully.');
     }
 
     /**
      * KPI card metrics for roles.
+     *
+     * @return JsonResponse
      */
     public function metrics(): JsonResponse
     {
@@ -56,6 +67,10 @@ class RoleController extends Controller
 
     /**
      * Role-permission matrix for the admin UI.
+     *
+     * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function permissionsMatrix(Request $request): JsonResponse
     {
@@ -69,6 +84,10 @@ class RoleController extends Controller
 
     /**
      * Bulk sync role permissions from the matrix UI.
+     *
+     * @param SyncRolePermissionsMatrixRequest $request Validated request payload.
+     *
+     * @return JsonResponse
      */
     public function syncPermissionsMatrix(SyncRolePermissionsMatrixRequest $request): JsonResponse
     {
@@ -81,9 +100,11 @@ class RoleController extends Controller
     }
 
     /**
-     * Create a new Role.
+     * Create a new role.
      *
      * @param StoreRoleRequest $request Validated request payload.
+     *
+     * @return JsonResponse
      */
     public function store(StoreRoleRequest $request): JsonResponse
     {
@@ -93,9 +114,11 @@ class RoleController extends Controller
     }
 
     /**
-     * Find Role by route binding.
+     * Find role by route binding.
      *
-     * @param Role $role Role instance.
+     * @param Role $role Role instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(Role $role): JsonResponse
     {
@@ -105,10 +128,12 @@ class RoleController extends Controller
     }
 
     /**
-     * Update Role.
+     * Update role.
      *
      * @param UpdateRoleRequest $request Validated request payload.
-     * @param Role $role Role instance.
+     * @param Role $role Role instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
@@ -118,9 +143,11 @@ class RoleController extends Controller
     }
 
     /**
-     * Delete Role.
+     * Delete role.
      *
-     * @param Role $role Role instance.
+     * @param Role $role Role instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function destroy(Role $role): JsonResponse
     {
@@ -131,6 +158,10 @@ class RoleController extends Controller
 
     /**
      * Delete multiple roles in one request.
+     *
+     * @param BulkDeleteRolesRequest $request
+     *
+     * @return JsonResponse
      */
     public function bulkDestroy(BulkDeleteRolesRequest $request): JsonResponse
     {
@@ -144,6 +175,11 @@ class RoleController extends Controller
 
     /**
      * Replace all permissions assigned to the role.
+     *
+     * @param SyncRolePermissionsRequest $request Validated request payload.
+     * @param Role $role Role instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function syncPermissions(SyncRolePermissionsRequest $request, Role $role): JsonResponse
     {
@@ -157,6 +193,11 @@ class RoleController extends Controller
 
     /**
      * Attach permissions to the role without removing existing ones.
+     *
+     * @param AttachRolePermissionsRequest $request Validated request payload.
+     * @param Role $role Role instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function attachPermissions(AttachRolePermissionsRequest $request, Role $role): JsonResponse
     {
@@ -170,6 +211,11 @@ class RoleController extends Controller
 
     /**
      * Remove a permission from the role.
+     *
+     * @param Role $role Role instance resolved via route model binding.
+     * @param Permission $permission Permission instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function detachPermission(Role $role, Permission $permission): JsonResponse
     {

@@ -10,7 +10,7 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
- * Platform permission scoped to a functional module.
+ * Platform permission stored in the central database.
  *
  * @property int $id
  * @property string $name
@@ -36,15 +36,31 @@ class Permission extends SpatiePermission
 
     /**
      * Scope a query to search by name, guard, or module.
+     *
+     * @param Builder<Permission> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('guard_name', 'like', "%{$search}%")
                     ->orWhere('module', 'like', "%{$search}%");
             });
         });
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

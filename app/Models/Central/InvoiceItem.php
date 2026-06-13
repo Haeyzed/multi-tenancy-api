@@ -13,12 +13,12 @@ use Illuminate\Support\Carbon;
  * Line item row on a billing invoice.
  *
  * @property int $id
- * @property string $invoice_id
+ * @property int $invoice_id
  * @property string $description
  * @property int $quantity
  * @property int $unit_amount
  * @property int $amount
- * @property string|null $plan_id
+ * @property int|null $plan_id
  * @property Carbon|null $period_start
  * @property Carbon|null $period_end
  */

@@ -48,6 +48,14 @@ return new class extends Migration
             $table->index(['user_id', 'placed_at']);
             $table->index(['order_number']);
         });
+
+        Schema::table('carts', function (Blueprint $table) {
+            $table->foreign('converted_to_order_id')->references('id')->on('orders')->nullOnDelete();
+        });
+
+        Schema::table('product_reviews', function (Blueprint $table) {
+            $table->foreign('order_id')->references('id')->on('orders')->nullOnDelete();
+        });
     }
 
     /**
@@ -55,6 +63,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('product_reviews', function (Blueprint $table) {
+            $table->dropForeign(['order_id']);
+        });
+
+        Schema::table('carts', function (Blueprint $table) {
+            $table->dropForeign(['converted_to_order_id']);
+        });
+
         Schema::dropIfExists('orders');
     }
 };

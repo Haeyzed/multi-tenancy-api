@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property string $tenant_id
- * @property string|null $subscription_id
+ * @property int|null $subscription_id
  * @property UsageMetric $metric
  * @property string $quantity
  * @property Carbon $recorded_at

@@ -15,9 +15,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('subscriptions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
-            $table->foreignUuid('plan_id')->constrained('plans');
+            $table->foreignId('plan_id')->constrained('plans');
             $table->string('status')->default(SubscriptionStatus::Trialing->value);
             $table->string('billing_cycle')->default(BillingCycle::Monthly->value);
             $table->timestamp('current_period_start');
@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('payment_provider')->default(PaymentProvider::Stripe->value);
             $table->string('payment_provider_id')->nullable();
             $table->string('payment_method_id')->nullable();
-            $table->uuid('latest_invoice_id')->nullable();
+            $table->foreignId('latest_invoice_id')->nullable();
             $table->timestamps();
         });
     }

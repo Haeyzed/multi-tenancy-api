@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('folder_id')->nullable()->constrained('media_library_folders')->nullOnDelete();
             $table->morphs('model');
             $table->uuid('uuid')->nullable()->unique();
             $table->string('collection_name');
             $table->string('name');
+            $table->string('title')->nullable();
+            $table->string('alt_text')->nullable();
+            $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('file_name');
             $table->string('mime_type')->nullable();
             $table->string('disk');
@@ -29,6 +33,15 @@ return new class extends Migration
             $table->unsignedInteger('order_column')->nullable()->index();
             $table->nullableTimestamps();
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('avatar_media_id')->references('id')->on('media')->nullOnDelete();
+        });
+
+        Schema::table('stores', function (Blueprint $table) {
+            $table->foreign('logo_media_id')->references('id')->on('media')->nullOnDelete();
+            $table->foreign('favicon_media_id')->references('id')->on('media')->nullOnDelete();
+        });
     }
 
     /**
@@ -36,6 +49,15 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('stores', function (Blueprint $table) {
+            $table->dropForeign(['logo_media_id']);
+            $table->dropForeign(['favicon_media_id']);
+        });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['avatar_media_id']);
+        });
+
         Schema::dropIfExists('media');
     }
 };

@@ -41,7 +41,7 @@ class StoreUsageRecordRequest extends BaseRequest
              *
              * @example "660e8400-e29b-41d4-a716-446655440001"
              */
-            'subscription_id' => 'nullable|uuid|exists:subscriptions,id',
+            'subscription_id' => 'nullable|integer|exists:subscriptions,id',
 
             /**
              * Usage metric being tracked against plan limits.

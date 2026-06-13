@@ -6,7 +6,6 @@ namespace App\Models\Central;
 
 use Database\Factories\Central\PlanFactory;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Subscription plan available on the platform.
  *
- * @property string $id
+ * @property int $id
  * @property string $name
  * @property string $slug
  * @property string|null $description
@@ -34,7 +33,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Plan extends Model
 {
     /** @use HasFactory<PlanFactory> */
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     /**
      * @var list<string>
@@ -61,11 +60,14 @@ class Plan extends Model
 
     /**
      * Scope a query to search by name, slug, or description.
+     *
+     * @param Builder<Plan> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
@@ -76,6 +78,7 @@ class Plan extends Model
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<Plan> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
@@ -95,12 +98,13 @@ class Plan extends Model
             static fn (?bool $value): bool => $value !== null,
         )));
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
     }
 
     /**
      * Filter by public/private visibility tokens (public, private).
      *
+     * @param Builder<Plan> $query
      * @param list<string> $values
      */
     public function scopeFilterIsPublic(Builder $query, array $values): void
@@ -120,11 +124,13 @@ class Plan extends Model
             static fn (?bool $value): bool => $value !== null,
         )));
 
-        $query->when($mapped !== [], fn(Builder $q) => $q->whereIn('is_public', $mapped));
+        $query->when($mapped !== [], fn (Builder $q): Builder => $q->whereIn('is_public', $mapped));
     }
 
     /**
      * Tenants currently assigned to this plan.
+     *
+     * @return HasMany<Tenant, $this>
      */
     public function tenants(): HasMany
     {
@@ -133,6 +139,8 @@ class Plan extends Model
 
     /**
      * Enforceable feature limits and flags for this plan (used by middleware and quotas).
+     *
+     * @return HasMany<PlanFeature, $this>
      */
     public function planFeatures(): HasMany
     {
@@ -141,6 +149,8 @@ class Plan extends Model
 
     /**
      * Active and historical subscriptions on this plan.
+     *
+     * @return HasMany<Subscription, $this>
      */
     public function subscriptions(): HasMany
     {
@@ -149,6 +159,8 @@ class Plan extends Model
 
     /**
      * Line items billed under this plan.
+     *
+     * @return HasMany<SubscriptionItem, $this>
      */
     public function subscriptionItems(): HasMany
     {
@@ -157,6 +169,8 @@ class Plan extends Model
 
     /**
      * Invoice line items referencing this plan.
+     *
+     * @return HasMany<InvoiceItem, $this>
      */
     public function invoiceItems(): HasMany
     {
@@ -165,6 +179,8 @@ class Plan extends Model
 
     /**
      * Subscription lifecycle events where this plan was the previous plan.
+     *
+     * @return HasMany<SubscriptionEvent, $this>
      */
     public function subscriptionEventsFromPlan(): HasMany
     {
@@ -173,6 +189,8 @@ class Plan extends Model
 
     /**
      * Subscription lifecycle events where this plan was the new plan.
+     *
+     * @return HasMany<SubscriptionEvent, $this>
      */
     public function subscriptionEventsToPlan(): HasMany
     {

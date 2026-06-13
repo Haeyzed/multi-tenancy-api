@@ -15,32 +15,43 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Spatie permission definitions.
+ * Spatie permission definitions for platform administrators.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the PermissionService layer.
  */
 class PermissionController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param PermissionService $service
+     */
     public function __construct(
         private readonly PermissionService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated Permission records.
+     * Get paginated permission records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $items = $this->service->getPaginated($perPage, is_string($search) ? $search : null);
+
+        $items = $this->service->getPaginated($perPage, $search);
 
         return $this->paginated($items, PermissionResource::collection($items), 'Permissions retrieved successfully.');
     }
 
     /**
      * KPI card metrics for permissions.
+     *
+     * @return JsonResponse
      */
     public function metrics(): JsonResponse
     {
@@ -51,9 +62,11 @@ class PermissionController extends Controller
     }
 
     /**
-     * Create a new Permission.
+     * Create a new permission.
      *
      * @param StorePermissionRequest $request Validated request payload.
+     *
+     * @return JsonResponse
      */
     public function store(StorePermissionRequest $request): JsonResponse
     {
@@ -63,9 +76,11 @@ class PermissionController extends Controller
     }
 
     /**
-     * Find Permission by route binding.
+     * Find permission by route binding.
      *
-     * @param Permission $permission Permission instance.
+     * @param Permission $permission Permission instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(Permission $permission): JsonResponse
     {
@@ -75,10 +90,12 @@ class PermissionController extends Controller
     }
 
     /**
-     * Update Permission.
+     * Update permission.
      *
      * @param UpdatePermissionRequest $request Validated request payload.
-     * @param Permission $permission Permission instance.
+     * @param Permission $permission Permission instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function update(UpdatePermissionRequest $request, Permission $permission): JsonResponse
     {
@@ -88,9 +105,11 @@ class PermissionController extends Controller
     }
 
     /**
-     * Delete Permission.
+     * Delete permission.
      *
-     * @param Permission $permission Permission instance.
+     * @param Permission $permission Permission instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function destroy(Permission $permission): JsonResponse
     {
@@ -101,6 +120,10 @@ class PermissionController extends Controller
 
     /**
      * Delete multiple permissions in one request.
+     *
+     * @param BulkDeletePermissionsRequest $request
+     *
+     * @return JsonResponse
      */
     public function bulkDestroy(BulkDeletePermissionsRequest $request): JsonResponse
     {

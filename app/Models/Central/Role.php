@@ -10,7 +10,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
- * Platform administrator role for Spatie permission checks.
+ * Platform administrator role stored in the central database.
  *
  * @property int $id
  * @property string $name
@@ -34,14 +34,30 @@ class Role extends SpatieRole
 
     /**
      * Scope a query to search by name or guard.
+     *
+     * @param Builder<Role> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('guard_name', 'like', "%{$search}%");
             });
         });
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

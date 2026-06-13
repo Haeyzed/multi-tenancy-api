@@ -7,7 +7,6 @@ namespace App\Models\Central;
 use App\Enums\Central\InvoiceStatus;
 use App\Models\Concerns\FilterableByTenant;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,11 +15,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
- * Billing invoice issued to a tenant.
+ * Tenant billing invoice stored in the central database.
  *
- * @property string $id
+ * @property int $id
  * @property string $tenant_id
- * @property string|null $subscription_id
+ * @property int|null $subscription_id
  * @property string $invoice_number
  * @property InvoiceStatus $status
  * @property int $amount_due
@@ -35,13 +34,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $payment_intent_id
  * @property array<string, mixed>|null $line_items
  * @property string|null $notes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  *
  * @method static Builder|Invoice forTenant(?string $tenantId = null)
  * @method static Builder|Invoice search(?string $search)
+ * @method static Builder|Invoice filterStatus(array $statuses)
  */
 class Invoice extends Model
 {
-    use FilterableByTenant, HasFactory, HasUuids;
+    use FilterableByTenant;
+    use HasFactory;
 
     /**
      * @var list<string>
@@ -66,16 +69,19 @@ class Invoice extends Model
     ];
 
     /**
-     * Scope a query to search by invoice number, notes, or payment intent ID.
+     * Scope a query to search by invoice number, notes, tenant, or payment intent ID.
+     *
+     * @param Builder<Invoice> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('invoice_number', 'like', "%{$search}%")
                     ->orWhere('notes', 'like', "%{$search}%")
                     ->orWhere('payment_intent_id', 'like', "%{$search}%")
-                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                    ->orWhereHas('tenant', function (Builder $q) use ($search): void {
                         $q->where('name', 'like', "%{$search}%")
                             ->orWhere('slug', 'like', "%{$search}%");
                     });
@@ -86,15 +92,18 @@ class Invoice extends Model
     /**
      * Filter by invoice status values.
      *
+     * @param Builder<Invoice> $query
      * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn (Builder $q): Builder => $q->whereIn('status', $statuses));
     }
 
     /**
      * Tenant billed by this invoice.
+     *
+     * @return BelongsTo<Tenant, $this>
      */
     public function tenant(): BelongsTo
     {
@@ -103,6 +112,8 @@ class Invoice extends Model
 
     /**
      * Subscription that generated this invoice.
+     *
+     * @return BelongsTo<Subscription, $this>
      */
     public function subscription(): BelongsTo
     {
@@ -111,6 +122,8 @@ class Invoice extends Model
 
     /**
      * Structured line items attached to this invoice.
+     *
+     * @return HasMany<InvoiceItem, $this>
      */
     public function invoiceItems(): HasMany
     {
@@ -119,6 +132,8 @@ class Invoice extends Model
 
     /**
      * Payments applied to this invoice.
+     *
+     * @return HasMany<Payment, $this>
      */
     public function payments(): HasMany
     {
@@ -127,6 +142,8 @@ class Invoice extends Model
 
     /**
      * Subscription that references this invoice as its latest invoice.
+     *
+     * @return HasOne<Subscription, $this>
      */
     public function subscriptionAsLatestInvoice(): HasOne
     {
@@ -147,6 +164,8 @@ class Invoice extends Model
             'billing_period_end' => 'datetime',
             'due_date' => 'datetime',
             'paid_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 }

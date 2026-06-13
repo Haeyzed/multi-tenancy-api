@@ -30,6 +30,7 @@ use Spatie\Sluggable\SlugOptions;
  *
  * @method static Builder|Brand search(?string $search)
  * @method static Builder|Brand filterIsActive(array $statuses)
+ * @method static Builder|Brand filterTrashed(array $tokens)
  */
 class Brand extends TenantModel
 {
@@ -125,6 +126,29 @@ class Brand extends TenantModel
         )));
 
         $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Filter by soft-delete visibility tokens (only, with).
+     *
+     * @param Builder<Brand> $query
+     * @param list<string> $tokens
+     */
+    public function scopeFilterTrashed(Builder $query, array $tokens): void
+    {
+        if ($tokens === []) {
+            return;
+        }
+
+        if (in_array('only', $tokens, true)) {
+            $query->onlyTrashed();
+
+            return;
+        }
+
+        if (in_array('with', $tokens, true)) {
+            $query->withTrashed();
+        }
     }
 
     /**

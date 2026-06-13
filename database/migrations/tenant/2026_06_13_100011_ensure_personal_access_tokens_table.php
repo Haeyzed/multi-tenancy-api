@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Repair tenants where personal_access_tokens was skipped by the old guarded migration.
+     */
     public function up(): void
     {
         if (Schema::hasTable('personal_access_tokens')) {
@@ -26,6 +29,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('personal_access_tokens');
+        // Leave table in place; created by create_users_table on fresh installs.
     }
 };

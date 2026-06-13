@@ -14,10 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Audit event describing a change in subscription state.
  *
  * @property int $id
- * @property string $subscription_id
+ * @property int $subscription_id
  * @property SubscriptionEventType $event_type
- * @property string|null $from_plan_id
- * @property string|null $to_plan_id
+ * @property int|null $from_plan_id
+ * @property int|null $to_plan_id
  * @property EventTriggeredBy $triggered_by
  * @property array<string, mixed>|null $metadata
  */

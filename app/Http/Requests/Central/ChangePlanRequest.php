@@ -21,13 +21,13 @@ class ChangePlanRequest extends BaseRequest
     {
         return [
             /**
-             * Target plan UUID.
+             * Target plan identifier.
              *
-             * @var string $plan_id
+             * @var int $plan_id
              *
-             * @example "550e8400-e29b-41d4-a716-446655440000"
+             * @example 1
              */
-            'plan_id' => 'required|uuid|exists:plans,id',
+            'plan_id' => 'required|integer|exists:plans,id',
         ];
     }
 }

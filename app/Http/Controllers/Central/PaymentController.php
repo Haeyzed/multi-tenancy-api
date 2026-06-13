@@ -5,37 +5,45 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeletePaymentsRequest;
 use App\Http\Requests\Central\RefundPaymentRequest;
 use App\Http\Requests\Central\StorePaymentRequest;
 use App\Http\Requests\Central\UpdatePaymentRequest;
 use App\Http\Resources\Central\PaymentResource;
 use App\Models\Central\Payment;
 use App\Services\Central\PaymentService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Tenant payment transactions.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the PaymentService layer.
  */
 class PaymentController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param PaymentService $service
+     */
     public function __construct(
         private readonly PaymentService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated Payment records.
+     * Get paginated payment records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $status = QueryFilter::parseList($request->query('status'));
+        $status = $request->query('status');
 
         $items = $this->service->getPaginated($perPage, $search, $status);
 
@@ -66,13 +74,15 @@ class PaymentController extends Controller
     }
 
     /**
-     * Find Payment by route binding.
+     * Find payment by route binding.
      *
-     * @param Payment $payment Payment instance.
+     * @param Payment $payment Payment instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
-    public function show(string $payment): JsonResponse
+    public function show(Payment $payment): JsonResponse
     {
-        $item = $this->service->findOrFail($payment);
+        $item = $this->service->findOrFail($payment->id);
 
         return $this->success(new PaymentResource($item), 'Payment retrieved successfully.');
     }
@@ -100,6 +110,23 @@ class PaymentController extends Controller
         $this->service->delete($payment);
 
         return $this->deleted('Payment deleted successfully.');
+    }
+
+    /**
+     * Delete multiple payments in one request.
+     *
+     * @param BulkDeletePaymentsRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function bulkDestroy(BulkDeletePaymentsRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} payment(s) deleted successfully.",
+        );
     }
 
     /**

@@ -14,10 +14,10 @@ return new class extends Migration
     {
         Schema::create('subscription_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('subscription_id')->constrained('subscriptions')->cascadeOnDelete();
+            $table->foreignId('subscription_id')->constrained('subscriptions')->cascadeOnDelete();
             $table->string('event_type');
-            $table->foreignUuid('from_plan_id')->nullable()->constrained('plans')->nullOnDelete();
-            $table->foreignUuid('to_plan_id')->nullable()->constrained('plans')->nullOnDelete();
+            $table->foreignId('from_plan_id')->nullable()->constrained('plans')->nullOnDelete();
+            $table->foreignId('to_plan_id')->nullable()->constrained('plans')->nullOnDelete();
             $table->string('triggered_by')->default(EventTriggeredBy::System->value);
             $table->json('metadata')->nullable();
             $table->timestamps();

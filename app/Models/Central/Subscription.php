@@ -9,7 +9,6 @@ use App\Enums\Central\PaymentProvider;
 use App\Enums\Central\SubscriptionStatus;
 use App\Models\Concerns\FilterableByTenant;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,11 +16,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Tenant subscription to a billing plan.
+ * Tenant subscription stored in the central database.
  *
- * @property string $id
+ * @property int $id
  * @property string $tenant_id
- * @property string $plan_id
+ * @property int $plan_id
  * @property SubscriptionStatus $status
  * @property BillingCycle $billing_cycle
  * @property Carbon $current_period_start
@@ -32,14 +31,18 @@ use Illuminate\Support\Carbon;
  * @property PaymentProvider $payment_provider
  * @property string|null $payment_provider_id
  * @property string|null $payment_method_id
- * @property string|null $latest_invoice_id
+ * @property int|null $latest_invoice_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  *
  * @method static Builder|Subscription forTenant(?string $tenantId = null)
  * @method static Builder|Subscription search(?string $search)
+ * @method static Builder|Subscription filterStatus(array $statuses)
  */
 class Subscription extends Model
 {
-    use FilterableByTenant, HasFactory, HasUuids;
+    use FilterableByTenant;
+    use HasFactory;
 
     /**
      * @var list<string>
@@ -61,21 +64,24 @@ class Subscription extends Model
     ];
 
     /**
-     * Scope a query to search by cancellation reason or payment provider ID.
+     * Scope a query to search by tenant, plan, status, or provider reference.
+     *
+     * @param Builder<Subscription> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('cancellation_reason', 'like', "%{$search}%")
                     ->orWhere('payment_provider_id', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereHas('tenant', function (Builder $q) use ($search) {
+                    ->orWhereHas('tenant', function (Builder $q) use ($search): void {
                         $q->where('name', 'like', "%{$search}%")
                             ->orWhere('slug', 'like', "%{$search}%")
                             ->orWhere('domain', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('plan', function (Builder $q) use ($search) {
+                    ->orWhereHas('plan', function (Builder $q) use ($search): void {
                         $q->where('name', 'like', "%{$search}%")
                             ->orWhere('slug', 'like', "%{$search}%");
                     });
@@ -86,15 +92,18 @@ class Subscription extends Model
     /**
      * Filter by subscription status values.
      *
+     * @param Builder<Subscription> $query
      * @param list<string> $statuses
      */
     public function scopeFilterStatus(Builder $query, array $statuses): void
     {
-        $query->when($statuses !== [], fn(Builder $q) => $q->whereIn('status', $statuses));
+        $query->when($statuses !== [], fn (Builder $q): Builder => $q->whereIn('status', $statuses));
     }
 
     /**
      * Tenant that owns this subscription.
+     *
+     * @return BelongsTo<Tenant, $this>
      */
     public function tenant(): BelongsTo
     {
@@ -103,6 +112,8 @@ class Subscription extends Model
 
     /**
      * Plan billed by this subscription.
+     *
+     * @return BelongsTo<Plan, $this>
      */
     public function plan(): BelongsTo
     {
@@ -111,6 +122,8 @@ class Subscription extends Model
 
     /**
      * Most recent invoice generated for this subscription.
+     *
+     * @return BelongsTo<Invoice, $this>
      */
     public function latestInvoice(): BelongsTo
     {
@@ -119,6 +132,8 @@ class Subscription extends Model
 
     /**
      * All invoices linked to this subscription.
+     *
+     * @return HasMany<Invoice, $this>
      */
     public function invoices(): HasMany
     {
@@ -127,6 +142,8 @@ class Subscription extends Model
 
     /**
      * Billable line items on this subscription.
+     *
+     * @return HasMany<SubscriptionItem, $this>
      */
     public function subscriptionItems(): HasMany
     {
@@ -135,6 +152,8 @@ class Subscription extends Model
 
     /**
      * Usage records recorded against this subscription.
+     *
+     * @return HasMany<UsageRecord, $this>
      */
     public function usageRecords(): HasMany
     {
@@ -143,6 +162,8 @@ class Subscription extends Model
 
     /**
      * Lifecycle events recorded for this subscription.
+     *
+     * @return HasMany<SubscriptionEvent, $this>
      */
     public function lifecycleEvents(): HasMany
     {
@@ -164,6 +185,8 @@ class Subscription extends Model
             'current_period_end' => 'datetime',
             'trial_ends_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 }

@@ -28,6 +28,7 @@ class BrandService
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
      * @param mixed $isActive Active/inactive filter tokens.
+     * @param mixed $trashed Soft-delete filter tokens (only, with).
      *
      * @return LengthAwarePaginator<int, Brand>
      */
@@ -35,12 +36,14 @@ class BrandService
         int $perPage = 15,
         ?string $search = null,
         mixed $isActive = null,
+        mixed $trashed = null,
     ): LengthAwarePaginator {
         return Brand::query()
             ->with(['logoMedia'])
             ->withCount('products')
             ->search($search)
             ->filterIsActive(QueryFilter::filterList($isActive))
+            ->filterTrashed(QueryFilter::filterList($trashed))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate($perPage);

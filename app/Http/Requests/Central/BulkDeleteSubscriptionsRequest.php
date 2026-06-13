@@ -11,6 +11,6 @@ class BulkDeleteSubscriptionsRequest extends BulkDeleteRequest
 {
     protected function idRule(): string
     {
-        return 'uuid|exists:subscriptions,id';
+        return 'integer|exists:subscriptions,id';
     }
 }

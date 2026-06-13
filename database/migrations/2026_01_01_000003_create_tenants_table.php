@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('database');
             $table->string('domain');
             $table->string('status')->default(TenantStatus::Pending->value);
-            $table->foreignUuid('plan_id')->nullable()->constrained('plans')->nullOnDelete();
+            $table->foreignId('plan_id')->nullable()->constrained('plans')->nullOnDelete();
             $table->string('billing_cycle')->default(BillingCycle::Monthly->value);
             $table->timestamp('trial_ends_at')->nullable();
             $table->timestamp('subscribed_at')->nullable();

@@ -32,7 +32,7 @@ class StoreInvoiceItemRequest extends BaseRequest
              *
              * @example "770e8400-e29b-41d4-a716-446655440002"
              */
-            'invoice_id' => 'required|uuid|exists:invoices,id',
+            'invoice_id' => 'required|integer|exists:invoices,id',
 
             /**
              * Description of the billed item or service.
@@ -77,7 +77,7 @@ class StoreInvoiceItemRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'nullable|uuid|exists:plans,id',
+            'plan_id' => 'nullable|integer|exists:plans,id',
 
             /**
              * Start of the service period for this line item; nullable.

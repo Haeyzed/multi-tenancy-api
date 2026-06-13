@@ -5,36 +5,44 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\BulkDeleteInvoicesRequest;
 use App\Http\Requests\Central\StoreInvoiceRequest;
 use App\Http\Requests\Central\UpdateInvoiceRequest;
 use App\Http\Resources\Central\InvoiceResource;
 use App\Models\Central\Invoice;
 use App\Services\Central\InvoiceService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Tenant billing invoices.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the InvoiceService layer.
  */
 class InvoiceController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param InvoiceService $service
+     */
     public function __construct(
         private readonly InvoiceService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated Invoice records.
+     * Get paginated invoice records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $status = QueryFilter::parseList($request->query('status'));
+        $status = $request->query('status');
 
         $items = $this->service->getPaginated($perPage, $search, $status);
 
@@ -65,13 +73,15 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Find Invoice by route binding.
+     * Find invoice by route binding.
      *
-     * @param Invoice $invoice Invoice instance.
+     * @param Invoice $invoice Invoice instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
-    public function show(string $invoice): JsonResponse
+    public function show(Invoice $invoice): JsonResponse
     {
-        $item = $this->service->findOrFail($invoice);
+        $item = $this->service->findOrFail($invoice->id);
 
         return $this->success(new InvoiceResource($item), 'Invoice retrieved successfully.');
     }
@@ -99,6 +109,23 @@ class InvoiceController extends Controller
         $this->service->delete($invoice);
 
         return $this->deleted('Invoice deleted successfully.');
+    }
+
+    /**
+     * Delete multiple invoices in one request.
+     *
+     * @param BulkDeleteInvoicesRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function bulkDestroy(BulkDeleteInvoicesRequest $request): JsonResponse
+    {
+        $deleted = $this->service->deleteMany($request->validated('ids'));
+
+        return $this->success(
+            ['deleted' => $deleted],
+            "{$deleted} invoice(s) deleted successfully.",
+        );
     }
 
     /**

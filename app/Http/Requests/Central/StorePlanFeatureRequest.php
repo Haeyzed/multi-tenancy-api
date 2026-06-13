@@ -32,7 +32,7 @@ class StorePlanFeatureRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'required|uuid|exists:plans,id',
+            'plan_id' => 'required|integer|exists:plans,id',
 
             /**
              * Machine-readable key identifying the feature.

@@ -32,7 +32,7 @@ class UpdateSubscriptionItemRequest extends BaseRequest
              *
              * @example "660e8400-e29b-41d4-a716-446655440001"
              */
-            'subscription_id' => 'sometimes|uuid|exists:subscriptions,id',
+            'subscription_id' => 'sometimes|integer|exists:subscriptions,id',
 
             /**
              * UUID of the plan billed by this line item; optional on update.
@@ -41,7 +41,7 @@ class UpdateSubscriptionItemRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'sometimes|uuid|exists:plans,id',
+            'plan_id' => 'sometimes|integer|exists:plans,id',
 
             /**
              * Number of units subscribed; optional on update.

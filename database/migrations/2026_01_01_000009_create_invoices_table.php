@@ -13,9 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoices', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
-            $table->foreignUuid('subscription_id')->nullable()->constrained('subscriptions')->nullOnDelete();
+            $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->nullOnDelete();
             $table->string('invoice_number')->unique();
             $table->string('status')->default(InvoiceStatus::Draft->value);
             $table->integer('amount_due'); // in cents
@@ -32,6 +32,10 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
         });
+
+        Schema::table('subscriptions', function (Blueprint $table) {
+            $table->foreign('latest_invoice_id')->references('id')->on('invoices')->nullOnDelete();
+        });
     }
 
     /**
@@ -39,6 +43,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('subscriptions', function (Blueprint $table) {
+            $table->dropForeign(['latest_invoice_id']);
+        });
+
         Schema::dropIfExists('invoices');
     }
 };

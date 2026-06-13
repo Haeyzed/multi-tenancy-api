@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
+use App\Models\Tenant\Category;
+use Illuminate\Validation\Rule;
+
 /**
  * Validates incoming data for updating a product category.
  *
@@ -38,13 +41,23 @@ class UpdateCategoryRequest extends BaseRequest
      */
     public function rules(): array
     {
-        /** @var int $categoryId */
-        $categoryId = $this->route('category');
+        /** @var Category|null $category */
+        $category = $this->route('category');
 
         return [
-            'parent_id' => 'nullable|integer|exists:categories,id|not_in:' . $categoryId,
+            'parent_id' => [
+                'nullable',
+                'integer',
+                'exists:categories,id',
+                Rule::notIn(array_filter([$category?->id])),
+            ],
             'name' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|unique:categories,slug,' . $categoryId . '|max:255',
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'slug')->ignore($category?->id),
+            ],
             'description' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',

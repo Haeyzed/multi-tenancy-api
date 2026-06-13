@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('location_inventory', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('location_id')->constrained('store_locations')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->foreignId('variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->integer('quantity')->default(0);
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('reorder_point')->default(10);
             $table->integer('reorder_qty')->default(50);
             $table->timestamps();
-            $table->unique(['location_id', 'product_id', 'variant_id']);
+            $table->unique(['store_id', 'product_id', 'variant_id']);
         });
     }
 

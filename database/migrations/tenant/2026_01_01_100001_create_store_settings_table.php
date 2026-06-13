@@ -13,12 +13,7 @@ return new class extends Migration
     {
         Schema::create('store_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('store_name');
-            $table->string('store_slug')->unique();
-            $table->string('tagline')->nullable();
-            $table->text('description')->nullable();
-            $table->foreignId('logo_media_id')->nullable();
-            $table->foreignId('favicon_media_id')->nullable();
+            $table->foreignId('store_id')->unique()->constrained('stores')->cascadeOnDelete();
             $table->string('primary_color')->default('#3B82F6');
             $table->string('secondary_color')->default('#10B981');
             $table->string('currency')->default('USD');
@@ -37,6 +32,12 @@ return new class extends Migration
             $table->text('custom_scripts')->nullable();
             $table->boolean('maintenance_mode')->default(false);
             $table->text('maintenance_message')->nullable();
+            $table->boolean('catalog_visible')->default(true);
+            $table->boolean('checkout_enabled')->default(true);
+            $table->boolean('guest_checkout_allowed')->default(true);
+            $table->boolean('shipping_enabled')->default(true);
+            $table->boolean('cod_enabled')->default(true);
+            $table->boolean('card_payment_enabled')->default(false);
             $table->timestamps();
         });
     }

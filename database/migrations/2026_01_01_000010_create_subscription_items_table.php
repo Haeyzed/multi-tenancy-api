@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('subscription_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('subscription_id')->constrained('subscriptions')->cascadeOnDelete();
-            $table->foreignUuid('plan_id')->constrained('plans');
+            $table->foreignId('subscription_id')->constrained('subscriptions')->cascadeOnDelete();
+            $table->foreignId('plan_id')->constrained('plans');
             $table->integer('quantity')->default(1);
             $table->integer('unit_price'); // in cents
             $table->integer('total_price'); // in cents

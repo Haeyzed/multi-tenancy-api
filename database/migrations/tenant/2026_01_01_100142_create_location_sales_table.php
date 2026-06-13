@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('location_sales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('location_id')->constrained('store_locations')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
             $table->date('date');
             $table->decimal('total_sales', 12, 2)->default(0);
             $table->integer('order_count')->default(0);
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('card_sales', 12, 2)->default(0);
             $table->decimal('other_sales', 12, 2)->default(0);
             $table->timestamps();
-            $table->unique(['location_id', 'date']);
+            $table->unique(['store_id', 'date']);
         });
     }
 

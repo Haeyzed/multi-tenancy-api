@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('code')->nullable()->unique();
+            $table->enum('type', ['online', 'retail', 'popup', 'franchise', 'kiosk', 'hybrid'])
+                ->default('online');
             $table->string('tagline')->nullable();
             $table->text('description')->nullable();
             $table->string('email')->nullable();
@@ -23,6 +25,11 @@ return new class extends Migration
             $table->string('whatsapp')->nullable();
             $table->string('website_url')->nullable();
             $table->json('address')->nullable();
+            $table->string('timezone')->default('UTC');
+            $table->string('currency', 3)->default('USD');
+            $table->decimal('tax_rate', 5, 2)->default(0);
+            $table->json('opening_hours')->nullable();
+            $table->foreignId('manager_id')->nullable();
             $table->foreignId('logo_media_id')->nullable();
             $table->foreignId('favicon_media_id')->nullable();
             $table->boolean('is_primary')->default(false);

@@ -42,8 +42,9 @@ class BrandController extends Controller
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
         $isActive = $request->query('is_active');
+        $trashed = $request->query('trashed');
 
-        $items = $this->service->getPaginated($perPage, $search, $isActive);
+        $items = $this->service->getPaginated($perPage, $search, $isActive, $trashed);
 
         return $this->paginated($items, BrandResource::collection($items), 'Brands retrieved successfully.');
     }

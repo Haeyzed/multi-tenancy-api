@@ -56,6 +56,10 @@ return new class extends Migration
             $table->index(['status', 'department_id']);
             $table->index(['employee_code']);
         });
+
+        Schema::table('stores', function (Blueprint $table) {
+            $table->foreign('manager_id')->references('id')->on('employees')->nullOnDelete();
+        });
     }
 
     /**
@@ -63,6 +67,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('stores', function (Blueprint $table) {
+            $table->dropForeign(['manager_id']);
+        });
+
         Schema::dropIfExists('employees');
     }
 };

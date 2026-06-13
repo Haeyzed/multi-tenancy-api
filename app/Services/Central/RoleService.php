@@ -7,26 +7,19 @@ namespace App\Services\Central;
 use App\Enums\Central\UserRole;
 use App\Models\Central\Permission;
 use App\Models\Central\Role;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Central Role records and queries.
+ * Central Spatie role records and queries.
+ *
+ * Encapsulates all business logic for role management, including
+ * creation, updates, pagination, deletion, permission sync,
+ * matrix operations, and KPI metrics.
  */
 class RoleService
 {
-    /**
-     * Relations eager loaded for list and detail responses.
-     *
-     * @var list<string>
-     */
-    private const DETAIL_RELATIONS = [
-        'permissions',
-    ];
-
     /**
      * Spatie role names that cannot have permissions changed via the matrix.
      *
@@ -39,58 +32,42 @@ class RoleService
     private const DEFAULT_GUARD = 'web';
 
     /**
-     * Get all Role records.
-     *
-     * @param string|null $search Optional search term.
-     * @return Collection<int, Role>
-     */
-    public function getAll(?string $search = null): Collection
-    {
-        return $this->queryWithDetails()
-            ->search($search)
-            ->orderBy('name')
-            ->get();
-    }
-
-    /**
-     * Base query with role detail relations.
-     *
-     * @return Builder<Role>
-     */
-    private function queryWithDetails(): Builder
-    {
-        return Role::query()->with(self::DETAIL_RELATIONS);
-    }
-
-    /**
-     * Get paginated Role records.
+     * Get paginated role records with eager loaded relations.
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
+     *
      * @return LengthAwarePaginator<int, Role>
      */
     public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return $this->queryWithDetails()
+        return Role::query()
+            ->with(['permissions'])
             ->search($search)
             ->orderBy('name')
             ->paginate($perPage);
     }
 
     /**
-     * Find Role by ID.
+     * Find role by ID or fail with eager loaded relations.
      *
      * @param int $id Record identifier.
+     *
+     * @return Role
      */
-    public function find(int $id): ?Role
+    public function findOrFail(int $id): Role
     {
-        return $this->queryWithDetails()->find($id);
+        return Role::query()
+            ->with(['permissions'])
+            ->findOrFail($id);
     }
 
     /**
-     * Create a new Role.
+     * Create a new role.
      *
      * @param array<string, mixed> $data
+     *
+     * @return Role
      */
     public function create(array $data): Role
     {
@@ -98,37 +75,54 @@ class RoleService
     }
 
     /**
-     * Update Role.
+     * Update role.
      *
      * @param Role $role The model instance to update.
      * @param array<string, mixed> $data Attribute data to persist.
+     *
+     * @return Role
      */
     public function update(Role $role, array $data): Role
     {
         $role->update($data);
 
-        return $role->fresh();
+        return $role->fresh(['permissions']);
+    }
+
+    /**
+     * Delete a single role.
+     *
+     * @param Role $role The model instance to delete.
+     *
+     * @return bool
+     */
+    public function delete(Role $role): bool
+    {
+        return $role->delete();
     }
 
     /**
      * Delete multiple non-system roles by ID.
      *
      * @param list<int> $ids
+     *
+     * @return int Number of deleted records.
      */
     public function deleteMany(array $ids): int
     {
         return DB::transaction(function () use ($ids): int {
-            $deleted = 0;
-
-            Role::query()
+            $records = Role::query()
                 ->whereIn('id', $ids)
                 ->whereNotIn('name', self::SYSTEM_ROLE_NAMES)
-                ->get()
-                ->each(function (Role $role) use (&$deleted): void {
-                    if ($role->delete()) {
-                        $deleted++;
-                    }
-                });
+                ->get();
+
+            $deleted = 0;
+
+            foreach ($records as $record) {
+                if ($record->delete()) {
+                    $deleted++;
+                }
+            }
 
             if ($deleted > 0) {
                 $this->forgetPermissionCache();
@@ -139,27 +133,11 @@ class RoleService
     }
 
     /**
-     * Delete Role.
-     *
-     * @param Role $role The model instance to delete.
-     */
-    public function delete(Role $role): bool
-    {
-        return $role->delete();
-    }
-
-    /**
-     * Clear Spatie permission cache after role permission changes.
-     */
-    private function forgetPermissionCache(): void
-    {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-    }
-
-    /**
      * Attach permissions to the role without removing existing ones.
      *
      * @param list<int> $permissionIds
+     *
+     * @return Role
      */
     public function attachPermissions(Role $role, array $permissionIds): Role
     {
@@ -172,11 +150,13 @@ class RoleService
 
         $role->givePermissionTo($permissions);
 
-        return $role->fresh(self::DETAIL_RELATIONS);
+        return $role->fresh(['permissions']);
     }
 
     /**
      * Remove a single permission from the role.
+     *
+     * @return Role
      */
     public function detachPermission(Role $role, Permission $permission): Role
     {
@@ -184,7 +164,33 @@ class RoleService
 
         $role->revokePermissionTo($permission);
 
-        return $role->fresh(self::DETAIL_RELATIONS);
+        return $role->fresh(['permissions']);
+    }
+
+    /**
+     * Replace all permissions assigned to the role.
+     *
+     * @param list<int> $permissionIds
+     *
+     * @return Role
+     */
+    public function syncPermissions(Role $role, array $permissionIds): Role
+    {
+        if ($this->isSystemRole($role)) {
+            return $role->fresh(['permissions']);
+        }
+
+        $this->forgetPermissionCache();
+
+        $permissions = Permission::query()
+            ->whereIn('id', $permissionIds)
+            ->where('guard_name', $role->guard_name)
+            ->pluck('id')
+            ->all();
+
+        $role->syncPermissions($permissions);
+
+        return $role->fresh(['permissions']);
     }
 
     /**
@@ -216,45 +222,11 @@ class RoleService
     }
 
     /**
-     * Find Role by ID or fail.
-     *
-     * @param int $id Record identifier.
-     */
-    public function findOrFail(int $id): Role
-    {
-        return $this->queryWithDetails()->findOrFail($id);
-    }
-
-    /**
      * Determine whether the role is locked in the permissions matrix.
      */
     public function isSystemRole(Role $role): bool
     {
         return in_array($role->name, self::SYSTEM_ROLE_NAMES, true);
-    }
-
-    /**
-     * Replace all permissions assigned to the role.
-     *
-     * @param list<int> $permissionIds
-     */
-    public function syncPermissions(Role $role, array $permissionIds): Role
-    {
-        if ($this->isSystemRole($role)) {
-            return $role->fresh(self::DETAIL_RELATIONS);
-        }
-
-        $this->forgetPermissionCache();
-
-        $permissions = Permission::query()
-            ->whereIn('id', $permissionIds)
-            ->where('guard_name', $role->guard_name)
-            ->pluck('id')
-            ->all();
-
-        $role->syncPermissions($permissions);
-
-        return $role->fresh(self::DETAIL_RELATIONS);
     }
 
     /**
@@ -293,11 +265,11 @@ class RoleService
             ->get();
 
         $permissionGroups = $permissions
-            ->groupBy(fn(Permission $permission) => $permission->module ?? 'general')
-            ->map(fn($items, string $module) => [
+            ->groupBy(fn (Permission $permission) => $permission->module ?? 'general')
+            ->map(fn ($items, string $module) => [
                 'module' => $module,
                 'permissions' => $items
-                    ->map(fn(Permission $permission) => [
+                    ->map(fn (Permission $permission) => [
                         'id' => $permission->id,
                         'name' => $permission->name,
                         'guard_name' => $permission->guard_name,
@@ -313,7 +285,7 @@ class RoleService
             'guard_name' => $guardName,
             'total_permissions' => $permissions->count(),
             'roles' => $roles
-                ->map(fn(Role $role) => [
+                ->map(fn (Role $role) => [
                     'id' => $role->id,
                     'name' => $role->name,
                     'guard_name' => $role->guard_name,
@@ -342,5 +314,13 @@ class RoleService
             ['key' => 'with_permissions', 'label' => 'With Permissions', 'value' => $withPermissions],
             ['key' => 'web_guard', 'label' => 'Web Guard', 'value' => $webGuard],
         ];
+    }
+
+    /**
+     * Clear Spatie permission cache after role permission changes.
+     */
+    private function forgetPermissionCache(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

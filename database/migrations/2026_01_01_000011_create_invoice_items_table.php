@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('invoice_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('invoice_id')->constrained('invoices')->cascadeOnDelete();
+            $table->foreignId('invoice_id')->constrained('invoices')->cascadeOnDelete();
             $table->string('description');
             $table->integer('quantity')->default(1);
             $table->integer('unit_amount'); // in cents
             $table->integer('amount'); // in cents
-            $table->foreignUuid('plan_id')->nullable()->constrained('plans')->nullOnDelete();
+            $table->foreignId('plan_id')->nullable()->constrained('plans')->nullOnDelete();
             $table->timestamp('period_start')->nullable();
             $table->timestamp('period_end')->nullable();
             $table->timestamps();

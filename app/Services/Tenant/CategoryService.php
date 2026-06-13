@@ -32,6 +32,7 @@ class CategoryService
      * @param mixed $isActive Active/inactive filter tokens.
      * @param mixed $isFeatured Featured/unfeatured filter tokens.
      * @param mixed $showInMenu Menu visibility filter tokens.
+     * @param mixed $trashed Soft-delete filter tokens (only, with).
      *
      * @return LengthAwarePaginator<int, Category>
      */
@@ -41,6 +42,7 @@ class CategoryService
         mixed $isActive = null,
         mixed $isFeatured = null,
         mixed $showInMenu = null,
+        mixed $trashed = null,
     ): LengthAwarePaginator {
         return Category::query()
             ->with(['parent', 'bannerMedia', 'iconMedia'])
@@ -49,6 +51,7 @@ class CategoryService
             ->filterIsActive(QueryFilter::filterList($isActive))
             ->filterIsFeatured(QueryFilter::filterList($isFeatured))
             ->filterShowInMenu(QueryFilter::filterList($showInMenu))
+            ->filterTrashed(QueryFilter::filterList($trashed))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate($perPage);

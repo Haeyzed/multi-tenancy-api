@@ -77,7 +77,7 @@ class StoreTenantRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'nullable|uuid|exists:plans,id',
+            'plan_id' => 'nullable|integer|exists:plans,id',
 
             /**
              * Recurring billing interval for the tenant's subscription.

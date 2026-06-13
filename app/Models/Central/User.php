@@ -17,7 +17,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
- * Platform administrator account in the central database.
+ * Platform administrator account stored in the central database.
  *
  * @property int $id
  * @property string $name
@@ -30,12 +30,19 @@ use Stancl\Tenancy\Database\Concerns\CentralConnection;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  *
- * * @method static Builder|User search(?string $search)
+ * @method static Builder|User search(?string $search)
+ * @method static Builder|User filterIsActive(array $statuses)
+ * @method static Builder|User filterTrashed(array $tokens)
  */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use CentralConnection, HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use CentralConnection;
+    use HasApiTokens;
+    use HasFactory;
+    use HasRoles;
+    use Notifiable;
+    use SoftDeletes;
 
     /**
      * @var list<string>
@@ -48,6 +55,7 @@ class User extends Authenticatable
         'last_login_at',
         'is_active',
     ];
+
     /**
      * @var list<string>
      */
@@ -62,18 +70,21 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope a query to search by name or email.
+     * Scope a query to search by name, email, role, or permission.
+     *
+     * @param Builder<User> $query
+     * @param string|null $search
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhereHas('roles', function (Builder $q) use ($search) {
+                    ->orWhereHas('roles', function (Builder $q) use ($search): void {
                         $q->where('name', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('permissions', function (Builder $q) use ($search) {
+                    ->orWhereHas('permissions', function (Builder $q) use ($search): void {
                         $q->where('name', 'like', "%{$search}%");
                     });
             });
@@ -83,6 +94,7 @@ class User extends Authenticatable
     /**
      * Filter by active/inactive status tokens (active, inactive).
      *
+     * @param Builder<User> $query
      * @param list<string> $statuses
      */
     public function scopeFilterIsActive(Builder $query, array $statuses): void
@@ -102,11 +114,36 @@ class User extends Authenticatable
             static fn (?bool $value): bool => $value !== null,
         )));
 
-        $query->when($values !== [], fn(Builder $q) => $q->whereIn('is_active', $values));
+        $query->when($values !== [], fn (Builder $q): Builder => $q->whereIn('is_active', $values));
+    }
+
+    /**
+     * Filter by soft-delete visibility tokens (only, with).
+     *
+     * @param Builder<User> $query
+     * @param list<string> $tokens
+     */
+    public function scopeFilterTrashed(Builder $query, array $tokens): void
+    {
+        if ($tokens === []) {
+            return;
+        }
+
+        if (in_array('only', $tokens, true)) {
+            $query->onlyTrashed();
+
+            return;
+        }
+
+        if (in_array('with', $tokens, true)) {
+            $query->withTrashed();
+        }
     }
 
     /**
      * Support tickets currently assigned to this administrator.
+     *
+     * @return HasMany<TenantSupportTicket, $this>
      */
     public function assignedSupportTickets(): HasMany
     {
@@ -115,6 +152,8 @@ class User extends Authenticatable
 
     /**
      * Impersonation tokens issued by this administrator.
+     *
+     * @return HasMany<TenantImpersonationToken, $this>
      */
     public function issuedImpersonationTokens(): HasMany
     {
@@ -123,6 +162,8 @@ class User extends Authenticatable
 
     /**
      * Support messages sent by this administrator.
+     *
+     * @return HasMany<TenantSupportMessage, $this>
      */
     public function sentSupportMessages(): HasMany
     {
@@ -131,6 +172,8 @@ class User extends Authenticatable
 
     /**
      * In-app notifications for this administrator.
+     *
+     * @return HasMany<UserNotification, $this>
      */
     public function userNotifications(): HasMany
     {
@@ -139,6 +182,8 @@ class User extends Authenticatable
 
     /**
      * Push notification device tokens registered by this administrator.
+     *
+     * @return HasMany<PushNotificationToken, $this>
      */
     public function pushNotificationTokens(): HasMany
     {
@@ -157,6 +202,9 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
             'password' => 'hashed',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 }

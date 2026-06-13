@@ -32,7 +32,7 @@ class StoreSubscriptionItemRequest extends BaseRequest
              *
              * @example "660e8400-e29b-41d4-a716-446655440001"
              */
-            'subscription_id' => 'required|uuid|exists:subscriptions,id',
+            'subscription_id' => 'required|integer|exists:subscriptions,id',
 
             /**
              * UUID of the plan billed by this line item.
@@ -41,7 +41,7 @@ class StoreSubscriptionItemRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'required|uuid|exists:plans,id',
+            'plan_id' => 'required|integer|exists:plans,id',
 
             /**
              * Number of units subscribed.

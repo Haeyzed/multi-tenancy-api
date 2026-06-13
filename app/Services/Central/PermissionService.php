@@ -5,81 +5,51 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Models\Central\Permission;
-use App\Services\Concerns\DeletesManyRecords;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Central Permission records and queries.
+ * Central Spatie permission records and queries.
+ *
+ * Encapsulates all business logic for permission management, including
+ * creation, updates, pagination, deletion, and KPI metrics.
  */
 class PermissionService
 {
-    use DeletesManyRecords;
-
     /**
-     * Get all Permission records.
-     *
-     * @param string|null $search Optional search term.
-     * @return Collection<int, Permission>
-     */
-    public function getAll(?string $search = null): Collection
-    {
-        return $this->query()
-            ->search($search)
-            ->orderBy('name')
-            ->get();
-    }
-
-    /**
-     * Base query for permission records.
-     *
-     * @return Builder<Permission>
-     */
-    private function query(): Builder
-    {
-        return Permission::query();
-    }
-
-    /**
-     * Get paginated Permission records.
+     * Get paginated permission records.
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
+     *
      * @return LengthAwarePaginator<int, Permission>
      */
     public function getPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return $this->query()
+        return Permission::query()
             ->search($search)
             ->orderBy('name')
             ->paginate($perPage);
     }
 
     /**
-     * Find Permission by ID.
+     * Find permission by ID or fail.
      *
      * @param int $id Record identifier.
-     */
-    public function find(int $id): ?Permission
-    {
-        return $this->query()->find($id);
-    }
-
-    /**
-     * Find Permission by ID or fail.
      *
-     * @param int $id Record identifier.
+     * @return Permission
      */
     public function findOrFail(int $id): Permission
     {
-        return $this->query()->findOrFail($id);
+        return Permission::query()->findOrFail($id);
     }
 
     /**
-     * Create a new Permission.
+     * Create a new permission.
      *
      * @param array<string, mixed> $data
+     *
+     * @return Permission
      */
     public function create(array $data): Permission
     {
@@ -87,10 +57,12 @@ class PermissionService
     }
 
     /**
-     * Update Permission.
+     * Update permission.
      *
      * @param Permission $permission The model instance to update.
      * @param array<string, mixed> $data Attribute data to persist.
+     *
+     * @return Permission
      */
     public function update(Permission $permission, array $data): Permission
     {
@@ -100,9 +72,11 @@ class PermissionService
     }
 
     /**
-     * Delete Permission.
+     * Delete a single permission.
      *
      * @param Permission $permission The model instance to delete.
+     *
+     * @return bool
      */
     public function delete(Permission $permission): bool
     {
@@ -113,10 +87,23 @@ class PermissionService
      * Delete multiple permissions by ID.
      *
      * @param list<int> $ids
+     *
+     * @return int Number of deleted records.
      */
     public function deleteMany(array $ids): int
     {
-        return $this->deleteManyByIds(Permission::class, $ids);
+        return DB::transaction(function () use ($ids): int {
+            $records = Permission::query()->whereIn('id', $ids)->get();
+            $deleted = 0;
+
+            foreach ($records as $record) {
+                if ($record->delete()) {
+                    $deleted++;
+                }
+            }
+
+            return $deleted;
+        });
     }
 
     /**

@@ -32,7 +32,7 @@ class UpdateSubscriptionEventRequest extends BaseRequest
              *
              * @example "660e8400-e29b-41d4-a716-446655440001"
              */
-            'subscription_id' => 'sometimes|uuid|exists:subscriptions,id',
+            'subscription_id' => 'sometimes|integer|exists:subscriptions,id',
 
             /**
              * Type of subscription lifecycle event recorded; optional on update.
@@ -50,7 +50,7 @@ class UpdateSubscriptionEventRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'from_plan_id' => 'nullable|uuid|exists:plans,id',
+            'from_plan_id' => 'nullable|integer|exists:plans,id',
 
             /**
              * UUID of the plan after the change; nullable.
@@ -59,7 +59,7 @@ class UpdateSubscriptionEventRequest extends BaseRequest
              *
              * @example "990e8400-e29b-41d4-a716-446655440004"
              */
-            'to_plan_id' => 'nullable|uuid|exists:plans,id',
+            'to_plan_id' => 'nullable|integer|exists:plans,id',
 
             /**
              * Actor or system that triggered this event; optional on update.

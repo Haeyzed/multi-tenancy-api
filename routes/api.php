@@ -127,6 +127,8 @@ Route::prefix('central')
                 Route::put('users/{user}/permissions', [UserController::class, 'syncPermissions'])->name('users.permissions.sync');
                 Route::post('users/{user}/login', [UserController::class, 'recordLogin'])->name('users.login');
                 Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+                Route::post('users/bulk/restore', [UserController::class, 'bulkRestore'])->name('users.bulk-restore');
+                Route::post('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
             });
 
             Route::middleware('permission:users.delete')->group(function (): void {
@@ -196,6 +198,8 @@ Route::prefix('central')
             Route::middleware('permission:billing.manage')->group(function (): void {
                 Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
                 Route::put('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+                Route::post('plans/bulk/restore', [PlanController::class, 'bulkRestore'])->name('plans.bulk-restore');
+                Route::post('plans/{id}/restore', [PlanController::class, 'restore'])->name('plans.restore');
                 Route::delete('plans/bulk', [PlanController::class, 'bulkDestroy'])->name('plans.bulk-destroy');
                 Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
                 Route::post('plan-features', [PlanFeatureController::class, 'store'])->name('plan-features.store');
@@ -231,7 +235,8 @@ Route::prefix('central')
 
             Route::middleware('permission:tenants.update')->group(function (): void {
                 Route::put('tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
-                Route::post('tenants/{tenant}/restore', [TenantController::class, 'restore'])->name('tenants.restore');
+                Route::post('tenants/bulk/restore', [TenantController::class, 'bulkRestore'])->name('tenants.bulk-restore');
+                Route::post('tenants/{id}/restore', [TenantController::class, 'restore'])->name('tenants.restore');
                 Route::put('domains/{domain}', [DomainController::class, 'update'])->name('domains.update');
                 Route::post('domains/{domain}/primary', [DomainController::class, 'setPrimary'])->name('domains.primary');
                 Route::post('domains/{domain}/verify', [DomainController::class, 'verify'])->name('domains.verify');
@@ -241,7 +246,7 @@ Route::prefix('central')
             Route::middleware('permission:tenants.delete')->group(function (): void {
                 Route::delete('tenants/bulk', [TenantController::class, 'bulkDestroy'])->name('tenants.bulk-destroy');
                 Route::delete('tenants/{tenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
-                Route::delete('tenants/{tenant}/force', [TenantController::class, 'forceDestroy'])->name('tenants.force-delete');
+                Route::delete('tenants/{id}/force', [TenantController::class, 'forceDestroy'])->name('tenants.force-delete');
                 Route::delete('domains/{domain}', [DomainController::class, 'destroy'])->name('domains.destroy');
                 Route::delete('tenant-configs/{tenant_config}', [TenantConfigController::class, 'destroy'])->name('tenant-configs.destroy');
             });
@@ -292,6 +297,7 @@ Route::prefix('central')
                 Route::delete('subscription-events/{subscription_event}', [SubscriptionEventController::class, 'destroy'])->name('subscription-events.destroy');
                 Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
                 Route::put('invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+                Route::delete('invoices/bulk', [InvoiceController::class, 'bulkDestroy'])->name('invoices.bulk-destroy');
                 Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
                 Route::post('invoices/{invoice}/paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.paid');
                 Route::post('invoice-items', [InvoiceItemController::class, 'store'])->name('invoice-items.store');
@@ -299,6 +305,7 @@ Route::prefix('central')
                 Route::delete('invoice-items/{invoice_item}', [InvoiceItemController::class, 'destroy'])->name('invoice-items.destroy');
                 Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
                 Route::put('payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+                Route::delete('payments/bulk', [PaymentController::class, 'bulkDestroy'])->name('payments.bulk-destroy');
                 Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
                 Route::post('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
                 Route::post('payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');

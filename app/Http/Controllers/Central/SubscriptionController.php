@@ -13,31 +13,38 @@ use App\Http\Resources\Central\SubscriptionResource;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
 use App\Services\Central\SubscriptionService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Tenant subscription records.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the SubscriptionService layer.
  */
 class SubscriptionController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param SubscriptionService $service
+     */
     public function __construct(
         private readonly SubscriptionService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated Subscription records.
+     * Get paginated subscription records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $status = QueryFilter::parseList($request->query('status'));
+        $status = $request->query('status');
 
         $items = $this->service->getPaginated($perPage, $search, $status);
 
@@ -68,21 +75,17 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Find Subscription by route binding.
+     * Find subscription by route binding.
      *
-     * @param Subscription $subscription Subscription instance.
+     * @param Subscription $subscription Subscription instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(Subscription $subscription): JsonResponse
     {
-        $subscription->load([
-            'tenant',
-            'plan',
-            'latestInvoice',
-            'subscriptionItems',
-            'lifecycleEvents',
-        ]);
+        $item = $this->service->findOrFail($subscription->id);
 
-        return $this->success(new SubscriptionResource($subscription), 'Subscription retrieved successfully.');
+        return $this->success(new SubscriptionResource($item), 'Subscription retrieved successfully.');
     }
 
     /**
@@ -156,7 +159,7 @@ class SubscriptionController extends Controller
      */
     public function upgrade(ChangePlanRequest $request, Subscription $subscription): JsonResponse
     {
-        $plan = Plan::query()->findOrFail($request->string('plan_id')->toString());
+        $plan = Plan::query()->findOrFail($request->integer('plan_id'));
         $item = $this->service->upgrade($subscription, $plan);
 
         return $this->success(new SubscriptionResource($item), 'Subscription upgraded.');
@@ -170,7 +173,7 @@ class SubscriptionController extends Controller
      */
     public function downgrade(ChangePlanRequest $request, Subscription $subscription): JsonResponse
     {
-        $plan = Plan::query()->findOrFail($request->string('plan_id')->toString());
+        $plan = Plan::query()->findOrFail($request->integer('plan_id'));
         $item = $this->service->downgrade($subscription, $plan);
 
         return $this->success(new SubscriptionResource($item), 'Subscription downgraded.');

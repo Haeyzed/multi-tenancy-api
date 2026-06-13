@@ -30,7 +30,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  * @property string $database
  * @property string $domain
  * @property TenantStatus $status
- * @property string|null $plan_id
+ * @property int|null $plan_id
  * @property BillingCycle $billing_cycle
  * @property Carbon|null $trial_ends_at
  * @property Carbon|null $subscribed_at

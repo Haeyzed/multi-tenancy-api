@@ -11,6 +11,6 @@ class BulkDeletePlansRequest extends BulkDeleteRequest
 {
     protected function idRule(): string
     {
-        return 'uuid|exists:plans,id';
+        return 'integer|exists:plans,id';
     }
 }

@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Billable line item attached to a subscription.
  *
  * @property int $id
- * @property string $subscription_id
- * @property string $plan_id
+ * @property int $subscription_id
+ * @property int $plan_id
  * @property int $quantity
  * @property int $unit_price
  * @property int $total_price

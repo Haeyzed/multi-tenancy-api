@@ -63,7 +63,7 @@ class OnboardTenantRequest extends BaseRequest
              *
              * @example "550e8400-e29b-41d4-a716-446655440000"
              */
-            'plan_id' => 'required|uuid|exists:plans,id',
+            'plan_id' => 'required|integer|exists:plans,id',
 
             /**
              * Billing cycle for the initial subscription.

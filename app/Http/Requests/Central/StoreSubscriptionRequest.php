@@ -41,7 +41,7 @@ class StoreSubscriptionRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'required|uuid|exists:plans,id',
+            'plan_id' => 'required|integer|exists:plans,id',
 
             /**
              * Current lifecycle status of the subscription.
@@ -140,7 +140,7 @@ class StoreSubscriptionRequest extends BaseRequest
              *
              * @example "770e8400-e29b-41d4-a716-446655440002"
              */
-            'latest_invoice_id' => 'nullable|uuid|exists:invoices,id',
+            'latest_invoice_id' => 'nullable|integer|exists:invoices,id',
         ];
     }
 }

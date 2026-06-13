@@ -41,6 +41,7 @@ use Spatie\Sluggable\SlugOptions;
  * @method static Builder|Category filterIsActive(array $statuses)
  * @method static Builder|Category filterIsFeatured(array $values)
  * @method static Builder|Category filterShowInMenu(array $values)
+ * @method static Builder|Category filterTrashed(array $tokens)
  */
 class Category extends TenantModel
 {
@@ -238,6 +239,29 @@ class Category extends TenantModel
         )));
 
         $query->when($mapped !== [], fn (Builder $q): Builder => $q->whereIn('show_in_menu', $mapped));
+    }
+
+    /**
+     * Filter by soft-delete visibility tokens (only, with).
+     *
+     * @param Builder<Category> $query
+     * @param list<string> $tokens
+     */
+    public function scopeFilterTrashed(Builder $query, array $tokens): void
+    {
+        if ($tokens === []) {
+            return;
+        }
+
+        if (in_array('only', $tokens, true)) {
+            $query->onlyTrashed();
+
+            return;
+        }
+
+        if (in_array('with', $tokens, true)) {
+            $query->withTrashed();
+        }
     }
 
     /**

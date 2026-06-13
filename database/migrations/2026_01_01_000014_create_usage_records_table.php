@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('usage_records', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
-            $table->foreignUuid('subscription_id')->nullable()->constrained('subscriptions')->nullOnDelete();
+            $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->nullOnDelete();
             $table->string('metric');
             $table->decimal('quantity', 15, 2);
             $table->timestamp('recorded_at');

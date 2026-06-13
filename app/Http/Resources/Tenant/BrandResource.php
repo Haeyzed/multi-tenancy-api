@@ -111,6 +111,13 @@ class BrandResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
 
             /**
+             * Timestamp when the brand was soft deleted.
+             *
+             * @default null
+             */
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
+
+            /**
              * Logo media details when eager loaded.
              *
              * @default null

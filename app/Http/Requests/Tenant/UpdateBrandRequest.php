@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
+use App\Models\Tenant\Brand;
+use Illuminate\Validation\Rule;
+
 /**
  * Validates incoming data for updating a product brand.
  *
@@ -32,12 +35,17 @@ class UpdateBrandRequest extends BaseRequest
      */
     public function rules(): array
     {
-        /** @var int $brandId */
-        $brandId = $this->route('brand');
+        /** @var Brand|null $brand */
+        $brand = $this->route('brand');
 
         return [
             'name' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|unique:brands,slug,' . $brandId . '|max:255',
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('brands', 'slug')->ignore($brand?->id),
+            ],
             'description' => 'nullable|string',
             'logo_media_id' => 'nullable|integer|exists:media,id',
             'website_url' => 'nullable|url|max:255',

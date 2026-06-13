@@ -10,100 +10,81 @@ use App\Enums\Central\SubscriptionStatus;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
 use App\Models\Central\Tenant;
-use App\Services\Concerns\DeletesManyRecords;
-use Illuminate\Database\Eloquent\Builder;
+use App\Support\QueryFilter;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Central Subscription records and queries.
+ * Central tenant subscription records and queries.
+ *
+ * Encapsulates all business logic for subscription management, including
+ * creation, updates, pagination, filtering, deletion, lifecycle actions,
+ * and KPI metrics.
  */
 class SubscriptionService
 {
-    use DeletesManyRecords;
-
-    /**
-     * Relations eager loaded for list and detail responses.
-     *
-     * @var list<string>
-     */
-    private const DETAIL_RELATIONS = [
-        'tenant',
-        'plan',
-        'latestInvoice',
-        'invoices',
-        'subscriptionItems',
-        'usageRecords',
-    ];
-
     public function __construct(
         private readonly SubscriptionLifecycleService $lifecycle,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get all Subscription records.
-     *
-     * @param string|null $search Optional search term.
-     * @return Collection<int, Subscription>
-     */
-    public function getAll(?string $search = null): Collection
-    {
-        return $this->queryWithDetails()
-            ->forTenant()
-            ->search($search)
-            ->get();
-    }
-
-    /**
-     * Base query with subscription detail relations.
-     *
-     * @return Builder<Subscription>
-     */
-    private function queryWithDetails(): Builder
-    {
-        return Subscription::query()->with(self::DETAIL_RELATIONS);
-    }
-
-    /**
-     * Get paginated Subscription records.
+     * Get paginated subscription records with eager loaded relations.
      *
      * @param int $perPage Number of records per page.
      * @param string|null $search Optional search term.
+     * @param mixed $status Subscription status filter tokens.
+     *
      * @return LengthAwarePaginator<int, Subscription>
      */
-
-    /**
-     * @param list<string> $status
-     */
     public function getPaginated(
-        int     $perPage = 15,
+        int $perPage = 15,
         ?string $search = null,
-        array   $status = [],
-    ): LengthAwarePaginator
-    {
-        return $this->queryWithDetails()
+        mixed $status = null,
+    ): LengthAwarePaginator {
+        return Subscription::query()
+            ->with([
+                'tenant',
+                'plan',
+                'latestInvoice',
+                'invoices',
+                'subscriptionItems',
+                'usageRecords',
+            ])
             ->forTenant()
             ->search($search)
-            ->filterStatus($status)
+            ->filterStatus(QueryFilter::filterList($status))
             ->paginate($perPage);
     }
 
     /**
-     * Find Subscription by ID.
+     * Find subscription by ID or fail with eager loaded relations.
      *
-     * @param string $id Record identifier.
+     * @param int $id Record identifier.
+     *
+     * @return Subscription
      */
-    public function find(string $id): ?Subscription
+    public function findOrFail(int $id): Subscription
     {
-        return $this->queryWithDetails()->find($id);
+        return Subscription::query()
+            ->with([
+                'tenant',
+                'plan',
+                'latestInvoice',
+                'invoices',
+                'subscriptionItems',
+                'usageRecords',
+                'lifecycleEvents',
+            ])
+            ->findOrFail($id);
     }
 
     /**
-     * Create a new Subscription via lifecycle (tenant + plan required in data).
+     * Create a new subscription via lifecycle (tenant + plan required in data).
      *
      * @param array<string, mixed> $data
+     *
+     * @return Subscription
      */
     public function create(array $data): Subscription
     {
@@ -119,54 +100,68 @@ class SubscriptionService
     }
 
     /**
-     * Find Subscription by ID or fail.
-     *
-     * @param string $id Record identifier.
-     */
-    public function findOrFail(string $id): Subscription
-    {
-        return $this->queryWithDetails()->findOrFail($id);
-    }
-
-    /**
-     * Update Subscription.
+     * Update subscription.
      *
      * @param Subscription $subscription The model instance to update.
      * @param array<string, mixed> $data Attribute data to persist.
+     *
+     * @return Subscription
      */
     public function update(Subscription $subscription, array $data): Subscription
     {
         $subscription->update($data);
 
-        return $subscription->fresh();
+        return $subscription->fresh([
+            'tenant',
+            'plan',
+            'latestInvoice',
+            'invoices',
+            'subscriptionItems',
+            'usageRecords',
+            'lifecycleEvents',
+        ]);
     }
 
     /**
-     * Delete Subscription.
+     * Delete a single subscription.
      *
      * @param Subscription $subscription The model instance to delete.
+     *
+     * @return bool
      */
     public function delete(Subscription $subscription): bool
     {
-        return Subscription::query()
-                ->whereKey($subscription->getKey())
-                ->delete() > 0;
+        return $subscription->delete();
     }
 
     /**
      * Delete multiple subscriptions by ID.
      *
-     * @param list<string> $ids
+     * @param list<int> $ids
+     *
+     * @return int Number of deleted records.
      */
     public function deleteMany(array $ids): int
     {
-        return $this->deleteManyByIds(Subscription::class, $ids);
+        return DB::transaction(function () use ($ids): int {
+            $records = Subscription::query()->whereIn('id', $ids)->get();
+            $deleted = 0;
+
+            foreach ($records as $record) {
+                if ($record->delete()) {
+                    $deleted++;
+                }
+            }
+
+            return $deleted;
+        });
     }
 
     /**
      * Filter by tenant.
      *
-     * @param string $tenantId Tenant UUID.
+     * @param string $tenantId Tenant identifier.
+     *
      * @return Collection<int, Subscription>
      */
     public function getByTenant(string $tenantId): Collection
@@ -178,6 +173,7 @@ class SubscriptionService
      * Filter by status.
      *
      * @param string $status Status value to filter by.
+     *
      * @return Collection<int, Subscription>
      */
     public function getByStatus(string $status): Collection
@@ -188,10 +184,11 @@ class SubscriptionService
     /**
      * Filter by plan.
      *
-     * @param string $planId Plan UUID to filter by.
+     * @param int $planId Plan identifier.
+     *
      * @return Collection<int, Subscription>
      */
-    public function getByPlan(string $planId): Collection
+    public function getByPlan(int $planId): Collection
     {
         return Subscription::query()->where('plan_id', $planId)->get();
     }
@@ -199,7 +196,10 @@ class SubscriptionService
     /**
      * Cancel a subscription.
      *
+     * @param Subscription $subscription The subscription to cancel.
      * @param string|null $reason Optional cancellation reason.
+     *
+     * @return Subscription
      */
     public function cancel(Subscription $subscription, ?string $reason = null): Subscription
     {
@@ -208,6 +208,10 @@ class SubscriptionService
 
     /**
      * Renew a subscription billing period.
+     *
+     * @param Subscription $subscription The subscription to renew.
+     *
+     * @return Subscription
      */
     public function renew(Subscription $subscription): Subscription
     {
@@ -216,6 +220,11 @@ class SubscriptionService
 
     /**
      * Upgrade subscription to a new plan.
+     *
+     * @param Subscription $subscription The subscription to upgrade.
+     * @param Plan $plan Target plan.
+     *
+     * @return Subscription
      */
     public function upgrade(Subscription $subscription, Plan $plan): Subscription
     {
@@ -224,6 +233,11 @@ class SubscriptionService
 
     /**
      * Downgrade subscription to a new plan.
+     *
+     * @param Subscription $subscription The subscription to downgrade.
+     * @param Plan $plan Target plan.
+     *
+     * @return Subscription
      */
     public function downgrade(Subscription $subscription, Plan $plan): Subscription
     {
@@ -232,6 +246,10 @@ class SubscriptionService
 
     /**
      * Reactivate a cancelled subscription.
+     *
+     * @param Subscription $subscription The subscription to reactivate.
+     *
+     * @return Subscription
      */
     public function reactivate(Subscription $subscription): Subscription
     {
@@ -267,13 +285,13 @@ class SubscriptionService
             ->pluck('count', 'status');
 
         return [
-            ['key' => 'total', 'label' => 'Total Subscriptions', 'value' => (int)$counts->sum()],
-            ['key' => 'active', 'label' => 'Active', 'value' => (int)($counts[SubscriptionStatus::Active->value] ?? 0)],
-            ['key' => 'trialing', 'label' => 'Trialing', 'value' => (int)($counts[SubscriptionStatus::Trialing->value] ?? 0)],
-            ['key' => 'past_due', 'label' => 'Past Due', 'value' => (int)($counts[SubscriptionStatus::PastDue->value] ?? 0)],
-            ['key' => 'cancelled', 'label' => 'Cancelled', 'value' => (int)($counts[SubscriptionStatus::Cancelled->value] ?? 0)],
-            ['key' => 'paused', 'label' => 'Paused', 'value' => (int)($counts[SubscriptionStatus::Paused->value] ?? 0)],
-            ['key' => 'expired', 'label' => 'Expired', 'value' => (int)($counts[SubscriptionStatus::Expired->value] ?? 0)],
+            ['key' => 'total', 'label' => 'Total Subscriptions', 'value' => (int) $counts->sum()],
+            ['key' => 'active', 'label' => 'Active', 'value' => (int) ($counts[SubscriptionStatus::Active->value] ?? 0)],
+            ['key' => 'trialing', 'label' => 'Trialing', 'value' => (int) ($counts[SubscriptionStatus::Trialing->value] ?? 0)],
+            ['key' => 'past_due', 'label' => 'Past Due', 'value' => (int) ($counts[SubscriptionStatus::PastDue->value] ?? 0)],
+            ['key' => 'cancelled', 'label' => 'Cancelled', 'value' => (int) ($counts[SubscriptionStatus::Cancelled->value] ?? 0)],
+            ['key' => 'paused', 'label' => 'Paused', 'value' => (int) ($counts[SubscriptionStatus::Paused->value] ?? 0)],
+            ['key' => 'expired', 'label' => 'Expired', 'value' => (int) ($counts[SubscriptionStatus::Expired->value] ?? 0)],
         ];
     }
 }

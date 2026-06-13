@@ -32,7 +32,7 @@ class UpdatePlanFeatureRequest extends BaseRequest
              *
              * @example "880e8400-e29b-41d4-a716-446655440003"
              */
-            'plan_id' => 'sometimes|uuid|exists:plans,id',
+            'plan_id' => 'sometimes|integer|exists:plans,id',
 
             /**
              * Machine-readable key identifying the feature; optional on update.

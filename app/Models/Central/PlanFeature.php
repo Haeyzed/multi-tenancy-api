@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Display copy for pricing pages lives on {@see Plan::$features}, not here.
  *
  * @property int $id
- * @property string $plan_id
+ * @property int $plan_id
  * @property string $feature_key
  * @property string $feature_value
  * @property FeatureType $feature_type

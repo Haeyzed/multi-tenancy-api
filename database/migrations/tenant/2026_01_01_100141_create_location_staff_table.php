@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('location_staff', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('location_id')->constrained('store_locations')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
             $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->string('role_at_location')->nullable();
             $table->boolean('is_primary_location')->default(true);
             $table->date('started_at');
             $table->date('ended_at')->nullable();
             $table->timestamps();
-            $table->unique(['location_id', 'employee_id']);
+            $table->unique(['store_id', 'employee_id']);
         });
     }
 

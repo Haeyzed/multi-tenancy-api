@@ -11,32 +11,39 @@ use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Http\Resources\Central\PlanResource;
 use App\Models\Central\Plan;
 use App\Services\Central\PlanService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Subscription plans offered on the platform.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the PlanService layer.
  */
 class PlanController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param PlanService $service
+     */
     public function __construct(
         private readonly PlanService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated Plan records.
+     * Get paginated plan records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $isActive = QueryFilter::parseList($request->query('is_active'));
-        $isPublic = QueryFilter::parseList($request->query('is_public'));
+        $isActive = $request->query('is_active');
+        $isPublic = $request->query('is_public');
 
         $items = $this->service->getPaginated($perPage, $search, $isActive, $isPublic);
 
@@ -45,6 +52,8 @@ class PlanController extends Controller
 
     /**
      * List active plans as value/label pairs for select inputs.
+     *
+     * @return JsonResponse
      */
     public function options(): JsonResponse
     {
@@ -53,6 +62,8 @@ class PlanController extends Controller
 
     /**
      * KPI card metrics for plans.
+     *
+     * @return JsonResponse
      */
     public function metrics(): JsonResponse
     {
@@ -63,9 +74,11 @@ class PlanController extends Controller
     }
 
     /**
-     * Create a new Plan.
+     * Create a new plan.
      *
      * @param StorePlanRequest $request Validated request payload.
+     *
+     * @return JsonResponse
      */
     public function store(StorePlanRequest $request): JsonResponse
     {
@@ -75,9 +88,11 @@ class PlanController extends Controller
     }
 
     /**
-     * Find Plan by route binding.
+     * Find plan by route binding.
      *
-     * @param Plan $plan Plan instance.
+     * @param Plan $plan Plan instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(Plan $plan): JsonResponse
     {
@@ -87,10 +102,12 @@ class PlanController extends Controller
     }
 
     /**
-     * Update Plan.
+     * Update plan.
      *
      * @param UpdatePlanRequest $request Validated request payload.
-     * @param Plan $plan Plan instance.
+     * @param Plan $plan Plan instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
@@ -100,9 +117,11 @@ class PlanController extends Controller
     }
 
     /**
-     * Delete Plan.
+     * Delete plan.
      *
-     * @param Plan $plan Plan instance.
+     * @param Plan $plan Plan instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function destroy(Plan $plan): JsonResponse
     {
@@ -113,6 +132,10 @@ class PlanController extends Controller
 
     /**
      * Delete multiple plans in one request.
+     *
+     * @param BulkDeletePlansRequest $request
+     *
+     * @return JsonResponse
      */
     public function bulkDestroy(BulkDeletePlansRequest $request): JsonResponse
     {
@@ -121,6 +144,38 @@ class PlanController extends Controller
         return $this->success(
             ['deleted' => $deleted],
             "{$deleted} plan(s) deleted successfully.",
+        );
+    }
+
+    /**
+     * Restore a soft-deleted plan.
+     *
+     * @param int $id Trashed record identifier.
+     *
+     * @return JsonResponse
+     */
+    public function restore(int $id): JsonResponse
+    {
+        $item = $this->service->restore($id);
+
+        return $this->success(new PlanResource($item), 'Plan restored successfully.');
+    }
+
+    /**
+     * Restore multiple soft-deleted plans.
+     *
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $restored = $this->service->restoreMany($ids);
+
+        return $this->success(
+            ['restored' => $restored],
+            "{$restored} plan(s) restored successfully.",
         );
     }
 }

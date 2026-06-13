@@ -11,33 +11,40 @@ use App\Http\Requests\Central\UpdatePlatformAnnouncementRequest;
 use App\Http\Resources\Central\PlatformAnnouncementResource;
 use App\Models\Central\PlatformAnnouncement;
 use App\Services\Central\PlatformAnnouncementService;
-use App\Support\QueryFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Platform-wide announcements for tenants.
+ *
+ * Acts as a thin traffic controller, delegating all business logic
+ * to the PlatformAnnouncementService layer.
  */
 class PlatformAnnouncementController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param PlatformAnnouncementService $service
+     */
     public function __construct(
         private readonly PlatformAnnouncementService $service,
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Get paginated PlatformAnnouncement records.
+     * Get paginated announcement records.
      *
      * @param Request $request Incoming HTTP request.
+     *
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $search = $request->query('search');
-        $isActive = QueryFilter::parseList($request->query('is_active'));
-        $types = QueryFilter::parseList($request->query('type'));
-        $targetAudiences = QueryFilter::parseList($request->query('target_audience'));
+        $isActive = $request->query('is_active');
+        $types = $request->query('type');
+        $targetAudiences = $request->query('target_audience');
         $items = $this->service->getPaginated($perPage, $search, $isActive, $types, $targetAudiences);
 
         return $this->paginated($items, PlatformAnnouncementResource::collection($items), 'Announcements retrieved successfully.');
@@ -67,13 +74,17 @@ class PlatformAnnouncementController extends Controller
     }
 
     /**
-     * Find PlatformAnnouncement by route binding.
+     * Find announcement by route binding.
      *
-     * @param PlatformAnnouncement $announcement PlatformAnnouncement instance.
+     * @param PlatformAnnouncement $announcement Announcement instance resolved via route model binding.
+     *
+     * @return JsonResponse
      */
     public function show(PlatformAnnouncement $announcement): JsonResponse
     {
-        return $this->success(new PlatformAnnouncementResource($announcement), 'Announcement retrieved successfully.');
+        $item = $this->service->findOrFail($announcement->id);
+
+        return $this->success(new PlatformAnnouncementResource($item), 'Announcement retrieved successfully.');
     }
 
     /**
